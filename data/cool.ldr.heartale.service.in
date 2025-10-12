@@ -1,0 +1,3 @@
+[D-BUS Service]
+Name=cool.ldr.heartale
+Exec=@bindir@/heartale --gapplication-service

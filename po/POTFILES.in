@@ -1,0 +1,8 @@
+# List of source files containing translatable strings.
+# Please keep this file sorted alphabetically.
+data/cool.ldr.heartale.desktop.in
+data/cool.ldr.heartale.metainfo.xml.in
+data/cool.ldr.heartale.gschema.xml
+src/main.py
+src/window.py
+src/window.ui

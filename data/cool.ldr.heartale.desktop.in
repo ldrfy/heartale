@@ -1,0 +1,10 @@
+[Desktop Entry]
+Name=heartale
+Exec=heartale
+Icon=cool.ldr.heartale
+Terminal=false
+Type=Application
+Categories=Utility;
+Keywords=GTK;
+StartupNotify=true
+DBusActivatable=true
