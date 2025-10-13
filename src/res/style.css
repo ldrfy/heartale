@@ -1,0 +1,19 @@
+.book-tile {
+    min-width: 150px;
+    max-width: 150px;
+    min-height: 220px;
+    max-height: 220px;
+    padding: 8px;
+    border-radius: 12px;
+}
+
+.book-tile .cover {
+    min-height: 160px;max-height: 160px;
+    border-radius: 8px;
+    background: @theme_bg_color;
+}
+
+.book-tile .title {
+    font-weight: 600;
+    margin-top: 6px;
+}

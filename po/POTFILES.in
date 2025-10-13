@@ -5,4 +5,5 @@ data/cool.ldr.heartale.metainfo.xml.in
 data/cool.ldr.heartale.gschema.xml
 src/main.py
 src/window.py
+src/read.py
 src/window.ui

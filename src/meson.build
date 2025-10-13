@@ -22,6 +22,10 @@ heartale_sources = [
   '__init__.py',
   'main.py',
   'window.py',
+  'book_tile.py',
+  'page_empty.py',
+  'page_bookshelf.py',
+  'page_reader.py',
 ]
 
 install_data(heartale_sources, install_dir: moduledir)

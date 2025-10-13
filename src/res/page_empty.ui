@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="Adw" version="1.0"/>
+
+  <template class="EmptyPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">书架空</property>
+    <property name="can-pop">False</property>
+    <property name="child">
+      <object class="GtkBox" id="bookshelf0_root">
+        <property name="orientation">vertical</property>
+        <property name="spacing">12</property>
+        <property name="margin-start">16</property>
+        <property name="margin-end">16</property>
+        <property name="margin-top">16</property>
+        <property name="margin-bottom">16</property>
+
+        <child>
+          <object class="GtkButton" id="btn_jump_books">
+            <property name="label" translatable="yes">Books</property>
+            <style><class name="title-1"/></style>
+          </object>
+        </child>
+
+      </object>
+    </property>
+  </template>
+</interface>

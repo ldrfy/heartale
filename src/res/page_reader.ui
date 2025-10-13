@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="Adw" version="1.0"/>
+
+  <template class="ReaderPage" parent="AdwNavigationPage">
+    <property name="title" translatable="yes">书籍</property>
+    <property name="can-pop">True</property>
+    <property name="child">
+      <object class="GtkBox" id="reader_root">
+        <property name="orientation">horizontal</property>
+
+        <child>
+          <object class="GtkScrolledWindow">
+            <property name="min-content-width">200</property>
+            <property name="max-content-width">280</property>
+            <property name="vexpand">True</property>
+            <property name="child">
+              <object class="GtkListBox" id="nav_list">
+                <property name="selection-mode">single</property>
+                <signal name="row-activated" handler="on_nav_row_activated" swapped="no"/>
+
+              </object>
+            </property>
+          </object>
+        </child>
+
+        <child>
+          <object class="GtkScrolledWindow" id="scroll_content">
+            <property name="hexpand">True</property>
+            <property name="vexpand">True</property>
+            <property name="child">
+              <object class="GtkTextView" id="text_view">
+                <property name="wrap-mode">word-char</property>
+                <property name="editable">False</property>
+                <property name="left-margin">12</property>
+                <property name="right-margin">12</property>
+                <property name="top-margin">8</property>
+                <property name="bottom-margin">8</property>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </property>
+  </template>
+</interface>
