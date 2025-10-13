@@ -1,0 +1,82 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR yuhldr
+# This file is distributed under the same license as the cool.ldr.lfy package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: cool.ldr.lfy\n"
+"Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
+"POT-Creation-Date: 2025-10-13 17:30+0800\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: data/cool.ldr.heartale.desktop.in:2
+msgid "heartale"
+msgstr ""
+
+#: data/cool.ldr.heartale.desktop.in:8
+msgid "GTK;"
+msgstr ""
+
+#: src/res/page_bookshelf.ui:33
+msgid "书架"
+msgstr ""
+
+#: src/res/page_empty.ui:21
+msgid "Books"
+msgstr ""
+
+#: src/res/page_empty.ui:29
+msgid "书架空"
+msgstr ""
+
+#: src/res/page_reader.ui:44
+msgid "书籍"
+msgstr ""
+
+#: src/res/window.ui:13
+msgid "_Preferences"
+msgstr ""
+
+#: src/res/window.ui:17
+msgid "_Keyboard Shortcuts"
+msgstr ""
+
+#: src/res/window.ui:21
+msgid "_About Heartale"
+msgstr ""
+
+#: src/res/window.ui:39
+msgid "Back"
+msgstr ""
+
+#: src/res/window.ui:47
+msgid "Import Books"
+msgstr ""
+
+#: src/res/window.ui:55
+msgid "Delete Selected"
+msgstr ""
+
+#: src/res/window.ui:64
+msgid "Play"
+msgstr ""
+
+#: src/res/window.ui:75
+msgid "Main Menu"
+msgstr ""
+
+#: src/res/window.ui:84
+msgid "Heartale"
+msgstr ""
+
+#: src/main.py:64
+msgid "translator-credits"
+msgstr ""

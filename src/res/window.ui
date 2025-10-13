@@ -1,32 +1,36 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.96.1 -->
 <interface>
-  <requires lib="gtk" version="4.0"/>
+  <!-- interface-name window.ui -->
   <requires lib="Adw" version="1.0"/>
-
+  <requires lib="gio" version="2.0"/>
+  <requires lib="gtk" version="4.0"/>
+  <requires lib="libadwaita" version="1.7"/>
   <menu id="primary_menu">
     <section>
       <item>
-        <attribute name="label" translatable="yes">_Preferences</attribute>
         <attribute name="action">app.preferences</attribute>
+        <attribute name="label" translatable="yes">_Preferences</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
         <attribute name="action">app.shortcuts</attribute>
+        <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">_About Heartale</attribute>
         <attribute name="action">app.about</attribute>
+        <attribute name="label" translatable="yes">_About Heartale</attribute>
       </item>
     </section>
   </menu>
-
   <template class="HeartaleWindow" parent="AdwApplicationWindow">
-    <property name="title" translatable="yes">Heartale</property>
-    <property name="default-width">960</property>
-    <property name="default-height">640</property>
-
     <property name="content">
       <object class="AdwToolbarView">
+        <property name="content">
+          <object class="AdwNavigationView" id="nav">
+            <signal name="notify::visible-page" handler="on_visible_page_changed" swapped="no"/>
+        </object>
+
+        </property>
         <child type="top">
           <object class="AdwHeaderBar" id="header">
             <child type="start">
@@ -34,49 +38,49 @@
                 <property name="icon-name">go-previous-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Back</property>
                 <property name="visible">False</property>
+                <signal name="clicked" handler="on_back" swapped="no"/>
               </object>
             </child>
-
             <child type="start">
               <object class="GtkButton" id="btn_import">
                 <property name="icon-name">document-open-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Import Books</property>
                 <property name="visible">False</property>
+                <signal name="clicked" handler="on_import_book" swapped="no"/>
               </object>
             </child>
-
             <child type="end">
               <object class="GtkButton" id="btn_delete">
                 <property name="icon-name">user-trash-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Delete Selected</property>
                 <property name="visible">False</property>
-                <property name="sensitive">False</property>
+                <signal name="clicked" handler="on_delete_books" swapped="no"/>
+
               </object>
             </child>
-
             <child type="end">
               <object class="GtkButton" id="btn_play">
                 <property name="icon-name">media-playback-start-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Play</property>
                 <property name="visible">False</property>
+                                <signal name="clicked" handler="on_play_book" swapped="no"/>
+
               </object>
             </child>
-
             <child type="end">
               <object class="GtkMenuButton">
-                <property name="primary">True</property>
                 <property name="icon-name">open-menu-symbolic</property>
-                <property name="tooltip-text" translatable="yes">Main Menu</property>
                 <property name="menu-model">primary_menu</property>
+                <property name="primary">True</property>
+                <property name="tooltip-text" translatable="yes">Main Menu</property>
               </object>
             </child>
           </object>
         </child>
-
-        <property name="content">
-          <object class="AdwNavigationView" id="nav"/>
-        </property>
       </object>
     </property>
+    <property name="default-height">640</property>
+    <property name="default-width">960</property>
+    <property name="title" translatable="yes">Heartale</property>
   </template>
 </interface>

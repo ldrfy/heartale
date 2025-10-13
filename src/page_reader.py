@@ -1,14 +1,22 @@
-# page_reader.py
+"""阅读界面"""
 import json
 from pathlib import Path
 
-from gi.repository import Adw, GLib, Gtk
+from gi.repository import Adw, GLib, Gtk  # type: ignore
 
-PROGRESS_FILE = Path(GLib.get_user_config_dir()) / "heartale" / "progress.json"
+PROGRESS_FILE = Path.home() / ".config" / "heartale" / "progress.json"
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/page_reader.ui")
 class ReaderPage(Adw.NavigationPage):
+    """_summary_
+
+    Args:
+        Adw (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     __gtype_name__ = "ReaderPage"
 
     nav_list: Gtk.ListBox = Gtk.Template.Child("nav_list")
@@ -24,10 +32,10 @@ class ReaderPage(Adw.NavigationPage):
         self._chapter_marks: list[Gtk.TextMark] = []
         self._in_scroll_sync = False  # 防抖标记，避免循环触发
         self._load_or_init_progress_store()
-        self._build_document()           # 构造章节与 mark
-        self._build_nav_buttons()        # 左侧按钮
-        self._connect_scroll_sync()      # 滚动同步
-        self._restore_progress_async()   # 恢复上次进度（滚到哪就到哪）
+        self._build_document()  # 构造章节与 mark
+        self._build_nav_buttons()  # 左侧按钮
+        self._connect_scroll_sync()  # 滚动同步
+        self._restore_progress_async()  # 恢复上次进度（滚到哪就到哪）
 
     # ---------- 文档/章节构建（示例：按简单章节数组；实际可由解析器生成） ----------
     def _build_document(self):
@@ -50,7 +58,7 @@ class ReaderPage(Adw.NavigationPage):
 
     def _fake_chapters_from_book(self, book: dict):
         title = Path(book.get("path", "")).stem or (
-            book.get("title") or "Untitled")
+                book.get("title") or "Untitled")
         # 仅示例：实际应替换为真实内容（读取文件/解析）
         chapters = []
         for i in range(1, 11):
@@ -60,9 +68,9 @@ class ReaderPage(Adw.NavigationPage):
             })
         return chapters
 
-    # ---------- 左侧“阅读按钮”（导航列表） ----------
     def _build_nav_buttons(self):
-        # 清空
+        """_summary_
+        """
         child = self.nav_list.get_first_child()
         while child:
             self.nav_list.remove(child)
@@ -79,7 +87,13 @@ class ReaderPage(Adw.NavigationPage):
         self.nav_list.show()
 
     @Gtk.Template.Callback()
-    def on_nav_row_activated(self, listbox: Gtk.ListBox, row: Gtk.ListBoxRow):
+    def on_nav_row_activated(self, _listbox: Gtk.ListBox, row: Gtk.ListBoxRow):
+        """_summary_
+
+        Args:
+            _listbox (Gtk.ListBox): _description_
+            row (Gtk.ListBoxRow): _description_
+        """
         idx = row.get_index()
         if 0 <= idx < len(self._chapter_marks):
             mark = self._chapter_marks[idx]
@@ -117,7 +131,7 @@ class ReaderPage(Adw.NavigationPage):
         if vadj:
             vadj.connect("value-changed", self._on_scroll_value_changed)
 
-    def _on_scroll_value_changed(self, adj: Gtk.Adjustment):
+    def _on_scroll_value_changed(self, _adj: Gtk.Adjustment):
         if self._in_scroll_sync:
             return
         # 当前可视顶部对应的 buffer 偏移
@@ -186,6 +200,7 @@ class ReaderPage(Adw.NavigationPage):
             self.text_view.scroll_to_mark(mark, 0.0, True, 0.0, 0.0)
             GLib.idle_add(self._clear_sync_flag)
             return False
+
         GLib.idle_add(_do)
 
     def _progress_key(self) -> str:

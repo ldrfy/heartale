@@ -10,22 +10,22 @@ conf.set('localedir', get_option('prefix') / get_option('localedir'))
 conf.set('pkgdatadir', pkgdatadir)
 
 configure_file(
-  input: 'heartale.in',
-  output: 'heartale',
-  configuration: conf,
-  install: true,
-  install_dir: get_option('bindir'),
-  install_mode: 'rwxr-xr-x'
+    input: 'heartale.in',
+    output: 'heartale',
+    configuration: conf,
+    install: true,
+    install_dir: get_option('bindir'),
+    install_mode: 'rwxr-xr-x',
 )
 
 heartale_sources = [
-  '__init__.py',
-  'main.py',
-  'window.py',
-  'book_tile.py',
-  'page_empty.py',
-  'page_bookshelf.py',
-  'page_reader.py',
+    '__init__.py',
+    'main.py',
+    'window.py',
+    'book_tile.py',
+    'page_empty.py',
+    'page_bookshelf.py',
+    'page_reader.py',
 ]
 
 install_data(heartale_sources, install_dir: moduledir)

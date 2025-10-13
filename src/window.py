@@ -1,14 +1,21 @@
-# window.py
-# SPDX-License-Identifier: GPL-3.0-or-later
+"""窗口"""
 
-from gi.repository import Adw, Gtk
+from pathlib import Path
+
+from gi.repository import Adw, GLib, Gtk  # type: ignore
 
 from .page_bookshelf import BookshelfPage
 from .page_empty import EmptyPage
+from .page_reader import ReaderPage
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/window.ui")
 class HeartaleWindow(Adw.ApplicationWindow):
+    """_summary_
+
+    Args:
+        Adw (_type_): _description_
+    """
     __gtype_name__ = "HeartaleWindow"
 
     # 全局导航与头部按钮
@@ -23,50 +30,11 @@ class HeartaleWindow(Adw.ApplicationWindow):
     page_bookshelf = None
     page_reader = None
 
-    # 关键子控件引用
-    flow_books: Gtk.FlowBox | None = None
-    nav_list: Gtk.ListBox | None = None
-    text_view: Gtk.TextView | None = None
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        # 创建页面实例（每页本身是 Template 子类）
-
-        self.page_empty = EmptyPage(self.nav)
         self.page_bookshelf = BookshelfPage(self.nav)
-
-        # 拿到子控件引用
-        self.flow_books = self.page_bookshelf.flow_books
-
-        # FlowBox 选择变化影响删除键
-        self.flow_books.connect(
-            "selected-children-changed", self._on_flow_selection_changed)
-
-        # 放入导航栈
-        self.nav.push(self.page_empty)
-
-        # 顶部按钮行为
-        self.btn_back.connect("clicked", self._on_back_clicked)
-        self.btn_import.connect(
-            "clicked", self.page_bookshelf.on_import_clicked)
-        self.btn_delete.connect(
-            "clicked", self.page_bookshelf.on_delete_selected_clicked)
-        self.btn_play.connect("clicked", self.on_play_clicked)
-
-        # 页可见变化
-        self.nav.connect("notify::visible-page", self._on_visible_page_changed)
-
-        # 初始同步
-        self._sync_header()
-
-
-    def _on_back_clicked(self, *_):
-        page = self.nav.get_visible_page()
-        if page and page.get_can_pop():
-            self.nav.pop()
-
-    def _on_visible_page_changed(self, *_):
+        self.nav.push(self.page_bookshelf)
         self._sync_header()
 
     # ---------- Header 同步 ----------
@@ -74,27 +42,62 @@ class HeartaleWindow(Adw.ApplicationWindow):
         page = self.nav.get_visible_page()
         if not page:
             return
-        is_root = not page.get_can_pop()
-        on_bookshelf0 = page is self.page_empty
-        on_bookshelf = page is self.page_bookshelf
 
-        self.btn_back.set_visible(not is_root)
-        self.btn_import.set_visible(on_bookshelf0 or on_bookshelf)
-        self.btn_delete.set_visible(on_bookshelf)
+        on_page_empty = isinstance(page, EmptyPage)
+        on_page_bookshelf = isinstance(page, BookshelfPage)
+        on_page_reader = isinstance(page, ReaderPage)
 
-        # 删除键敏感态
-        if on_bookshelf:
-            count = len(self.flow_books.get_selected_children())
-            self.btn_delete.set_sensitive(count > 0)
-        else:
-            self.btn_delete.set_sensitive(False)
+        print(page, self.page_bookshelf)
+        print(on_page_reader, on_page_empty, on_page_bookshelf)
 
-    def _on_flow_selection_changed(self, flowbox: Gtk.FlowBox):
-        self.btn_delete.set_sensitive(len(flowbox.get_selected_children()) > 0)
+        self.btn_back.set_visible(on_page_reader)
+        self.btn_play.set_visible(on_page_reader)
+        self.btn_import.set_visible(on_page_bookshelf)
+        self.btn_delete.set_visible(on_page_bookshelf)
 
+    @Gtk.Template.Callback()
+    def on_visible_page_changed(self, *_):
+        self._sync_header()
 
-    def on_delete_selected_clicked(self, _btn):
-        print("TODO: Delete selected items")
+    @Gtk.Template.Callback()
+    def on_back(self, *_):
+        page = self.nav.get_visible_page()
+        if page and page.get_can_pop():
+            self.nav.pop()
 
-    def on_play_clicked(self, _btn):
+    @Gtk.Template.Callback()
+    def on_play_book(self, _btn):
         print("TODO: Play / Read")
+
+    @Gtk.Template.Callback()
+    def on_delete_books(self, _btn):
+        self.page_bookshelf.on_delete_selected_clicked(_btn)
+
+    @Gtk.Template.Callback()
+    def on_import_book(self, _btn):
+        dlg = Gtk.FileDialog.new()
+        dlg.set_title("选择要导入的书籍")
+        ff = Gtk.FileFilter()
+        ff.set_name("文档与电子书")
+        for suf in ("pdf", "epub", "djvu", "txt", "md", "mobi", "azw3"):
+            ff.add_suffix(suf)
+        dlg.set_default_filter(ff)
+
+        def _done(d, res):
+            try:
+                files = d.open_multiple_finish(res)
+            except GLib.Error:
+                return
+            added = 0
+            for f in files:
+                path = f.get_path()
+                if not path:
+                    continue
+                self.page_bookshelf.books.append(
+                    {"path": path, "title": Path(path).stem})
+                added += 1
+            if added:
+                self.page_bookshelf.save_books(self.page_bookshelf.books)
+                self.page_bookshelf.refresh_shelf()
+
+        dlg.open_multiple(self, None, _done)

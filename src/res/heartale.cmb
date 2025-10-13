@@ -1,0 +1,10 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
+<!-- Created with Cambalache 0.96.1 -->
+<cambalache-project version="0.96.0" target_tk="gtk-4.0">
+  <ui template-class="HeartaleWindow" filename="window.ui" sha256="e026d40af33f6a5d264929211bd6e2458bb92b2385dd9212e36e3ed5ddca3131"/>
+  <ui template-class="BookTile" filename="book_tile.ui" sha256="b557da4f6bbe53bb07eaf4b49f4e8cd8f195f16f479f4012569eb265c773e2b5"/>
+  <ui template-class="BookshelfPage" filename="page_bookshelf.ui" sha256="4e16e0426f42ca7cc24cde86b58700f4cfdc172413448816559a88a00f7d823a"/>
+  <ui template-class="EmptyPage" filename="page_empty.ui" sha256="88912957afc83ad79640107a53c078e174b303200dac85829cc59866876c45f1"/>
+  <ui template-class="ReaderPage" filename="page_reader.ui" sha256="5a111e73a88af7f7e1d62f55717b90f01c816e6f37adcd923a29195fea234b11"/>
+</cambalache-project>

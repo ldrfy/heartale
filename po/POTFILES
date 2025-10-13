@@ -1,0 +1,17 @@
+data/cool.ldr.heartale.desktop.in
+data/cool.ldr.heartale.gschema.xml
+
+src/res/book_tile.ui
+src/res/page_bookshelf.ui
+src/res/page_empty.ui
+src/res/page_reader.ui
+src/res/window.ui
+
+
+src/book_tile.py
+src/main.py
+src/page_bookshelf.py
+src/page_empty.py
+src/page_reader.py
+src/window.py
+

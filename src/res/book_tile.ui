@@ -1,33 +1,34 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.96.1 -->
 <interface>
+  <!-- interface-name book_tile.ui -->
   <requires lib="gtk" version="4.0"/>
   <template class="BookTile" parent="GtkBox">
+    <property name="margin-bottom">6</property>
+    <property name="margin-end">6</property>
+    <property name="margin-start">6</property>
+    <property name="margin-top">6</property>
     <property name="orientation">vertical</property>
     <property name="spacing">6</property>
-    <property name="margin-top">6</property>
-    <property name="margin-bottom">6</property>
-    <property name="margin-start">6</property>
-    <property name="margin-end">6</property>
-    <style>
-      <class name="book-tile"/>
-    </style>
     <child>
-      <object class="GtkBox" id="box_cover">
-        <style>
-          <class name="cover"/>
-        </style>
+      <object class="GtkImage">
+        <property name="valign">baseline</property>
       </object>
     </child>
     <child>
-      <object class="GtkLabel" id="lbl_title">
-        <property name="xalign">0</property>
-        <property name="wrap">False</property>
-        <property name="single-line-mode">True</property>
+      <object class="GtkLabel" id="lb_title">
         <property name="ellipsize">end</property>
+        <property name="single-line-mode">True</property>
+        <property name="valign">baseline</property>
+        <property name="wrap">False</property>
+        <property name="xalign">0</property>
         <style>
           <class name="title"/>
         </style>
       </object>
     </child>
+    <style>
+      <class name="book-tile"/>
+    </style>
   </template>
 </interface>

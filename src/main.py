@@ -1,30 +1,13 @@
-# main.py
-#
-# Copyright 2025 Unknown
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program.  If not, see <https://www.gnu.org/licenses/>.
-#
-# SPDX-License-Identifier: GPL-3.0-or-later
-
+"""main"""
 import sys
+from gettext import gettext as _
 
 import gi
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
 
-from gi.repository import Adw, Gio, Gtk
+from gi.repository import Adw, Gio  # type: ignore
 
 from .window import HeartaleWindow
 
@@ -42,29 +25,36 @@ class HeartaleApplication(Adw.Application):
 
     def do_activate(self):
         """Called when the application is activated.
-
         We raise the application's main window, creating it if
         necessary.
+
+        Raises:
+            the: _description_
         """
         win = self.props.active_window
         if not win:
             win = HeartaleWindow(application=self)
         win.present()
 
-    def on_about_action(self, *args):
-        """Callback for the app.about action."""
+    def on_about_action(self, *_args):
+        """Callback for the app.about actio
+        """
         about = Adw.AboutDialog(application_name='heartale',
                                 application_icon='cool.ldr.heartale',
                                 developer_name='Unknown',
                                 version='0.1.0',
                                 developers=['Unknown'],
                                 copyright='© 2025 Unknown')
-        # Translators: Replace "translator-credits" with your name/username, and optionally an email or URL.
         about.set_translator_credits(_('translator-credits'))
         about.present(self.props.active_window)
 
-    def on_preferences_action(self, widget, _):
-        """Callback for the app.preferences action."""
+    def on_preferences_action(self, _widget, _):
+        """Callback for the app.preferences action.
+
+        Args:
+            _widget (_type_): _description_
+            _ (_type_): _description_
+        """        """"""
         print('app.preferences action activated')
 
     def create_action(self, name, callback, shortcuts=None):
@@ -86,4 +76,5 @@ class HeartaleApplication(Adw.Application):
 def main(version):
     """The application's entry point."""
     app = HeartaleApplication()
+    print(version)
     return app.run(sys.argv)
