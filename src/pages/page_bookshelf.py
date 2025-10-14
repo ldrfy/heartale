@@ -1,9 +1,9 @@
 """书架"""
-import json
 from pathlib import Path
 
 from gi.repository import Adw, Gtk  # type: ignore
 
+from ..entity import Book, LibraryDB
 from ..widgets.book_tile import BookTile
 from .page_empty import EmptyPage
 from .page_reader import ReaderPage
@@ -33,47 +33,17 @@ class BookshelfPage(Adw.NavigationPage):
         self._widget_to_book = {}  # widget -> book 映射，便于删除
         BOOKS_FILE.parent.mkdir(parents=True, exist_ok=True)
 
-        self.books = self.load_books(default=[])
         self.nav = nav
-        print(self.books)
         print(self.flow_books)
 
-        if len(self.books) == 0:
+        db = LibraryDB()
+        if len(list(db.iter_books())) == 0:
             self.page_empty = EmptyPage(self)
             self.nav.push(self.page_empty)
         else:
             self.refresh_shelf()
+        db.close()
 
-    # ------------ 数据 I/O ------------
-    def load_books(self, default=None):
-        """_summary_
-
-        Args:
-            default (_type_, optional): _description_. Defaults to None.
-
-        Returns:
-            _type_: _description_
-        """
-        print(BOOKS_FILE)
-        try:
-            with BOOKS_FILE.open("r", encoding="utf-8") as f:
-                return json.load(f)
-        except FileNotFoundError:
-            return default if default is not None else []
-        except json.JSONDecodeError:
-            return default if default is not None else []
-
-    def save_books(self, data):
-        """_summary_
-
-        Args:
-            data (_type_): _description_
-        """
-        tmp = BOOKS_FILE.with_suffix(".json.tmp")
-        with tmp.open("w", encoding="utf-8") as f:
-            json.dump(data, f, ensure_ascii=False, indent=2)
-            f.write("\n")
-        tmp.replace(BOOKS_FILE)
 
     def refresh_shelf(self):
         """_summary_
@@ -84,12 +54,15 @@ class BookshelfPage(Adw.NavigationPage):
             self.flow_books.remove(child)
             child = self.flow_books.get_first_child()
         # 追加
-        for book in self.books:
+        db = LibraryDB()
+        for book in list(db.iter_books()):
+            print(book)
             self.flow_books.append(BookTile(book))
+        db.close()
 
     # ------------ 交互逻辑 ------------
 
-    def open_book_page(self, book: dict):
+    def open_book_page(self, book: Book):
         """_summary_
 
         Args:
@@ -123,14 +96,13 @@ class BookshelfPage(Adw.NavigationPage):
             if resp != "delete":
                 return
             # 收集被选中的书并从数据中删除
-            ids = set()
+            db = LibraryDB()
             for ch in selected:
                 tile = ch.get_child()
                 book = getattr(tile, "book", None)
-                if book is not None:
-                    ids.add(id(book))
-            self.books = [b for b in self.books if id(b) not in ids]
-            self.save_books(self.books)
+                if book:
+                    db.delete_book_by_md5(book.md5)
+            db.close()
             self.refresh_shelf()
 
         dlg.connect("response", _resp)

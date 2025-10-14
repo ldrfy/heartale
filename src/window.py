@@ -4,6 +4,8 @@ from pathlib import Path
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
+from .entity import LibraryDB
+from .entity.utils import path2book
 from .pages.page_bookshelf import BookshelfPage
 from .pages.page_empty import EmptyPage
 from .pages.page_reader import ReaderPage
@@ -27,7 +29,7 @@ class HeartaleWindow(Adw.ApplicationWindow):
 
     # 页面实例
     page_empty = None
-    page_bookshelf = None
+    page_bookshelf: BookshelfPage = None
     page_reader = None
 
     def __init__(self, **kwargs):
@@ -88,16 +90,28 @@ class HeartaleWindow(Adw.ApplicationWindow):
                 files = d.open_multiple_finish(res)
             except GLib.Error:
                 return
-            added = 0
+            books = []
+            s_error = ""
             for f in files:
-                path = f.get_path()
-                if not path:
+                try:
+                    book = path2book(f.get_path())
+                except (FileNotFoundError, ValueError) as e:
+                    print("Import error:", e)
+                    s_error += f"{Path(f.get_path()).name}: {e}\n"
                     continue
-                self.page_bookshelf.books.append(
-                    {"path": path, "title": Path(path).stem})
-                added += 1
-            if added:
-                self.page_bookshelf.save_books(self.page_bookshelf.books)
+                books.append(book)
+            if len(books) > 0:
+                db = LibraryDB()
+                for b in books:
+                    db.save_book(b)
+                db.close()
                 self.page_bookshelf.refresh_shelf()
+            if s_error:
+                edlg = Adw.MessageDialog.new(
+                    self.get_root(), "导入部分失败", s_error)
+                edlg.add_response("ok", "确定")
+                edlg.set_default_response("ok")
+                edlg.set_close_response("ok")
+                edlg.present()
 
         dlg.open_multiple(self, None, _done)

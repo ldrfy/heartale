@@ -4,6 +4,8 @@ from pathlib import Path
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
+from ..entity import Book, LibraryDB
+
 PROGRESS_FILE = Path.home() / ".config" / "heartale" / "progress.json"
 
 
@@ -23,7 +25,7 @@ class ReaderPage(Adw.NavigationPage):
     text_view: Gtk.TextView = Gtk.Template.Child("text_view")
     scroll_content: Gtk.ScrolledWindow = Gtk.Template.Child()
 
-    def __init__(self, nav: Adw.NavigationView, book: dict, **kwargs):
+    def __init__(self, nav: Adw.NavigationView, book: Book, **kwargs):
         super().__init__(**kwargs)
         self._nav = nav
         self._book = book
@@ -56,14 +58,12 @@ class ReaderPage(Adw.NavigationPage):
             # 正文
             buf.insert(iter_, ch["body"] + "\n\n", -1)
 
-    def _fake_chapters_from_book(self, book: dict):
-        title = Path(book.get("path", "")).stem or (
-                book.get("title") or "Untitled")
+    def _fake_chapters_from_book(self, book: Book):
         # 仅示例：实际应替换为真实内容（读取文件/解析）
         chapters = []
         for i in range(1, 11):
             chapters.append({
-                "title": f"{title} - 第 {i} 章",
+                "title": f"{book.name} - 第 {i} 章",
                 "body": "这里是正文示例。" * 80  # 占位长文本
             })
         return chapters
@@ -205,4 +205,4 @@ class ReaderPage(Adw.NavigationPage):
 
     def _progress_key(self) -> str:
         # 以路径为主键；也可改为 (路径+文件指纹)
-        return str(self._book.get("path", self._book.get("title", "Untitled")))
+        return self._book.md5
