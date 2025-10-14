@@ -7,12 +7,64 @@ Book 与 TimeRead 的 sqlite3 持久化实现。
 
 import hashlib
 import shutil
+import re
 from datetime import datetime
 from pathlib import Path
 
 from . import LibraryDB
 from .book import Book
 from .time_read import TimeRead
+
+
+
+def parse_volumes_and_chapters(file_content, chap_n):
+    """
+
+    Args:
+        file_content (str): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    # 匹配 "第xx卷" 和 "第xx章"
+    volume_pattern = r'^第([一二三四五六七八九十\d]+)卷\s*(.*)'  # 匹配卷号
+    chapter_pattern = r'^第([一二三四五六七八九十百千\d]+)章\s*(.*)'  # 匹配章号
+
+    current_volume = None
+    chaps_name = []
+    chaps_p = []
+    chaps_content = []
+
+    # 按行解析文本
+    # print(file_content)
+    ss = file_content.split("\n")
+    words = 0
+    for line in ss:
+        words += len(line + "\n")
+        # 匹配卷号
+        volume_match = re.search(volume_pattern, line)
+        if volume_match:
+            current_volume = volume_match.group()  # 获取当前卷
+            continue  # 继续找章
+
+        # 匹配章号
+        chapter_match = re.search(chapter_pattern, line)
+        if chapter_match:
+            current_chapter = chapter_match.group()
+            if current_volume:
+                chaps_name.append(f"{current_volume} {current_chapter}")
+            else:
+                chaps_name.append(f"{current_chapter}")
+            chaps_p.append(words)
+            chaps_content.append("")
+
+        if chap_n+5 >= len(chaps_p) >= max(1, chap_n-5):
+            print("-----", len(chaps_content), len(chaps_p)-1)
+            chaps_content[len(chaps_p)-1] += line + "\n"
+
+    return chaps_name, chaps_p, chaps_content
+
 
 
 def cal_md5(path: Path, chunk_size: int = 8192) -> str:

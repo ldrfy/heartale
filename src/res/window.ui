@@ -27,9 +27,8 @@
       <object class="AdwToolbarView">
         <property name="content">
           <object class="AdwNavigationView" id="nav">
-            <signal name="notify::visible-page" handler="on_visible_page_changed" swapped="no"/>
-        </object>
-
+            <signal name="notify::visible-page" handler="on_visible_page_changed"/>
+          </object>
         </property>
         <child type="top">
           <object class="AdwHeaderBar" id="header">
@@ -38,7 +37,7 @@
                 <property name="icon-name">go-previous-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Back</property>
                 <property name="visible">False</property>
-                <signal name="clicked" handler="on_back" swapped="no"/>
+                <signal name="clicked" handler="on_back"/>
               </object>
             </child>
             <child type="start">
@@ -46,7 +45,7 @@
                 <property name="icon-name">document-open-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Import Books</property>
                 <property name="visible">False</property>
-                <signal name="clicked" handler="on_import_book" swapped="no"/>
+                <signal name="clicked" handler="on_import_book"/>
               </object>
             </child>
             <child type="end">
@@ -54,8 +53,7 @@
                 <property name="icon-name">user-trash-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Delete Selected</property>
                 <property name="visible">False</property>
-                <signal name="clicked" handler="on_delete_books" swapped="no"/>
-
+                <signal name="clicked" handler="on_delete_books"/>
               </object>
             </child>
             <child type="end">
@@ -63,8 +61,7 @@
                 <property name="icon-name">media-playback-start-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Play</property>
                 <property name="visible">False</property>
-                                <signal name="clicked" handler="on_play_book" swapped="no"/>
-
+                <signal name="clicked" handler="on_play_book"/>
               </object>
             </child>
             <child type="end">

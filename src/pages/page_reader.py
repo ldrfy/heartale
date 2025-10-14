@@ -5,6 +5,7 @@ from pathlib import Path
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
 from ..entity import Book, LibraryDB
+from ..entity.utils import parse_volumes_and_chapters
 
 PROGRESS_FILE = Path.home() / ".config" / "heartale" / "progress.json"
 
@@ -61,11 +62,15 @@ class ReaderPage(Adw.NavigationPage):
     def _fake_chapters_from_book(self, book: Book):
         # 仅示例：实际应替换为真实内容（读取文件/解析）
         chapters = []
-        for i in range(1, 11):
-            chapters.append({
-                "title": f"{book.name} - 第 {i} 章",
-                "body": "这里是正文示例。" * 80  # 占位长文本
-            })
+        with open(book.path, "r", encoding=book.encoding) as f:
+            chaps_name, chaps_p, chaps_content = parse_volumes_and_chapters(f.read(), book.chap_n)
+            n = 0
+            for name, p, content in zip(chaps_name, chaps_p, chaps_content):
+                n += 1
+                chapters.append({
+                    "title": name,
+                    "body": content
+                })
         return chapters
 
     def _build_nav_buttons(self):
@@ -79,6 +84,7 @@ class ReaderPage(Adw.NavigationPage):
         for ch in self._chapters:
             row = Gtk.ListBoxRow()
             btn = Gtk.Button(label=ch["title"], halign=Gtk.Align.FILL)
+            btn.set_halign(Gtk.Align.START)  # 靠左对齐
             btn.set_hexpand(True)
             # 点击按钮 -> 激活该行（触发 row-activated，统一走一套逻辑）
             btn.connect("clicked", lambda _b, r=row: r.activate())

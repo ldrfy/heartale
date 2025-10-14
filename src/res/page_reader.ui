@@ -8,7 +8,7 @@
   <template class="ReaderPage" parent="AdwNavigationPage">
     <property name="can-pop">True</property>
     <property name="child">
-      <object class="GtkBox" id="page_reader_root">
+      <object class="GtkPaned" id="page_reader_root">
         <property name="orientation">horizontal</property>
         <child>
           <object class="GtkScrolledWindow">
@@ -18,7 +18,6 @@
                 <signal name="row-activated" handler="on_nav_row_activated"/>
               </object>
             </property>
-            <property name="max-content-width">280</property>
             <property name="min-content-width">200</property>
             <property name="vexpand">True</property>
           </object>

@@ -17,8 +17,8 @@
         <property name="spacing">12</property>
         <child>
           <object class="GtkButton" id="btn_jump_books">
-            <signal name="clicked" handler="goto_bookshelf" swapped="no"/>
             <property name="label" translatable="yes">Books</property>
+            <signal name="clicked" handler="goto_bookshelf"/>
             <style>
               <class name="title-1"/>
             </style>
