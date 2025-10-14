@@ -4,9 +4,9 @@ from pathlib import Path
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
-from .page_bookshelf import BookshelfPage
-from .page_empty import EmptyPage
-from .page_reader import ReaderPage
+from .pages.page_bookshelf import BookshelfPage
+from .pages.page_empty import EmptyPage
+from .pages.page_reader import ReaderPage
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/window.ui")

@@ -4,7 +4,7 @@ from pathlib import Path
 
 from gi.repository import Adw, Gtk  # type: ignore
 
-from .book_tile import BookTile
+from ..widgets.book_tile import BookTile
 from .page_empty import EmptyPage
 from .page_reader import ReaderPage
 
