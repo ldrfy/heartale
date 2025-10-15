@@ -30,7 +30,7 @@
               <object class="GtkButton">
                 <property name="icon-name">media-playback-start-symbolic</property>
                 <property name="tooltip-text">朗读</property>
-                <property name="action-name">win.read-aloud</property>
+                <signal name="clicked" handler="_on_read_aloud" swapped="no"/>
               </object>
             </child>
           </object>

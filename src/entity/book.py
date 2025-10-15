@@ -2,8 +2,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 
-import gi
-from gi.repository import GObject
+from gi.repository import GObject  # type: ignore
 
 
 @dataclass
@@ -24,8 +23,6 @@ class Book:
         default_factory=lambda: int(datetime.now().timestamp()))
 # -*- coding: utf-8 -*-
 
-
-gi.require_version("GObject", "2.0")
 
 class BookObject(GObject.GObject):
     """供 Gtk/Gio 模型使用的 GObject 封装"""

@@ -2,7 +2,22 @@
 <interface>
   <requires lib="gtk" version="4.12"/>
   <requires lib="adw" version="1.4"/>
-
+  <menu id="primary_menu">
+    <section>
+      <item>
+        <attribute name="action">app.preferences</attribute>
+        <attribute name="label" translatable="yes">_Preferences</attribute>
+      </item>
+      <item>
+        <attribute name="action">app.shortcuts</attribute>
+        <attribute name="label" translatable="yes">_Keyboard Shortcuts</attribute>
+      </item>
+      <item>
+        <attribute name="action">app.about</attribute>
+        <attribute name="label" translatable="yes">_About Heartale</attribute>
+      </item>
+    </section>
+  </menu>
   <template class="ShelfPage" parent="AdwNavigationPage">
     <property name="title">书架</property>
     <property name="tag">shelf</property>
@@ -24,6 +39,14 @@
                 <property name="action-name">win.import-books</property>
               </object>
             </child>
+            <child type="end">
+              <object class="GtkMenuButton">
+                <property name="icon-name">open-menu-symbolic</property>
+                <property name="menu-model">primary_menu</property>
+                <property name="primary">True</property>
+                <property name="tooltip-text" translatable="yes">Main Menu</property>
+              </object>
+            </child>
           </object>
         </child>
 
@@ -36,7 +59,16 @@
                 <property name="description">当前没有书籍，请导入一本开始阅读</property>
                 <child>
                   <object class="GtkButton" id="btn_import">
-                    <property name="label">导入书籍</property>
+                    <style>
+                      <class name="suggested-action"/>
+                    </style>
+                    <child>
+                      <object class="AdwButtonContent">
+                        <property name="label">导入书籍</property>
+                        <property name="icon-name">document-open-symbolic</property>
+                      </object>
+                    </child>
+                    <signal name="clicked" handler="_on_import_book" swapped="no"/>
                   </object>
                 </child>
               </object>
@@ -49,6 +81,7 @@
                 <property name="child">
                   <object class="GtkListView" id="list">
                     <property name="single-click-activate">true</property>
+                    <signal name="activate" handler="_on_shelf_activate" swapped="no"/>
                   </object>
                 </property>
               </object>

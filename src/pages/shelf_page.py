@@ -1,17 +1,25 @@
-# -*- coding: utf-8 -*-
+"""书架页面"""
 
-import gi
-from gi.repository import Adw, Gio, Gtk
+from pathlib import Path
+
+from gi.repository import Adw, Gio, GLib, Gtk  # type: ignore
 
 from ..entity import LibraryDB
 from ..entity.book import BookObject
-
-gi.require_version("Gtk", "4.0")
-gi.require_version("Adw", "1")
+from ..entity.utils import path2book
+from .reader_page import ReaderPage
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/shelf_page.ui")
 class ShelfPage(Adw.NavigationPage):
+    """书架
+
+    Args:
+        Adw (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     __gtype_name__ = "ShelfPage"
 
     list: Gtk.ListView = Gtk.Template.Child()
@@ -20,16 +28,24 @@ class ShelfPage(Adw.NavigationPage):
     empty: Adw.StatusPage = Gtk.Template.Child()
     btn_import: Gtk.Button = Gtk.Template.Child()
 
-    def __init__(self, **kwargs):
+    def __init__(self, nav: Adw.NavigationView, reader_page: ReaderPage, **kwargs):
         super().__init__(**kwargs)
+        self._nav: Adw.NavigationView = nav
+        self._reader_page: ReaderPage = reader_page
+        self._books: Gio.ListStore = Gio.ListStore.new(BookObject)
         self._factory = self._build_factory()
+        self.set_model()
 
-    def set_model(self, liststore):
+    def set_model(self):
+        db = LibraryDB()
+        for b in db.iter_books():
+            self._books.append(BookObject.from_dataclass(b))
+        db.close()
         # liststore 应为 Gio.ListStore(BookObject)
-        selection = Gtk.SingleSelection.new(liststore)
+        selection = Gtk.SingleSelection.new(self._books)
         self.list.set_model(selection)
         self.list.set_factory(self._factory)
-        if liststore.get_n_items() > 0:
+        if self._books.get_n_items() > 0:
             self.show_list()
         else:
             self.show_empty()
@@ -88,3 +104,61 @@ class ShelfPage(Adw.NavigationPage):
         db = LibraryDB()
         db.delete_book_by_md5(list_item.get_item().md5)
         db.close()
+
+    def on_import_book(self):
+        self._on_import_book()
+
+    @Gtk.Template.Callback()
+    def _on_import_book(self, *_args):
+        dlg = Gtk.FileDialog.new()
+        dlg.set_title("选择要导入的书籍")
+        ff = Gtk.FileFilter()
+        ff.set_name("文档与电子书")
+        for suf in ("pdf", "epub", "djvu", "txt", "md", "mobi", "azw3"):
+            ff.add_suffix(suf)
+        dlg.set_default_filter(ff)
+
+        def _done(d, res):
+            try:
+                files = d.open_multiple_finish(res)
+            except GLib.Error:
+                return
+            books = []
+            s_error = ""
+            for f in files:
+                try:
+                    book = path2book(f.get_path())
+                except (FileNotFoundError, ValueError) as e:
+                    print("Import error:", e)
+                    s_error += f"{Path(f.get_path()).name}: {e}\n"
+                    continue
+                books.append(book)
+            if len(books) > 0:
+                db = LibraryDB()
+                for b in books:
+                    db.save_book(b)
+
+                self._books.remove_all()
+                for b in db.iter_books():
+                    self._books.append(BookObject.from_dataclass(b))
+                db.close()
+                self.show_list()
+
+            if s_error:
+                edlg = Adw.MessageDialog.new(
+                    self.get_root(), "导入部分失败", s_error)
+                edlg.add_response("ok", "确定")
+                edlg.set_default_response("ok")
+                edlg.set_close_response("ok")
+                edlg.present()
+
+        dlg.open_multiple(self.get_root(), None, _done)
+
+    @Gtk.Template.Callback()
+    def _on_shelf_activate(self, listview: Gtk.ListView, position: int):
+
+        selection: Gtk.SingleSelection = listview.get_model()
+        bobj: BookObject = selection.get_item(position)
+        self._reader_page.set_data(bobj.to_dataclass())
+
+        self._nav.push(self._reader_page)

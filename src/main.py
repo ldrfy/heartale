@@ -6,10 +6,12 @@ import gi
 
 gi.require_version('Gtk', '4.0')
 gi.require_version('Adw', '1')
+gi.require_version("GObject", "2.0")
 
-from gi.repository import Adw, Gio  # type: ignore
 
-from .window import HeartaleWindow
+from gi.repository import Adw, Gio  # type: ignore pylint: disable=C0413
+
+from .window import HeartaleWindow  # pylint: disable=C0413
 
 
 class HeartaleApplication(Adw.Application):
