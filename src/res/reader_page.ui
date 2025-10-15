@@ -37,36 +37,115 @@
         </child>
 
         <property name="content">
-          <object class="AdwOverlaySplitView" id="split">
-            <property name="show-sidebar">true</property>
 
-            <property name="sidebar">
-              <object class="GtkScrolledWindow">
-                <property name="min-content-width">240</property>
-                <property name="child">
-                  <object class="GtkListView" id="toc">
-                    <property name="single-click-activate">true</property>
-                  </object>
-                </property>
-              </object>
-            </property>
+          <object class="AdwViewStack" id="stack">
+            <property name="visible-child-name">loading</property>
+            <property name="vexpand">true</property>
+            <property name="hexpand">true</property>
 
-            <property name="content">
-              <object class="GtkScrolledWindow">
-                <property name="vexpand">true</property>
-                <property name="hexpand">true</property>
-                <property name="child">
-                  <object class="GtkTextView" id="text">
-                    <property name="wrap-mode">word-char</property>
-                    <property name="editable">false</property>
-                    <property name="left-margin">18</property>
-                    <property name="right-margin">18</property>
-                    <property name="top-margin">12</property>
-                    <property name="bottom-margin">12</property>
+
+
+            <!-- 1) 加载中 -->
+            <child>
+              <object class="AdwStatusPage" id="loading">
+                <property name="icon-name">content-loading-symbolic</property>
+                <property name="title">正在加载</property>
+                <property name="description">正在解析书籍与目录…</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">vertical</property>
+                    <property name="spacing">12</property>
+                    <property name="halign">center</property>
+                    <property name="valign">center</property>
+                    <child>
+                      <object class="GtkSpinner">
+                        <property name="spinning">true</property>
+                        <property name="width-request">32</property>
+                        <property name="height-request">32</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton" id="btn_cancel">
+                        <property name="label">取消</property>
+                        <property name="action-name">win.cancel-load</property>
+                      </object>
+                    </child>
                   </object>
-                </property>
+                </child>
               </object>
-            </property>
+            </child>
+
+
+
+
+
+            <!-- 2) 加载失败 -->
+            <child>
+              <object class="AdwStatusPage" id="error">
+                <property name="icon-name">dialog-error-symbolic</property>
+                <property name="title">加载失败</property>
+                <property name="description">无法打开本书或目录，请重试或返回。</property>
+                <child>
+                  <object class="GtkBox">
+                    <property name="orientation">horizontal</property>
+                    <property name="spacing">12</property>
+                    <property name="halign">center</property>
+                    <child>
+                      <object class="GtkButton" id="btn_retry">
+                        <property name="label">重试</property>
+                        <property name="action-name">win.retry-load</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkButton">
+                        <property name="label">返回书架</property>
+                        <property name="action-name">win.go-shelf</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+
+
+            <!-- 3) 正常阅读内容 -->
+            <child>
+                <object class="AdwOverlaySplitView" id="split">
+                    <property name="show-sidebar">true</property>
+
+                    <property name="sidebar">
+                    <object class="GtkScrolledWindow">
+                        <property name="min-content-width">240</property>
+                        <property name="child">
+                        <object class="GtkListView" id="toc">
+                            <property name="single-click-activate">true</property>
+                        </object>
+                        </property>
+                    </object>
+                    </property>
+
+                    <property name="content">
+                    <object class="GtkScrolledWindow">
+                        <property name="vexpand">true</property>
+                        <property name="hexpand">true</property>
+                        <property name="child">
+                        <object class="GtkTextView" id="text">
+                            <property name="wrap-mode">word-char</property>
+                            <property name="editable">false</property>
+                            <property name="left-margin">18</property>
+                            <property name="right-margin">18</property>
+                            <property name="top-margin">12</property>
+                            <property name="bottom-margin">12</property>
+                        </object>
+                        </property>
+                    </object>
+                    </property>
+                </object>
+            </child>
+
+
+
           </object>
         </property>
       </object>

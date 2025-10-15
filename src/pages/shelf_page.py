@@ -15,7 +15,7 @@ class ShelfPage(Adw.NavigationPage):
     __gtype_name__ = "ShelfPage"
 
     list: Gtk.ListView = Gtk.Template.Child()
-    stack: Gtk.Stack = Gtk.Template.Child()
+    stack: Adw.ViewStack = Gtk.Template.Child()
     scroller: Gtk.ScrolledWindow = Gtk.Template.Child()
     empty: Adw.StatusPage = Gtk.Template.Child()
     btn_import: Gtk.Button = Gtk.Template.Child()
