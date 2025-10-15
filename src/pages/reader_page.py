@@ -9,6 +9,7 @@ from ..entity.book import Book
 from ..entity.utils import parse_chap_names
 
 logger = logging.getLogger(__name__)
+import time
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/reader_page.ui")
@@ -32,7 +33,6 @@ class ReaderPage(Adw.NavigationPage):
     toc: Gtk.ListView = Gtk.Template.Child()
     stack: Adw.ViewStack = Gtk.Template.Child()  # 新增绑定
     aos_reader: Adw.OverlaySplitView = Gtk.Template.Child()  # 新增绑定
-    page_reader: Adw.StatusPage = Gtk.Template.Child()  # 新增绑定
     page_error: Adw.StatusPage = Gtk.Template.Child()  # 新增绑定
     page_loading: Adw.StatusPage = Gtk.Template.Child()  # 新增绑定
 
@@ -43,6 +43,7 @@ class ReaderPage(Adw.NavigationPage):
         # self.set_state(self.PAGE_LOADING)
 
         self._nav = nav
+        self.t = 0
         self.chap_names, self.chaps_ps = [], []
         self.chap_content = ""
         self.book: Book | None = None
@@ -52,6 +53,7 @@ class ReaderPage(Adw.NavigationPage):
         """在子线程读取与解析章节，主线程更新 UI。"""
         print("data set:", book)
         self.show_loading()
+        self.t = time.time()
         self.title.set_title(book.name or "")
 
         def worker():
@@ -62,6 +64,10 @@ class ReaderPage(Adw.NavigationPage):
                     text = f.read()
                 self.chap_names, self.chaps_ps = parse_chap_names(text)
                 self.chap_content = self._get_chap_content_by_idx(book.chap_n)
+
+                print("------", time.time() - self.t)
+                if time.time() - self.t < 0.5:
+                    time.sleep(0.5 - (time.time() - self.t))
 
                 # 回到主线程更新 UI（非常重要：GTK 只能主线程改）
                 GLib.idle_add(
@@ -86,7 +92,6 @@ class ReaderPage(Adw.NavigationPage):
         """仅在主线程运行：绑定目录与正文。"""
         print("ReaderPage: data ready, updating UI...")
         self.show_reader()
-        print()
         self.title.set_subtitle(f"{self.chap_names[self.book.chap_n]}")
         self.bind_toc(Gtk.StringList.new(self.chap_names))
         self.set_text_content(self._get_chap_content_by_idx(self.book.chap_n))
@@ -117,7 +122,7 @@ class ReaderPage(Adw.NavigationPage):
     def show_reader(self) -> None:
         """显示阅读
         """
-        self.stack.set_visible_child(self.page_reader)
+        self.stack.set_visible_child(self.aos_reader)
         print("---- show reader ----")
 
     def set_text_content(self, content: str) -> None:
@@ -174,12 +179,6 @@ class ReaderPage(Adw.NavigationPage):
         self.toc.set_factory(factory)
         self.toc.set_model(Gtk.SingleSelection.new(string_list))
 
-
-    def _iter_children(self, widget: Gtk.Widget):
-        child = widget.get_first_child()
-        while child:
-            yield child
-            child = child.get_next_sibling()
 
     @Gtk.Template.Callback()
     def _on_read_aloud(self, *_args):
