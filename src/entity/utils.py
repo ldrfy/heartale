@@ -6,8 +6,8 @@ Book 与 TimeRead 的 sqlite3 持久化实现。
 """
 
 import hashlib
-import shutil
 import re
+import shutil
 from datetime import datetime
 from pathlib import Path
 
@@ -16,8 +16,7 @@ from .book import Book
 from .time_read import TimeRead
 
 
-
-def parse_volumes_and_chapters(file_content, chap_n):
+def parse_chap_names(file_content):
     """
 
     Args:
@@ -32,16 +31,12 @@ def parse_volumes_and_chapters(file_content, chap_n):
     chapter_pattern = r'^第([一二三四五六七八九十百千\d]+)章\s*(.*)'  # 匹配章号
 
     current_volume = None
-    chaps_name = []
-    chaps_p = []
-    chaps_content = []
+    chap_names = []
+    chap_ps = []
 
-    # 按行解析文本
-    # print(file_content)
     ss = file_content.split("\n")
     words = 0
     for line in ss:
-        words += len(line + "\n")
         # 匹配卷号
         volume_match = re.search(volume_pattern, line)
         if volume_match:
@@ -53,18 +48,14 @@ def parse_volumes_and_chapters(file_content, chap_n):
         if chapter_match:
             current_chapter = chapter_match.group()
             if current_volume:
-                chaps_name.append(f"{current_volume} {current_chapter}")
+                chap_names.append(f"{current_volume} {current_chapter}")
+                current_volume = None  # 重置卷号
             else:
-                chaps_name.append(f"{current_chapter}")
-            chaps_p.append(words)
-            chaps_content.append("")
+                chap_names.append(f"{current_chapter}")
+            chap_ps.append(words)
+        words += len(line + "\n")
 
-        if chap_n+5 >= len(chaps_p) >= max(1, chap_n-5):
-            print("-----", len(chaps_content), len(chaps_p)-1)
-            chaps_content[len(chaps_p)-1] += line + "\n"
-
-    return chaps_name, chaps_p, chaps_content
-
+    return chap_names, chap_ps
 
 
 def cal_md5(path: Path, chunk_size: int = 8192) -> str:

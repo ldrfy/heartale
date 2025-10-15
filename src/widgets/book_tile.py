@@ -18,6 +18,7 @@ class BookTile(Gtk.Box):
     """
     __gtype_name__ = "BookTile"
     lb_title: Gtk.Label = Gtk.Template.Child()
+    sp_book_loading: Gtk.Label = Gtk.Template.Child()
 
     def __init__(self, book: Book, **kwargs):
         super().__init__(**kwargs)

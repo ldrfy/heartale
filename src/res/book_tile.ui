@@ -15,6 +15,13 @@
         </style>
       </object>
     </child>
+
+    <child>
+        <object class="GtkSpinner" id="sp_book_loading">
+            <property name="valign">center</property>
+        </object>
+    </child>
+
     <child>
       <object class="GtkLabel" id="lb_title">
         <property name="ellipsize">end</property>

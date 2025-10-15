@@ -1,13 +1,8 @@
-"""阅读界面"""
-import json
-from pathlib import Path
+"""阅读"""
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
 from ..entity import Book, LibraryDB
-from ..entity.utils import parse_volumes_and_chapters
-
-PROGRESS_FILE = Path.home() / ".config" / "heartale" / "progress.json"
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/page_reader.ui")
@@ -25,53 +20,69 @@ class ReaderPage(Adw.NavigationPage):
     nav_list: Gtk.ListBox = Gtk.Template.Child("nav_list")
     text_view: Gtk.TextView = Gtk.Template.Child("text_view")
     scroll_content: Gtk.ScrolledWindow = Gtk.Template.Child()
+    scroll_chap_name: Gtk.ScrolledWindow = Gtk.Template.Child()
 
-    def __init__(self, nav: Adw.NavigationView, book: Book, **kwargs):
+    def __init__(self, nav: Adw.NavigationView, book: Book, chap_names, chaps_ps, ** kwargs):
         super().__init__(**kwargs)
         self._nav = nav
-        self._book = book
+        self.book = book
+
         self._buffer = Gtk.TextBuffer()
         self.text_view.set_buffer(self._buffer)
-        self._chapter_marks: list[Gtk.TextMark] = []
-        self._in_scroll_sync = False  # 防抖标记，避免循环触发
-        self._load_or_init_progress_store()
-        self._build_document()  # 构造章节与 mark
-        self._build_nav_buttons()  # 左侧按钮
-        self._connect_scroll_sync()  # 滚动同步
-        self._restore_progress_async()  # 恢复上次进度（滚到哪就到哪）
 
-    # ---------- 文档/章节构建（示例：按简单章节数组；实际可由解析器生成） ----------
+        # 滚动触发控制
+        self._auto_turning = False
+        self._armed_bottom = True
+        self._armed_top = True
+
+        self.chap_names = chap_names
+        self.chaps_ps = chaps_ps
+        self._build_document()
+        self._build_nav_buttons()
+
+    # -------- 工具：夹取，并带安全边距 ----------
+
+    @staticmethod
+    def _clamp(v: float, lo: float, hi: float) -> float:
+        return lo if v < lo else (hi if v > hi else v)
+
+    def _safe_set_value(self, adj: Gtk.Adjustment, value: float, margin: float = 0.0):
+        # 将 value 限制在 [lower, upper - page_size] 内，并留一点边距
+        lo = adj.get_lower()
+        hi = adj.get_upper() - adj.get_page_size()
+        value = self._clamp(value, lo, hi)
+        if margin > 0:
+            # 若在底部区，往上抬一点；在顶部区，往下压一点
+            if abs(value - hi) < 1e-3:
+                value = self._clamp(value - margin, lo, hi)
+            elif abs(value - lo) < 1e-3:
+                value = self._clamp(value + margin, lo, hi)
+        adj.set_value(value)
+
+    # ---------- 小工具：按索引取章节 ----------
+    def _get_chap_content_by_idx(self, n: int) -> str:
+        with open(self.book.path, "r", encoding=self.book.encoding) as f:
+            if n + 1 == len(self.chaps_ps):
+                return f.read()[self.chaps_ps[n]:]
+
+            return f.read()[self.chaps_ps[n]: self.chaps_ps[n + 1]]
+
+    def _get_chap_content(self) -> str:
+        return self._get_chap_content_by_idx(self.book.chap_n)
+
+    # ---------- 构建：首次只放当前章 ----------
     def _build_document(self):
-        buf = self._buffer
-        buf.set_text("")  # 清空
-        # 示例章节：可替换为实际解析结果（比如从 EPUB 目录、PDF 目录、或自建章节列表）
-        chapters = self._fake_chapters_from_book(self._book)
-        self._chapters = chapters
-        iter_ = buf.get_end_iter()
-        self._chapter_marks.clear()
+        self._buffer.set_text(self._get_chap_content())
 
-        for idx, ch in enumerate(chapters):
-            # 标题（加粗/更大字号可用 TextTag，这里用简单文本）
-            buf.insert(iter_, f"{ch['title']}\n", -1)
-            # 在标题位置放一个 Mark
-            mark = buf.create_mark(f"ch{idx}", iter_, left_gravity=True)
-            self._chapter_marks.append(mark)
-            # 正文
-            buf.insert(iter_, ch["body"] + "\n\n", -1)
+        def _scroll_top():
+            vadj = self.scroll_content.get_vadjustment()
+            self._safe_set_value(vadj, vadj.get_lower(), margin=16.0)
+            return False
 
-    def _fake_chapters_from_book(self, book: Book):
-        # 仅示例：实际应替换为真实内容（读取文件/解析）
-        chapters = []
-        with open(book.path, "r", encoding=book.encoding) as f:
-            chaps_name, chaps_p, chaps_content = parse_volumes_and_chapters(f.read(), book.chap_n)
-            n = 0
-            for name, p, content in zip(chaps_name, chaps_p, chaps_content):
-                n += 1
-                chapters.append({
-                    "title": name,
-                    "body": content
-                })
-        return chapters
+        GLib.idle_add(_scroll_top)
+        db = LibraryDB()
+        db.save_book(self.book)
+        db.close()
 
     def _build_nav_buttons(self):
         """_summary_
@@ -81,9 +92,9 @@ class ReaderPage(Adw.NavigationPage):
             self.nav_list.remove(child)
             child = self.nav_list.get_first_child()
         # 填充
-        for ch in self._chapters:
+        for cn in self.chap_names:
             row = Gtk.ListBoxRow()
-            btn = Gtk.Button(label=ch["title"], halign=Gtk.Align.FILL)
+            btn = Gtk.Button(label=cn, halign=Gtk.Align.FILL)
             btn.set_halign(Gtk.Align.START)  # 靠左对齐
             btn.set_hexpand(True)
             # 点击按钮 -> 激活该行（触发 row-activated，统一走一套逻辑）
@@ -91,6 +102,14 @@ class ReaderPage(Adw.NavigationPage):
             row.set_child(btn)
             self.nav_list.append(row)
         self.nav_list.show()
+        row = self.nav_list.get_row_at_index(self.book.chap_n)
+        if row:
+            self.nav_list.select_row(row)
+
+            def _focus_after_layout():
+                row.grab_focus()          # 聚焦行 -> 父 scrolledwindow 自动滚动
+                return False
+            GLib.idle_add(_focus_after_layout)
 
     @Gtk.Template.Callback()
     def on_nav_row_activated(self, _listbox: Gtk.ListBox, row: Gtk.ListBoxRow):
@@ -101,114 +120,122 @@ class ReaderPage(Adw.NavigationPage):
             row (Gtk.ListBoxRow): _description_
         """
         idx = row.get_index()
-        if 0 <= idx < len(self._chapter_marks):
-            mark = self._chapter_marks[idx]
-            # 滚动到目标章节（居上）
-            self._in_scroll_sync = True
-            self.text_view.scroll_to_mark(
-                mark, 0.0, use_align=True, xalign=0.0, yalign=0.0)
-            # 稍后清除防抖标记
-            GLib.idle_add(self._clear_sync_flag)
-            # 同步选择高亮
-            self._select_nav_row(idx)
-            # 保存进度（以章节索引为主）
-            self._save_progress(
-                {"chapter": idx, "offset": self._get_buffer_offset_at_visible_top()})
+        self.book.chap_n = idx
+        self._build_document()
 
-    def _clear_sync_flag(self):
-        self._in_scroll_sync = False
-        return False
+    @Gtk.Template.Callback()
+    def on_reader_vadj_value_changed(self, adj: Gtk.Adjustment):
+        """_summar监听滚动：底部追加下一章 / 顶部前插上一章y_
 
-    def _select_nav_row(self, idx: int):
-        row = self.nav_list.get_row_at_index(idx)
-        if row:
-            self.nav_list.select_row(row)
-            # 让选中行可见
-            adj = self.nav_list.get_adjustment()
-            if adj:
-                # 简单确保选中行滚入视口
-                row_y = row.get_allocation().y
-                if row_y < adj.get_value() or row_y > adj.get_value() + adj.get_page_size() - row.get_allocation().height:
-                    adj.set_value(max(0, row_y))
-
-    # ---------- 滚动同步：正文滚动 -> 高亮对应按钮 ----------
-    def _connect_scroll_sync(self):
-        vadj = self.scroll_content.get_vadjustment()
-        if vadj:
-            vadj.connect("value-changed", self._on_scroll_value_changed)
-
-    def _on_scroll_value_changed(self, _adj: Gtk.Adjustment):
-        if self._in_scroll_sync:
+        Args:
+            adj (Gtk.Adjustment): _description_
+        """
+        if self._auto_turning:
             return
-        # 当前可视顶部对应的 buffer 偏移
-        offset = self._get_buffer_offset_at_visible_top()
-        # 找到不大于该 offset 的最后一个章节 mark
-        idx = self._chapter_index_for_offset(offset)
-        if idx is not None:
-            self._select_nav_row(idx)
-            self._save_progress({"chapter": idx, "offset": offset})
+        eps = 1.0
+        value = adj.get_value()
+        page = adj.get_page_size()
+        lower = adj.get_lower()
+        upper = adj.get_upper()
 
-    def _get_buffer_offset_at_visible_top(self) -> int:
-        # 从 TextView 的可视矩形左上角，取对应 TextIter 的偏移
-        rect = self.text_view.get_visible_rect()
-        # 将视口坐标转为文本坐标
-        # 这里用 (rect.x, rect.y) 近似“顶部行”
-        it = self.text_view.get_iter_at_location(rect.x + 1, rect.y + 1)[1]
-        return it.get_offset()
+        at_bottom = value + page >= upper - eps
+        at_top = value <= lower + eps
 
-    def _chapter_index_for_offset(self, offset: int) -> int | None:
-        buf = self._buffer
-        # 预先把每个 Mark 的 offset 算出来
-        mark_offsets = []
-        for mk in self._chapter_marks:
-            it = buf.get_iter_at_mark(mk)
-            mark_offsets.append(it.get_offset())
-        # 线性扫描足够快（章节数通常不大），可改成二分
-        idx = 0
-        for i, mo in enumerate(mark_offsets):
-            if mo <= offset:
-                idx = i
-            else:
-                break
-        return idx
+        # 只有“布防”为 True 时才触发；触发后立即“撤防”
+        if at_bottom and self._armed_bottom:
+            self._armed_bottom = False
+            self._auto_turning = True
+            GLib.idle_add(self._append_next_chapter)
+        elif at_top and self._armed_top:
+            self._armed_top = False
+            self._auto_turning = True
+            GLib.idle_add(self._prepend_prev_chapter)
 
-    # ---------- 进度持久化（每本书独立 key） ----------
-    def _load_or_init_progress_store(self):
-        PROGRESS_FILE.parent.mkdir(parents=True, exist_ok=True)
-        try:
-            self._progress = json.loads(PROGRESS_FILE.read_text("utf-8"))
-        except Exception:
-            self._progress = {}
+        # 当离开触发区后再“布防”，避免惯性重复触发
+        if not at_bottom:
+            self._armed_bottom = True
+        if not at_top:
+            self._armed_top = True
 
-    def _save_progress(self, data: dict):
-        key = self._progress_key()
-        self._progress[key] = data
-        tmp = PROGRESS_FILE.with_suffix(".tmp")
-        tmp.write_text(json.dumps(
-            self._progress, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
-        tmp.replace(PROGRESS_FILE)
+    # ---------- 核心：在末尾“加载下一章”，保持贴底但留安全边距 ----------
 
-    def _restore_progress_async(self):
-        # 等 UI 完成布局后再滚动
-        def _do():
-            key = self._progress_key()
-            prog = self._progress.get(key)
-            if not prog:
-                # 默认滚到顶部并高亮第 0 章
-                self._select_nav_row(0)
-                return False
-            ch = int(prog.get("chapter", 0))
-            ch = max(0, min(ch, len(self._chapter_marks) - 1))
-            self._select_nav_row(ch)
-            # 优先章节 mark，其次 offset
-            mark = self._chapter_marks[ch]
-            self._in_scroll_sync = True
-            self.text_view.scroll_to_mark(mark, 0.0, True, 0.0, 0.0)
-            GLib.idle_add(self._clear_sync_flag)
+    def _append_next_chapter(self):
+        next_idx = self.book.chap_n + 1
+        if next_idx >= len(self.chap_names):
+            self._auto_turning = False
             return False
 
-        GLib.idle_add(_do)
+        vadj = self.scroll_content.get_vadjustment()
+        prev_upper = vadj.get_upper()
+        prev_value = vadj.get_value()
+        prev_pagesize = vadj.get_page_size()
+        at_bottom_before = prev_value + prev_pagesize >= prev_upper - 1.0
 
-    def _progress_key(self) -> str:
-        # 以路径为主键；也可改为 (路径+文件指纹)
-        return self._book.md5
+        # 可选分隔行
+        end_iter = self._buffer.get_end_iter()
+        self._buffer.insert(end_iter, "\n")
+
+        # 追加正文
+        text = self._get_chap_content_by_idx(next_idx)
+        self._buffer.insert(self._buffer.get_end_iter(), text)
+
+        # 更新章节与目录
+        self.book.chap_n = next_idx
+        row = self.nav_list.get_row_at_index(self.book.chap_n)
+        if row:
+            self.nav_list.select_row(row)
+
+        # 关键：若追加前处在底部，把视图定位到“旧底部=衔接处”，而不是新底部
+        def _stick_to_seam_or_keep():
+            new_upper = vadj.get_upper()
+            if at_bottom_before:
+                # seam 就是追加前的底部行：prev_upper - prev_pagesize
+                seam_offset = 16.0  # 让衔接处露出一点点，便于感知
+                target = (prev_upper - prev_pagesize) + seam_offset
+                # 夹取，避免再次落入底部触发区
+                self._safe_set_value(vadj, target, margin=16.0)
+            else:
+                # 若不是贴底阅读，仍按相对位移补偿
+                delta = new_upper - prev_upper
+                self._safe_set_value(vadj, prev_value + delta, margin=0.0)
+            return False
+
+        GLib.idle_add(_stick_to_seam_or_keep)
+        self._auto_turning = False
+        return False
+
+    # ---------- 核心：在开头“加载上一章”，保持可视位置并留安全边距 ----------
+
+    def _prepend_prev_chapter(self):
+        prev_idx = self.book.chap_n - 1
+        if prev_idx < 0:
+            self._auto_turning = False
+            return False
+
+        vadj = self.scroll_content.get_vadjustment()
+        prev_upper = vadj.get_upper()
+        prev_value = vadj.get_value()
+
+        # 插入上一章正文（以及可选分隔）
+        start_iter = self._buffer.get_start_iter()
+        text = self._get_chap_content_by_idx(prev_idx)
+        insert_text = text + "\n"
+        self._buffer.insert(start_iter, insert_text)
+
+        # 夹取 + 边距，防止再次进入顶部触发区
+        def _keep_view():
+            delta = vadj.get_upper() - prev_upper
+            target = prev_value + delta
+            self._safe_set_value(vadj, target, margin=24.0)  # 顶部留 24px
+            return False
+
+        GLib.idle_add(_keep_view)
+
+        # 更新章节与目录
+        self.book.chap_n = prev_idx
+        row = self.nav_list.get_row_at_index(self.book.chap_n)
+        if row:
+            self.nav_list.select_row(row)
+
+        self._auto_turning = False
+        return False

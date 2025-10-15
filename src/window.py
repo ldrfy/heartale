@@ -49,9 +49,6 @@ class HeartaleWindow(Adw.ApplicationWindow):
         on_page_bookshelf = isinstance(page, BookshelfPage)
         on_page_reader = isinstance(page, ReaderPage)
 
-        print(page, self.page_bookshelf)
-        print(on_page_reader, on_page_empty, on_page_bookshelf)
-
         self.btn_back.set_visible(on_page_reader)
         self.btn_play.set_visible(on_page_reader)
         self.btn_import.set_visible(on_page_bookshelf)
