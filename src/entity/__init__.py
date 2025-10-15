@@ -33,6 +33,8 @@ class LibraryDB:
             name TEXT NOT NULL,
             chap_n INTEGER NOT NULL DEFAULT 0,
             chap_txt_pos INTEGER NOT NULL DEFAULT 0,
+            txt_pos INTEGER NOT NULL DEFAULT 0,
+            txt_all INTEGER NOT NULL DEFAULT 0,
             encoding TEXT,
             update_date INTEGER NOT NULL
         )
@@ -67,17 +69,16 @@ class LibraryDB:
     # -------------------------
     def save_book(self, book: Book) -> None:
         """
-        保存 Book。若 md5 已存在则更新其字段（path/name/chap_n/chap_txt_pos/encoding/update_date）。
+        保存 Book。若 md5 已存在则更新其字段（path/name/chap_n/chap_txt_pos/txt_all/txt_pos/encoding/update_date）。
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, chap_n, chap_txt_pos, encoding, update_date)
-        VALUES(:md5, :path, :name, :chap_n, :chap_txt_pos, :encoding, :update_date)
+        INSERT INTO books(md5, path, name, chap_n, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
+        VALUES(:md5, :path, :name, :chap_n, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
-            chap_n=excluded.chap_n,
-            chap_txt_pos=excluded.chap_txt_pos,
+            txt_all=excluded.txt_all,
             encoding=excluded.encoding,
             update_date=excluded.update_date
         """, {
@@ -86,6 +87,8 @@ class LibraryDB:
             "name": book.name,
             "chap_n": book.chap_n,
             "chap_txt_pos": book.chap_txt_pos,
+            "txt_all": book.txt_all,
+            "txt_pos": book.txt_pos,
             "encoding": book.encoding,
             "update_date": int(book.update_date),
         })
@@ -114,6 +117,8 @@ class LibraryDB:
             name=row["name"],
             chap_n=row["chap_n"],
             chap_txt_pos=row["chap_txt_pos"],
+            txt_all=row["txt_all"],
+            txt_pos=row["txt_pos"],
             encoding=row["encoding"],
             md5=row["md5"],
             update_date=row["update_date"]
@@ -136,6 +141,8 @@ class LibraryDB:
                 name=r["name"],
                 chap_n=r["chap_n"],
                 chap_txt_pos=r["chap_txt_pos"],
+                txt_all=r["txt_all"],
+                txt_pos=r["txt_pos"],
                 encoding=r["encoding"],
                 md5=r["md5"],
                 update_date=r["update_date"]
@@ -221,6 +228,7 @@ class LibraryDB:
         for r in cur:
             yield Book(
                 path=r["path"], name=r["name"], chap_n=r["chap_n"],
-                chap_txt_pos=r["chap_txt_pos"], encoding=r["encoding"],
+                chap_txt_pos=r["chap_txt_pos"], txt_all=r["txt_all"],
+                txt_pos=r["txt_pos"], encoding=r["encoding"],
                 md5=r["md5"], update_date=r["update_date"]
             )

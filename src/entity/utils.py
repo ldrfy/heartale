@@ -8,7 +8,6 @@ Book 与 TimeRead 的 sqlite3 持久化实现。
 import hashlib
 import re
 import shutil
-from datetime import datetime
 from pathlib import Path
 
 from . import LibraryDB
@@ -116,51 +115,56 @@ def path2book(src: str, cfg_dir: Path | None = None) -> Book:
         raise ValueError(f"Unsupported file type: {src_path.suffix}")
     enc = detect_encoding(src_path)
 
+    txt_all = len(src_path.read_text(encoding=enc))
+
     if cfg_dir is None:
         cfg_dir = Path.home() / ".config" / "heartale" / "books"
     cfg_dir.mkdir(parents=True, exist_ok=True)
     dest = cfg_dir / src_path.name
     shutil.copy(src_path, dest)
     md5 = cal_md5(dest)
-    return Book(str(dest), dest.stem, 0, 0, enc, md5)
+    print(dest, md5)
+    return Book(str(dest), dest.stem, 0, 0, 0, txt_all, enc, md5)
 
 
 # -------------------------
 # 示例用法
 # -------------------------
 if __name__ == "__main__":
-    # 简单演示
-    db = LibraryDB("test_library.db")
+    # 简单演示ca
 
-    # 示例：从本地文件导入并保存 Book
-    file_book = path2book(
-        "/home/yuh/Downloads/firefox/万相之王.txt")  # 取消注释并修改路径使用
-    db.save_book(file_book)
+    cal_md5("/home/yuh/.config/heartale/books/人道至尊-宅猪.txt")
+    # db = LibraryDB("test_library.db")
 
-    # 按 md5 查询
-    q = db.get_book_by_md5("md5-example-123")
-    print("get_book_by_md5:", q)
+    # # 示例：从本地文件导入并保存 Book
+    # file_book = path2book(
+    #     "/home/yuh/Downloads/firefox/万相之王.txt")  # 取消注释并修改路径使用
+    # db.save_book(file_book)
 
-    # 模糊查名
-    res = db.search_books_by_name("示例")
-    print("search_books_by_name:", res)
+    # # 按 md5 查询
+    # q = db.get_book_by_md5("md5-example-123")
+    # print("get_book_by_md5:", q)
 
-    # 保存 TimeRead 示例
-    tr0 = TimeRead(md5="md5-example-123", words=1200,
-                   seconds=900, dt=datetime.now())
-    db.save_time_read(tr0)
+    # # 模糊查名
+    # res = db.search_books_by_name("示例")
+    # print("search_books_by_name:", res)
 
-    # 查询某天
-    today = datetime.now().date()
-    day_reads = db.get_time_reads_by_day(today)
-    print("day_reads:", day_reads)
+    # # 保存 TimeRead 示例
+    # tr0 = TimeRead(md5="md5-example-123", words=1200,
+    #                seconds=900, dt=datetime.now())
+    # db.save_time_read(tr0)
 
-    # 查询某月
-    month_reads = db.get_time_reads_by_month(today.year, today.month)
-    print("month_reads:", len(month_reads))
+    # # 查询某天
+    # today = datetime.now().date()
+    # day_reads = db.get_time_reads_by_day(today)
+    # print("day_reads:", day_reads)
 
-    # 查询某年
-    year_reads = db.get_time_reads_by_year(today.year)
-    print("year_reads:", len(year_reads))
+    # # 查询某月
+    # month_reads = db.get_time_reads_by_month(today.year, today.month)
+    # print("month_reads:", len(month_reads))
 
-    db.close()
+    # # 查询某年
+    # year_reads = db.get_time_reads_by_year(today.year)
+    # print("year_reads:", len(year_reads))
+
+    # db.close()

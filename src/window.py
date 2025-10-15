@@ -1,79 +1,76 @@
-"""窗口"""
+# -*- coding: utf-8 -*-
 
 from pathlib import Path
 
-from gi.repository import Adw, GLib, Gtk  # type: ignore
+import gi
+from gi.repository import Adw, Gio, GLib, Gtk
 
 from .entity import LibraryDB
+from .entity.book import BookObject
 from .entity.utils import path2book
-from .pages.page_bookshelf import BookshelfPage
-from .pages.page_empty import EmptyPage
-from .pages.page_reader import ReaderPage
+from .pages.reader_page import ReaderPage
+from .pages.shelf_page import ShelfPage
+
+gi.require_version("Gtk", "4.0")
+gi.require_version("Adw", "1")
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/window.ui")
 class HeartaleWindow(Adw.ApplicationWindow):
-    """_summary_
-
-    Args:
-        Adw (_type_): _description_
-    """
     __gtype_name__ = "HeartaleWindow"
 
-    # 全局导航与头部按钮
-    nav: Adw.NavigationView = Gtk.Template.Child("nav")
-    btn_back: Gtk.Button = Gtk.Template.Child("btn_back")
-    btn_import: Gtk.Button = Gtk.Template.Child("btn_import")
-    btn_delete: Gtk.Button = Gtk.Template.Child("btn_delete")
-    btn_play: Gtk.Button = Gtk.Template.Child("btn_play")
-
-    # 页面实例
-    page_empty = None
-    page_bookshelf: BookshelfPage = None
-    page_reader = None
+    nav: Adw.NavigationView = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        self.page_bookshelf = BookshelfPage(self.nav)
-        self.nav.push(self.page_bookshelf)
-        self._sync_header()
+        self._books: Gio.ListStore = Gio.ListStore.new(BookObject)
+        self._reader_page = ReaderPage()
+        self._shelf_page = ShelfPage()
 
-    # ---------- Header 同步 ----------
-    def _sync_header(self):
-        page = self.nav.get_visible_page()
-        if not page:
-            return
+        self.nav.add(self._shelf_page)
+        self.nav.add(self._reader_page)
 
-        on_page_empty = isinstance(page, EmptyPage)
-        on_page_bookshelf = isinstance(page, BookshelfPage)
-        on_page_reader = isinstance(page, ReaderPage)
+        self._install_actions()
+        self._wire_events()
+        self._bootstrap_route()
 
-        self.btn_back.set_visible(on_page_reader)
-        self.btn_play.set_visible(on_page_reader)
-        self.btn_import.set_visible(on_page_bookshelf)
-        self.btn_delete.set_visible(on_page_bookshelf)
+    def _install_actions(self):
+        act_import = Gio.SimpleAction.new("import-books", None)
+        act_import.connect("activate", self.on_import_books)
+        self.add_action(act_import)
 
-    @Gtk.Template.Callback()
-    def on_visible_page_changed(self, *_):
-        self._sync_header()
+        act_toggle_sidebar = Gio.SimpleAction.new_stateful(
+            "toggle-sidebar",
+            None,
+            GLib.Variant("b", True),
+        )
+        act_toggle_sidebar.connect("activate", self.on_toggle_sidebar)
+        self.add_action(act_toggle_sidebar)
 
-    @Gtk.Template.Callback()
-    def on_back(self, *_):
-        page = self.nav.get_visible_page()
-        if page and page.get_can_pop():
-            self.nav.pop()
+        act_read_aloud = Gio.SimpleAction.new("read-aloud", None)
+        act_read_aloud.connect("activate", self.on_read_aloud)
+        self.add_action(act_read_aloud)
 
-    @Gtk.Template.Callback()
-    def on_play_book(self, _btn):
-        print("TODO: Play / Read")
+    def _wire_events(self):
 
-    @Gtk.Template.Callback()
-    def on_delete_books(self, _btn):
-        self.page_bookshelf.on_delete_selected_clicked(_btn)
+        db = LibraryDB()
+        for b in db.iter_books():
+            self._books.append(BookObject.from_dataclass(b))
+        db.close()
+        self._shelf_page.set_model(self._books)
+        self._shelf_page.list.connect("activate", self.on_shelf_activate)
+        self._shelf_page.btn_import.connect(
+            "clicked", self._emit_import_clicked)
 
-    @Gtk.Template.Callback()
-    def on_import_book(self, _btn):
+    def _bootstrap_route(self):
+        self.nav.push(self._shelf_page)
+
+    def _emit_import_clicked(self, *_args):
+        self.lookup_action("import-books").activate(None)
+
+    def on_import_books(self, _action, _param):
+
         dlg = Gtk.FileDialog.new()
         dlg.set_title("选择要导入的书籍")
         ff = Gtk.FileFilter()
@@ -101,8 +98,13 @@ class HeartaleWindow(Adw.ApplicationWindow):
                 db = LibraryDB()
                 for b in books:
                     db.save_book(b)
+
+                self._books.remove_all()
+                for b in db.iter_books():
+                    self._books.append(BookObject.from_dataclass(b))
                 db.close()
-                self.page_bookshelf.refresh_shelf()
+                self._shelf_page.show_list()
+
             if s_error:
                 edlg = Adw.MessageDialog.new(
                     self.get_root(), "导入部分失败", s_error)
@@ -112,3 +114,43 @@ class HeartaleWindow(Adw.ApplicationWindow):
                 edlg.present()
 
         dlg.open_multiple(self, None, _done)
+
+    def on_toggle_sidebar(self, action, _param):
+        current = action.get_state().get_boolean()
+        new_state = not current
+        action.set_state(GLib.Variant("b", new_state))
+        self._reader_page.split.set_show_sidebar(new_state)
+
+    def on_read_aloud(self, _action, _param):
+        text = self._reader_page.get_current_text(selection_only=True)
+        if not text:
+            text = self._reader_page.get_current_text(selection_only=False)
+        # 这里先打印，后续可替换为实际 TTS
+        print("[TTS] 朗读内容：")
+        # 为避免控制台刷屏，演示时截断
+        print(text[:400])
+
+    def on_shelf_activate(self, listview: Gtk.ListView, position: int):
+
+        selection: Gtk.SingleSelection = listview.get_model()
+        bobj: BookObject = selection.get_item(position)
+
+        # 标题与正文
+        self._reader_page.title.set_title(bobj.name)
+        self._reader_page.title.set_subtitle("第 1 章 · 绪论")
+
+        buf = self._reader_page.text.get_buffer()
+        progress = 0 if bobj.txt_all == 0 else int(
+            bobj.txt_pos * 100 / bobj.txt_all)
+        buf.set_text(
+            f"{bobj.name}\n\n"
+            f"路径：{bobj.path}\n"
+            f"章节数：{bobj.chap_n}\n"
+            f"进度：{progress}%（{bobj.txt_pos}/{bobj.txt_all}）\n"
+            "这是示例正文……\n"
+        )
+
+        toc = Gtk.StringList.new([f"第 {i} 章" for i in range(1, 6)])
+        self._reader_page.bind_toc(toc)
+
+        self.nav.push(self._reader_page)

@@ -2,11 +2,9 @@
 <gresources>
   <gresource prefix="/cool/ldr/heartale">
     <file compressed="true" alias="shortcuts-dialog.ui" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
-    <file compressed="true" alias="window.ui" preprocess="xml-stripblanks">window.ui</file>
-    <file compressed="true" alias="page_bookshelf.ui" preprocess="xml-stripblanks">page_bookshelf.ui</file>
-    <file compressed="true" alias="page_empty.ui" preprocess="xml-stripblanks">page_empty.ui</file>
-    <file compressed="true" alias="page_reader.ui" preprocess="xml-stripblanks">page_reader.ui</file>
-    <file compressed="true" alias="book_tile.ui" preprocess="xml-stripblanks">book_tile.ui</file>
+    <file preprocess="xml-stripblanks">window.ui</file>
+    <file preprocess="xml-stripblanks">reader_page.ui</file>
+    <file preprocess="xml-stripblanks">shelf_page.ui</file>
     <file compressed="true">style.css</file>
   </gresource>
 </gresources>

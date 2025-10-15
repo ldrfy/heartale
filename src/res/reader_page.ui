@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.12"/>
+  <requires lib="adw" version="1.4"/>
+
+  <template class="ReaderPage" parent="AdwNavigationPage">
+    <property name="title">阅读</property>
+    <property name="tag">reader</property>
+
+    <child>
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="title-widget">
+              <object class="AdwWindowTitle" id="title">
+                <property name="title">书名</property>
+                <property name="subtitle">章节标题</property>
+              </object>
+            </property>
+
+            <child type="start">
+              <object class="GtkToggleButton">
+                <property name="icon-name">sidebar-show-symbolic</property>
+                <property name="tooltip-text">显示/隐藏目录</property>
+                <property name="action-name">win.toggle-sidebar</property>
+              </object>
+            </child>
+
+            <child type="end">
+              <object class="GtkButton">
+                <property name="icon-name">media-playback-start-symbolic</property>
+                <property name="tooltip-text">朗读</property>
+                <property name="action-name">win.read-aloud</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <property name="content">
+          <object class="AdwOverlaySplitView" id="split">
+            <property name="show-sidebar">true</property>
+
+            <property name="sidebar">
+              <object class="GtkScrolledWindow">
+                <property name="min-content-width">240</property>
+                <property name="child">
+                  <object class="GtkListView" id="toc">
+                    <property name="single-click-activate">true</property>
+                  </object>
+                </property>
+              </object>
+            </property>
+
+            <property name="content">
+              <object class="GtkScrolledWindow">
+                <property name="vexpand">true</property>
+                <property name="hexpand">true</property>
+                <property name="child">
+                  <object class="GtkTextView" id="text">
+                    <property name="wrap-mode">word-char</property>
+                    <property name="editable">false</property>
+                    <property name="left-margin">18</property>
+                    <property name="right-margin">18</property>
+                    <property name="top-margin">12</property>
+                    <property name="bottom-margin">12</property>
+                  </object>
+                </property>
+              </object>
+            </property>
+          </object>
+        </property>
+      </object>
+    </child>
+  </template>
+</interface>

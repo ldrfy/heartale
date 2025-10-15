@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface>
+  <requires lib="gtk" version="4.12"/>
+  <requires lib="adw" version="1.4"/>
+
+  <template class="ShelfPage" parent="AdwNavigationPage">
+    <property name="title">书架</property>
+    <property name="tag">shelf</property>
+
+    <child>
+      <object class="AdwToolbarView">
+        <child type="top">
+          <object class="AdwHeaderBar">
+            <property name="title-widget">
+              <object class="AdwWindowTitle">
+                <property name="title">书架</property>
+                <property name="subtitle">选择一本书进入阅读</property>
+              </object>
+            </property>
+            <child type="end">
+              <object class="GtkButton">
+                <property name="icon-name">document-open-symbolic</property>
+                <property name="tooltip-text">导入书籍</property>
+                <property name="action-name">win.import-books</property>
+              </object>
+            </child>
+          </object>
+        </child>
+
+        <property name="content">
+          <object class="GtkStack" id="stack">
+            <child>
+              <object class="AdwStatusPage" id="empty">
+                <property name="icon-name">cool.ldr.heartale</property>
+                <property name="title">欢迎使用兰阅</property>
+                <property name="description">当前没有书籍，请导入一本开始阅读</property>
+                <child>
+                  <object class="GtkButton" id="btn_import">
+                    <property name="label">导入书籍</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
+              <object class="GtkScrolledWindow" id="scroller">
+                <property name="vexpand">true</property>
+                <property name="hexpand">true</property>
+                <property name="child">
+                  <object class="GtkListView" id="list">
+                    <property name="single-click-activate">true</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+          </object>
+        </property>
+      </object>
+    </child>
+  </template>
+</interface>
