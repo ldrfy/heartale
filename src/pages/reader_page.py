@@ -31,24 +31,27 @@ class ReaderPage(Adw.NavigationPage):
     text: Gtk.TextView = Gtk.Template.Child()
     toc: Gtk.ListView = Gtk.Template.Child()
     stack: Adw.ViewStack = Gtk.Template.Child()  # 新增绑定
-    split: Adw.OverlaySplitView = Gtk.Template.Child()  # 新增绑定
+    aos_reader: Adw.OverlaySplitView = Gtk.Template.Child()  # 新增绑定
+    page_reader: Adw.StatusPage = Gtk.Template.Child()  # 新增绑定
+    page_error: Adw.StatusPage = Gtk.Template.Child()  # 新增绑定
+    page_loading: Adw.StatusPage = Gtk.Template.Child()  # 新增绑定
 
-    # 与 <packing name="..."> 对齐
-    PAGE_LOADING = "loading"
-    PAGE_ERROR = "error"
-    PAGE_READER = "split"
 
-    def __init__(self, **kwargs):
+    def __init__(self, nav: Adw.NavigationView, ** kwargs):
         super().__init__(**kwargs)
         # 可选：确保启动即在加载页（也可直接在 .ui 里设 visible-child-name）
-        self.set_state(self.PAGE_LOADING)
+        # self.set_state(self.PAGE_LOADING)
+
+        self._nav = nav
         self.chap_names, self.chaps_ps = [], []
         self.chap_content = ""
         self.book: Book | None = None
+        self.toggle_sidebar = False
 
     def set_data(self, book: Book):
         """在子线程读取与解析章节，主线程更新 UI。"""
         print("data set:", book)
+        self.show_loading()
         self.title.set_title(book.name or "")
 
         def worker():
@@ -82,55 +85,40 @@ class ReaderPage(Adw.NavigationPage):
     def _on_data_ready(self):
         """仅在主线程运行：绑定目录与正文。"""
         print("ReaderPage: data ready, updating UI...")
+        self.show_reader()
+        print()
+        self.title.set_subtitle(f"{self.chap_names[self.book.chap_n]}")
         self.bind_toc(Gtk.StringList.new(self.chap_names))
         self.set_text_content(self._get_chap_content_by_idx(self.book.chap_n))
-        self.show_reader()
         return False  # 告诉 GLib.idle_add 只执行一次
 
     def _on_error(self, err: Exception):
         """仅在主线程运行：统一错误处理。"""
         print(err)
-        self.show_error(f"打开或解析本书失败：{err}")
+        self.show_error()
         return False
 
-    def set_state(self, name: str) -> None:
-        """状态切换
-
-        Args:
-            name (str): _description_
-        """
-        try:
-            self.stack.set_visible_child_name(name)
-        except Exception as e:  # pylint: disable=W0703
-            logger.warning("ReaderPage.set_state failed: %r", e, exc_info=True)
-
-    def show_loading(self, desc: str | None = None) -> None:
+    def show_loading(self) -> None:
         """载入中
 
         Args:
             desc (str | None, optional): _description_. Defaults to None.
         """
-        if desc:
-            loading = self._get_status_page("loading")
-            if loading:
-                loading.set_description(desc)
-        self.set_state(self.PAGE_LOADING)
+        self.stack.set_visible_child(self.page_loading)
 
-    def show_error(self, message: str = "无法打开本书或目录，请重试或返回。") -> None:
+    def show_error(self) -> None:
         """显示错误
 
         Args:
             message (str, optional): _description_. Defaults to "无法打开本书或目录，请重试或返回。".
         """
-        error = self._get_status_page("error")
-        if error:
-            error.set_description(message)
-        self.set_state(self.PAGE_ERROR)
+        self.stack.set_visible_child(self.page_error)
 
     def show_reader(self) -> None:
         """显示阅读
         """
-        self.set_state(self.PAGE_READER)
+        self.stack.set_visible_child(self.page_reader)
+        print("---- show reader ----")
 
     def set_text_content(self, content: str) -> None:
         """_summary_
@@ -186,19 +174,6 @@ class ReaderPage(Adw.NavigationPage):
         self.toc.set_factory(factory)
         self.toc.set_model(Gtk.SingleSelection.new(string_list))
 
-    # --- 小工具 ---
-    def _get_status_page(self, widget_id: str) -> Adw.StatusPage | None:
-        # 直接通过模板绑定的 stack 去找
-        # ViewStack 的可见子页是 widget 本身，非 Page 对象
-        for child in self._iter_children(self.stack):
-            # 仅匹配我们关心的两个 StatusPage
-            if isinstance(child, Adw.StatusPage):
-                # 根据 .ui 的 id 判断
-                buildable_id = Gtk.Buildable.get_buildable_id(
-                    child) if isinstance(child, Gtk.Buildable) else None
-                if buildable_id == widget_id:
-                    return child
-        return None
 
     def _iter_children(self, widget: Gtk.Widget):
         child = widget.get_first_child()
@@ -215,3 +190,16 @@ class ReaderPage(Adw.NavigationPage):
         print("[TTS] 朗读内容：")
         # 为避免控制台刷屏，演示时截断
         print(text[:400])
+
+    @Gtk.Template.Callback()
+    def _on_cancel_load_book(self, *_args):
+        self._nav.pop()  # 返回书架页
+
+    @Gtk.Template.Callback()
+    def _on_retry_load(self, *_args):
+        self.set_data(self.book)  # 重试加载当前书
+
+    @Gtk.Template.Callback()
+    def _on_toggle_sidebar(self, *_args):
+        self.aos_reader.set_show_sidebar(self.toggle_sidebar)
+        self.toggle_sidebar = not self.toggle_sidebar

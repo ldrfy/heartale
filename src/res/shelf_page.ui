@@ -36,7 +36,7 @@
               <object class="GtkButton">
                 <property name="icon-name">document-open-symbolic</property>
                 <property name="tooltip-text">导入书籍</property>
-                <property name="action-name">win.import-books</property>
+                <signal name="clicked" handler="_on_import_book" swapped="no"/>
               </object>
             </child>
             <child type="end">
