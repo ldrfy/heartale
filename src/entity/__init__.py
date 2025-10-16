@@ -30,7 +30,8 @@ class LibraryDB:
         cur = self.conn.cursor()
         cur.execute("""
         CREATE TABLE IF NOT EXISTS books (
-            md5 TEXT PRIMARY KEY,
+            id INTEGER PRIMARY KEY,             -- 自增 ID（rowid）
+            md5 TEXT NOT NULL UNIQUE,           -- 仍保证唯一
             path TEXT NOT NULL,
             name TEXT NOT NULL,
             chap_n INTEGER NOT NULL DEFAULT 0,
@@ -42,11 +43,13 @@ class LibraryDB:
         )
         """)
         cur.execute("""
-        CREATE INDEX IF NOT EXISTS idx_books_name ON books(name)
+        CREATE INDEX IF NOT EXISTS idx_books_name ON books(name);
+        CREATE INDEX IF NOT EXISTS idx_books_update_date ON books(update_date);
+        CREATE INDEX IF NOT EXISTS idx_books_path ON books(path);
         """)
         cur.execute("""
         CREATE TABLE IF NOT EXISTS timereads (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id INTEGER PRIMARY KEY,
             md5 TEXT NOT NULL,
             type INTEGER NOT NULL DEFAULT 0,
             dt TEXT NOT NULL,              -- ISO datetime string
@@ -54,8 +57,7 @@ class LibraryDB:
             month TEXT NOT NULL,           -- YYYY-MM
             year TEXT NOT NULL,            -- YYYY
             words INTEGER NOT NULL DEFAULT 0,
-            seconds INTEGER NOT NULL DEFAULT 0,
-            FOREIGN KEY(md5) REFERENCES books(md5)
+            seconds INTEGER NOT NULL DEFAULT 0
         )
         """)
         cur.execute(
@@ -71,7 +73,7 @@ class LibraryDB:
     # -------------------------
     def save_book(self, book: Book) -> None:
         """
-        保存 Book。若 md5 已存在则更新其字段（path/name/chap_n/chap_txt_pos/txt_all/txt_pos/encoding/update_date）。
+        保存 Book。若 md5 已存在则更新其字段（path/name/txt_all/encoding/update_date）。
         """
         cur = self.conn.cursor()
         cur.execute("""
@@ -94,19 +96,14 @@ class LibraryDB:
             "encoding": book.encoding,
             "update_date": int(book.update_date),
         })
-        self.conn.commit()
 
-    def delete_book_by_md5(self, md5: str, delete_timereads: bool = False) -> None:
+    def delete_book_by_md5(self, md5: str) -> None:
         """
         删除一本书。
         :param md5: 书的 md5
-        :param delete_timereads: 是否同时删除该书的 TimeRead 记录
         """
         cur = self.conn.cursor()
-        if delete_timereads:
-            cur.execute("DELETE FROM timereads WHERE md5 = ?", (md5,))
         cur.execute("DELETE FROM books WHERE md5 = ?", (md5,))
-        self.conn.commit()
 
     def get_book_by_md5(self, md5: str) -> Optional[Book]:
         """根据md5找某本书
@@ -116,7 +113,7 @@ class LibraryDB:
 
         Returns:
             Optional[Book]: _description_
-        """    
+        """
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM books WHERE md5 = ?", (md5,))
         row = cur.fetchone()
@@ -185,7 +182,6 @@ class LibraryDB:
             "words": tr.words,
             "seconds": tr.seconds,
         })
-        self.conn.commit()
 
     def get_time_reads_by_md5_and_day(self, md5: str, day: date) -> List[TimeRead]:
         """某本书按天

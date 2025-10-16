@@ -160,7 +160,8 @@ class ReaderPage(Adw.NavigationPage):
         return buf.get_text(start, end, False)
 
     def _build_factory(self):
-
+        """初始化模型，仅一次
+        """
         factory = Gtk.SignalListItemFactory()
 
         def setup(_f, li):

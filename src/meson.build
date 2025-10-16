@@ -45,5 +45,12 @@ heartale_sources_entity = [
 install_data(heartale_sources_entity, install_dir: moduledir / 'entity')
 
 
+heartale_sources_widgets = [
+    'widgets/__init__.py',
+    'widgets/shelf_row.py',
+]
+
+install_data(heartale_sources_widgets, install_dir: moduledir / 'widgets')
+
 
 subdir('res')

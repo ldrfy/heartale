@@ -5,6 +5,7 @@
     <file preprocess="xml-stripblanks">window.ui</file>
     <file preprocess="xml-stripblanks">reader_page.ui</file>
     <file preprocess="xml-stripblanks">shelf_page.ui</file>
+    <file preprocess="xml-stripblanks">shelf_row.ui</file>
     <file compressed="true">style.css</file>
   </gresource>
 </gresources>

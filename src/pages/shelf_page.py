@@ -7,6 +7,7 @@ from gi.repository import Adw, Gio, GLib, Gtk  # type: ignore
 from ..entity import LibraryDB
 from ..entity.book import BookObject
 from ..entity.utils import path2book
+from ..widgets.shelf_row import ShelfRow
 from .reader_page import ReaderPage
 
 
@@ -32,23 +33,22 @@ class ShelfPage(Adw.NavigationPage):
         super().__init__(**kwargs)
         self._nav: Adw.NavigationView = nav
         self._reader_page: ReaderPage = reader_page
-        self._books: Gio.ListStore = Gio.ListStore.new(BookObject)
         self._build_factory()
         self.build_bookshel()
 
     def build_bookshel(self):
         """_summary_
         """
-        self._books.remove_all()
+        books: Gio.ListStore = Gio.ListStore.new(BookObject)
         db = LibraryDB()
         for b in db.iter_books():
-            self._books.append(BookObject.from_dataclass(b))
+            books.append(BookObject.from_dataclass(b))
         db.close()
-        if self._books.get_n_items() == 0:
+        if books.get_n_items() == 0:
             self.show_empty()
             return
         # liststore 应为 Gio.ListStore(BookObject)
-        self.list.set_model(Gtk.SingleSelection.new(self._books))
+        self.list.set_model(Gtk.SingleSelection.new(books))
         self.stack.set_visible_child(self.scroller)
 
     def show_empty(self):
@@ -57,55 +57,61 @@ class ShelfPage(Adw.NavigationPage):
         self.stack.set_visible_child(self.empty)
 
     def _build_factory(self):
+        """初始化模型，仅一次
+        """
         factory = Gtk.SignalListItemFactory()
 
         def setup(_f, li: Gtk.ListItem):
-            row = Adw.ActionRow()
-            row.set_activatable(True)
-
-            # 行末删除按钮（只在 setup 里创建一次，避免重复绑定）
-            btn_del = Gtk.Button(
-                icon_name="user-trash-symbolic",
-                valign=Gtk.Align.CENTER,
-                tooltip_text="删除此书",
-            )
-            # 用闭包拿到当前 ListItem，点击时读取“当下”的位置
-            btn_del.connect("clicked", lambda _b,
-                            _li=li: self._on_row_delete(_li))
-            row.add_suffix(btn_del)
-
+            row = ShelfRow()
+            # 连接一次行内的删除信号，回调里调用页面的方法删除数据
+            row.connect("delete-request", lambda _row,
+                        bobj: self._on_row_delete(bobj))
             li.set_child(row)
 
         def bind(_f, li: Gtk.ListItem):
-            # 绑定 BookObject 到行
-            row: Adw.ActionRow = li.get_child()
-            bobj: BookObject = li.get_item()
-            row.set_title(bobj.name)
-            pct = 0
-            if bobj.txt_all > 0:
-                pct = int(bobj.txt_pos * 100 / bobj.txt_all)
-            row.set_subtitle(f"进度 {pct}% · 编码 {bobj.encoding}")
+            row: ShelfRow = li.get_child()
+            row.update(li.get_item())
 
         factory.connect("setup", setup)
         factory.connect("bind", bind)
+
         self.list.set_factory(factory)
 
-    # ========== 删除逻辑 ==========
+    def _on_row_delete(self, bobj: BookObject):
+        """从 ListStore 删除对应对象，并维护选中项与空态。
 
-    def _on_row_delete(self, list_item: Gtk.ListItem):
-        # 通过 ListItem 的当前位置删除
-        pos = list_item.get_position()
-        selection: Gtk.SingleSelection = self.list.get_model()
-        store = selection.get_model()  # Gio.ListStore(BookObject)
-        if 0 <= pos < store.get_n_items():
-            store.remove(pos)
-        # 若空，则显示空状态页
+        Args:
+            bobj (BookObject): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        sel: Gtk.SingleSelection = self.list.get_model()
+        store: Gio.ListStore = sel.get_model()
+
+        # 找索引
+        idx = -1
+        for i in range(store.get_n_items()):
+            if store.get_item(i) is bobj:
+                idx = i
+                break
+        if idx < 0:
+            return  # 不在模型中
+
+        # （可选）先同步数据库
+        try:
+            db = LibraryDB()
+            db.delete_book_by_md5(bobj.md5)  # 按你的接口调整
+            db.close()
+        except Exception as e:  # pylint: disable=broad-except
+            print("删除数据库记录失败：", e)
+
+        # 真正从模型移除
+        store.remove(idx)
+
+        # 空态 or 恢复选中
         if store.get_n_items() == 0:
             self.show_empty()
-
-        db = LibraryDB()
-        db.delete_book_by_md5(list_item.get_item().md5)
-        db.close()
 
     @Gtk.Template.Callback()
     def _on_import_book(self, *_args):
@@ -139,10 +145,6 @@ class ShelfPage(Adw.NavigationPage):
                 db = LibraryDB()
                 for b in books:
                     db.save_book(b)
-
-                self._books.remove_all()
-                for b in db.iter_books():
-                    self._books.append(BookObject.from_dataclass(b))
                 db.close()
                 self.build_bookshel()
 
