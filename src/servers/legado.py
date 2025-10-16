@@ -5,7 +5,7 @@ import json
 import time
 from urllib.parse import quote
 
-import aiohttp
+import requests
 
 from . import Server
 
@@ -14,7 +14,6 @@ CHAP_POS = "durChapterPos"
 CHAP_INDEX = "durChapterIndex"
 CHAP_TITLE = "durChapterTitle"
 CHAP_TXT_N = "durChapterTxtN"
-TIMEOUT = aiohttp.ClientTimeout(total=10)
 
 
 def bu(book_data: dict):
@@ -99,9 +98,6 @@ class LegadoServer(Server):
         return txt
 
     def get_chap_txt(self, chap_n):
-        return asyncio.run(self._get_chap_txt_async(chap_n))
-
-    async def _get_chap_txt_async(self, chap_n):
         """异步获取书某一章节的文本
 
         Args:
@@ -113,17 +109,10 @@ class LegadoServer(Server):
         url = f"{self.book.path}/getBookContent"
         params = f"{bu(self.book_data)}&index={chap_n}"
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(f"{url}?{params}", timeout=TIMEOUT) as resp:
-                resp.raise_for_status()
-                resp_json = await resp.json(content_type=None)
-
-        return resp_json["data"]
+        resp = requests.get(f"{url}?{params}", timeout=10)
+        return resp.json(content_type=None)["data"]
 
     def _get_chap_names(self):
-        return asyncio.run(self._get_chap_names_async())
-
-    async def _get_chap_names_async(self):
         """异步获取书章节目录
 
         Args:
@@ -133,12 +122,8 @@ class LegadoServer(Server):
             list: 章节目录，包含title等
         """
         url = f"{self.book.path}/getChapterList?{bu(self.book_data)}"
-
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url, timeout=TIMEOUT) as resp:
-                resp.raise_for_status()
-                resp_json = await resp.json(content_type=None)
-
+        resp = requests.get(url, timeout=10)
+        resp_json = resp.json(content_type=None)
         return [d["title"] for d in resp_json["data"]]
 
     def _save_book_progress(self, book_data: dict):
@@ -166,15 +151,14 @@ class LegadoServer(Server):
         json_data = json.dumps(data)
         headers = {'Content-Type': 'application/json'}
 
-        with aiohttp.ClientSession() as session:
-            with session.post(f"{self.book.path}/saveBookProgress",
-                              data=json_data,
-                              headers=headers,
-                              timeout=TIMEOUT) as response:
-                resp_json = response.json(content_type=None)
+        resp = requests.post(f"{self.book.path}/saveBookProgress",
+                             data=json_data,
+                             headers=headers,
+                             timeout=10)
+        resp_json = resp.json(content_type=None)
 
-                if not resp_json["isSuccess"]:
-                    raise ValueError(f'进度保存错误！\n{resp_json["errorMsg"]}')
+        if not resp_json["isSuccess"]:
+            raise ValueError(f'进度保存错误！\n{resp_json["errorMsg"]}')
         super().save_read_progress(self._bd.chap_n, self._bd.get_chap_txt_pos())
 
 
@@ -188,11 +172,8 @@ async def get_book_shelf_async(book_n: int, url):
         dict: 书籍信息
     """
     url = f"{url}/getBookshelf"
-
-    async with aiohttp.ClientSession(timeout=TIMEOUT) as session:
-        async with session.get(url) as resp:
-            resp.raise_for_status()
-            resp_json = await resp.json(content_type=None)
+    resp = requests.get(url, timeout=10)
+    resp_json = await resp.json(content_type=None)
     return resp_json["data"][book_n]
 
 

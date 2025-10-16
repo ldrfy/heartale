@@ -8,7 +8,7 @@ mv flatpak-pip-generator.py ~/.local/bin/flatpak-pip-generator
 chmod +x ~/.local/bin/flatpak-pip-generator
 
 
-flatpak_pip_generator aiohttp --yaml
+flatpak-pip-generator requests --yaml
 
 flatpak-builder --user --install --force-clean build-dir cool.ldr.heartale.yaml
 ```

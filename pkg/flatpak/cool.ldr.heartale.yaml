@@ -23,7 +23,7 @@ cleanup:
   - "*.a"
 
 modules:
-  - "python3-aiohttp.yaml"
+  - "python3-requests.yaml"
   - name: heartale
     builddir: true
     buildsystem: meson
