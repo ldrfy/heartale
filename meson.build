@@ -11,9 +11,17 @@ project(
 i18n = import('i18n')
 gnome = import('gnome')
 
+APP_ID = 'cool.ldr.' + meson.project_name()
+APP_DES = 'read.'
+
+PACKAGE_URL = 'https://github.com/ldrfy/heartale'
+PACKAGE_URL_BUG = 'https://github.com/ldrfy/heartale/issues'
+
+
 subdir('data')
 subdir('src')
 subdir('po')
+subdir('pkg')
 
 gnome.post_install(
     glib_compile_schemas: true,

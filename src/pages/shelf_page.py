@@ -6,7 +6,7 @@ from gi.repository import Adw, Gio, GLib, Gtk  # type: ignore
 
 from ..entity import LibraryDB
 from ..entity.book import BookObject
-from ..entity.utils import path2book
+from ..servers.txt import path2book
 from ..widgets.shelf_row import ShelfRow
 from .reader_page import ReaderPage
 
@@ -162,7 +162,7 @@ class ShelfPage(Adw.NavigationPage):
                 db = LibraryDB()
                 for b in books:
                     db.save_book(b)
-                books_ = db.iter_books()
+                books_ = list(db.iter_books())
                 db.close()
                 self.build_bookshel(books_)
 

@@ -1,18 +1,77 @@
-#!/usr/bin/env python3
-# coding: utf-8
-"""
-library_db.py
-Book 与 TimeRead 的 sqlite3 持久化实现。
-"""
-
+"""阅读本地txt文件"""
 import hashlib
 import re
 import shutil
 from pathlib import Path
 
-from . import LibraryDB
-from .book import Book
-from .time_read import TimeRead
+from ..entity.book import Book
+from . import Server
+
+
+class TxtServer(Server):
+    """阅读app相关的webapi"""
+
+    def __init__(self):
+        """初始化应用API
+
+        Args:
+            conf (dict): 配置 conf["legado"]
+        """
+        self.chap_p2s = []
+        super().__init__("txt")
+
+    def initialize(self):
+        """异步初始化"""
+
+        print(f"文件位置：{self.book.path}")
+
+        print(f"上次读取的位置：{self.book.chap_n}, {self.book.chap_txt_pos}")
+
+        names, self.chap_p2s = self._get_chap_names()
+        self._bd.set_data(
+            names,
+            self.book.chap_n,
+            self.get_chap_txt(self.book.chap_n),
+            self.book.chap_txt_pos
+        )
+
+        return self.book.name + " " + self._bd.get_chap_name()
+
+    def next(self):
+        """下一步
+
+        Returns:
+            str: 需要转音频的文本
+        """
+        print(f"当前位置：{self._bd.chap_txt_n}/{len(self._bd.chap_txts)}")
+
+        if self._bd.is_chap_end():
+            self._bd.chap_n += 1
+
+            self._bd.update_chap_txts(self._chap_txt)
+            return self._bd.get_chap_name()
+
+        txt = self._bd.chap_txts[self._bd.chap_txt_n]
+
+        # 一些异常
+        if len(self._bd.chap_txts) > 1:
+            super().save_read_progress(self._bd.chap_n, self._bd.get_chap_txt_pos())
+        self._bd.chap_txt_n += 1
+
+        return txt
+
+    def get_chap_txt(self, chap_n: int):
+        with open(self.book.path, "r", encoding=self.book.encoding) as f:
+            if chap_n + 1 == len(self.chap_p2s):
+                return f.read()[self.chap_p2s[chap_n]:]
+
+            return f.read()[self.chap_p2s[chap_n]: self.chap_p2s[chap_n + 1]]
+
+    def _get_chap_names(self):
+
+        with open(self.book.path, "r", encoding=self.book.encoding) as f:
+            text = f.read()
+        return parse_chap_names(text)
 
 
 def parse_chap_names(file_content):
@@ -124,46 +183,3 @@ def path2book(src: str, cfg_dir: Path | None = None) -> Book:
     shutil.copy(src_path, dest)
     md5 = cal_md5(dest)
     return Book(str(dest), dest.stem, 0, 0, 0, txt_all, enc, md5)
-
-
-# -------------------------
-# 示例用法
-# -------------------------
-if __name__ == "__main__":
-    # 简单演示ca
-
-    cal_md5("/home/yuh/.config/heartale/books/人道至尊-宅猪.txt")
-    # db = LibraryDB("test_library.db")
-
-    # # 示例：从本地文件导入并保存 Book
-    # file_book = path2book(
-    #     "/home/yuh/Downloads/firefox/万相之王.txt")  # 取消注释并修改路径使用
-    # db.save_book(file_book)
-
-    # # 按 md5 查询
-    # q = db.get_book_by_md5("md5-example-123")
-    # print("get_book_by_md5:", q)
-
-    # # 模糊查名
-    # res = db.search_books_by_name("示例")
-    # print("search_books_by_name:", res)
-
-    # # 保存 TimeRead 示例
-    # tr0 = TimeRead(md5="md5-example-123", words=1200,
-    #                seconds=900, dt=datetime.now())
-    # db.save_time_read(tr0)
-
-    # # 查询某天
-    # today = datetime.now().date()
-    # day_reads = db.get_time_reads_by_day(today)
-    # print("day_reads:", day_reads)
-
-    # # 查询某月
-    # month_reads = db.get_time_reads_by_month(today.year, today.month)
-    # print("month_reads:", len(month_reads))
-
-    # # 查询某年
-    # year_reads = db.get_time_reads_by_year(today.year)
-    # print("year_reads:", len(year_reads))
-
-    # db.close()

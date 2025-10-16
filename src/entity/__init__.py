@@ -34,6 +34,7 @@ class LibraryDB:
             md5 TEXT NOT NULL UNIQUE,           -- 仍保证唯一
             path TEXT NOT NULL,
             name TEXT NOT NULL,
+            type INTEGER NOT NULL DEFAULT 0,
             chap_n INTEGER NOT NULL DEFAULT 0,
             chap_txt_pos INTEGER NOT NULL DEFAULT 0,
             txt_pos INTEGER NOT NULL DEFAULT 0,
@@ -81,8 +82,8 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, chap_n, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
-        VALUES(:md5, :path, :name, :chap_n, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
+        INSERT INTO books(md5, path, name, type, chap_n, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
+        VALUES(:md5, :path, :name, :type, :chap_n, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
@@ -93,6 +94,38 @@ class LibraryDB:
             "md5": book.md5,
             "path": book.path,
             "name": book.name,
+            "type": book.type,
+            "chap_n": book.chap_n,
+            "chap_txt_pos": book.chap_txt_pos,
+            "txt_all": book.txt_all,
+            "txt_pos": book.txt_pos,
+            "encoding": book.encoding,
+            "update_date": int(book.update_date),
+        })
+
+    def update_book(self, book: Book) -> None:
+        """
+        保存 Book。若 md5 已存在则更新其字段（path/name/txt_all/encoding/update_date）。
+        """
+        cur = self.conn.cursor()
+        cur.execute("""
+        INSERT INTO books(md5, path, name, type, chap_n, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
+        VALUES(:md5, :path, :name, :type, :chap_n, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
+        ON CONFLICT(md5) DO UPDATE SET
+            path=excluded.path,
+            name=excluded.name,
+            type=excluded.type,
+            chap_n=excluded.chap_n,
+            chap_txt_pos=excluded.chap_txt_pos,
+            txt_all=excluded.txt_all,
+            txt_pos=excluded.txt_pos,
+            encoding=excluded.encoding,
+            update_date=excluded.update_date
+        """, {
+            "md5": book.md5,
+            "path": book.path,
+            "name": book.name,
+            "type": book.type,
             "chap_n": book.chap_n,
             "chap_txt_pos": book.chap_txt_pos,
             "txt_all": book.txt_all,
@@ -126,6 +159,7 @@ class LibraryDB:
         return Book(
             path=row["path"],
             name=row["name"],
+            type=row["type"],
             chap_n=row["chap_n"],
             chap_txt_pos=row["chap_txt_pos"],
             txt_all=row["txt_all"],
@@ -150,6 +184,7 @@ class LibraryDB:
             Book(
                 path=r["path"],
                 name=r["name"],
+                type=r["type"],
                 chap_n=r["chap_n"],
                 chap_txt_pos=r["chap_txt_pos"],
                 txt_all=r["txt_all"],
@@ -199,8 +234,8 @@ class LibraryDB:
         """
         day_s = day.strftime("%Y-%m-%d")
         cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM timereads WHERE md5 = ? AND day = ? ORDER BY dt ASC", (md5, day_s))
+        cur.execute("SELECT * FROM timereads WHERE md5 = ? AND day = ? ORDER BY dt ASC",
+                    (md5, day_s))
         return [self._row_to_timeread(r) for r in cur.fetchall()]
 
     def get_time_reads_by_day(self, day: date) -> List[TimeRead]:
@@ -214,8 +249,8 @@ class LibraryDB:
         """
         day_s = day.strftime("%Y-%m-%d")
         cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM timereads WHERE day = ? ORDER BY dt ASC", (day_s,))
+        cur.execute("SELECT * FROM timereads WHERE day = ? ORDER BY dt ASC",
+                    (day_s,))
         return [self._row_to_timeread(r) for r in cur.fetchall()]
 
     def get_time_reads_by_month(self, year: int, month: int) -> List[TimeRead]:
@@ -230,8 +265,8 @@ class LibraryDB:
         """
         month_s = f"{year:04d}-{month:02d}"
         cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM timereads WHERE month = ? ORDER BY dt ASC", (month_s,))
+        cur.execute("SELECT * FROM timereads WHERE month = ? ORDER BY dt ASC",
+                    (month_s,))
         return [self._row_to_timeread(r) for r in cur.fetchall()]
 
     def get_time_reads_by_year(self, year: int) -> List[TimeRead]:
@@ -245,8 +280,8 @@ class LibraryDB:
         """
         year_s = f"{year:04d}"
         cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM timereads WHERE year = ? ORDER BY dt ASC", (year_s,))
+        cur.execute("SELECT * FROM timereads WHERE year = ? ORDER BY dt ASC",
+                    (year_s,))
         return [self._row_to_timeread(r) for r in cur.fetchall()]
 
     def _row_to_timeread(self, row: sqlite3.Row) -> TimeRead:
@@ -276,8 +311,8 @@ class LibraryDB:
         cur.execute("SELECT * FROM books ORDER BY update_date DESC")
         for r in cur:
             yield Book(
-                path=r["path"], name=r["name"], chap_n=r["chap_n"],
-                chap_txt_pos=r["chap_txt_pos"], txt_all=r["txt_all"],
-                txt_pos=r["txt_pos"], encoding=r["encoding"],
+                path=r["path"], name=r["name"], type=r["type"],
+                chap_n=r["chap_n"], chap_txt_pos=r["chap_txt_pos"],
+                txt_all=r["txt_all"], txt_pos=r["txt_pos"], encoding=r["encoding"],
                 md5=r["md5"], update_date=r["update_date"]
             )

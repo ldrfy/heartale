@@ -6,8 +6,11 @@ import time
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
-from ..entity.book import Book
-from ..entity.utils import parse_chap_names
+from ..entity import LibraryDB
+from ..entity.book import BOOK_TYPE_LEGADO, BOOK_TYPE_TXT, Book
+from ..servers import Server
+from ..servers.legado import LegadoServer
+from ..servers.txt import TxtServer
 
 logger = logging.getLogger(__name__)
 
@@ -44,8 +47,8 @@ class ReaderPage(Adw.NavigationPage):
 
         self._nav = nav
         self.t = 0
-        self._chap_names, self._chaps_ps = [], []
-        self.book: Book | None = None
+        self._toc_sel: Gtk.SingleSelection = None
+        self._server: Server = None
         self.toggle_sidebar = False
         self._build_factory()
 
@@ -56,25 +59,26 @@ class ReaderPage(Adw.NavigationPage):
             book (Book): _description_
         """
         self.show_loading()
-        self.t = time.time()
+
         self.title.set_title(book.name or "")
         pct = 0
         if book.txt_all > 0:
             pct = int(book.txt_pos * 100 / book.txt_all)
         self.title.set_subtitle(f"进度 {pct}%")
 
+        print(f"准备加载 {book.chap_n} 章，位置 {book.chap_txt_pos}")
+        book_md5 = book.md5
+
         def worker():
             try:
-                self.book = book
 
-                with open(book.path, "r", encoding=book.encoding) as f:
-                    text = f.read()
-                self._chap_names, self._chaps_ps = parse_chap_names(text)
+                db = LibraryDB()
+                book = db.get_book_by_md5(book_md5)
+                db.close()
+                self._server = self._get_server(book.type)
+                self._server.set_data(book)
 
-                print("------", time.time() - self.t)
-                if time.time() - self.t < 0.5:
-                    time.sleep(0.5 - (time.time() - self.t))
-
+                self._server.initialize()
                 # 回到主线程更新 UI（非常重要：GTK 只能主线程改）
                 GLib.idle_add(self._on_data_ready,
                               priority=GLib.PRIORITY_DEFAULT)
@@ -82,20 +86,40 @@ class ReaderPage(Adw.NavigationPage):
                 # 回到主线程展示错误
                 GLib.idle_add(self._on_error, e,
                               priority=GLib.PRIORITY_DEFAULT)
-
         threading.Thread(target=worker, daemon=True).start()
+
+    def _get_server(self, book_type: str):
+
+        if book_type == BOOK_TYPE_LEGADO:
+            return LegadoServer()
+        if book_type == BOOK_TYPE_TXT:
+            return TxtServer()
+
+        raise ValueError(f"不支持的书籍类型 {type}")
 
     def _on_data_ready(self):
         """仅在主线程运行：绑定目录与正文。"""
 
-        self.title.set_subtitle(f"{self._chap_names[self.book.chap_n]}")
-
-        cn = Gtk.StringList.new(self._chap_names)
-        self.toc.set_model(Gtk.SingleSelection.new(cn))
-
-        self.set_chap_text(self.book.chap_n)
+        cn = Gtk.StringList.new(self._server.get_chap_names())
+        self._toc_sel = Gtk.SingleSelection.new(cn)
+        self.toc.set_model(self._toc_sel)
+        self.set_chap_text()
 
         self.show_reader()
+
+        def sel_chap_name():
+            """选中目录
+            """
+            chap_n = self._server.get_chap_n()
+            self._toc_sel.set_selected(chap_n)
+            self.toc.scroll_to(chap_n, Gtk.ListScrollFlags.FOCUS,
+                               Gtk.ScrollInfo())
+
+        def worker():
+            # 必须延迟
+            time.sleep(0.5)
+            GLib.idle_add(sel_chap_name, priority=GLib.PRIORITY_DEFAULT)
+        threading.Thread(target=worker, daemon=True).start()
 
         # 告诉 GLib.idle_add 只执行一次
         return False
@@ -127,20 +151,27 @@ class ReaderPage(Adw.NavigationPage):
         """
         self.stack.set_visible_child(self.aos_reader)
 
-    def set_chap_text(self, chap_n: int):
+    def set_chap_text(self, _chap_n=-1):
         """设置文本
 
         Args:
             chap_n (int): 章节编号
         """
-        content = ""
-        with open(self.book.path, "r", encoding=self.book.encoding) as f:
-            if chap_n + 1 == len(self._chaps_ps):
-                content = f.read()[self._chaps_ps[chap_n]:]
-                return
-            content = f.read()[self._chaps_ps[chap_n]: self._chaps_ps[chap_n + 1]]
 
-        self.text.get_buffer().set_text(content)
+        def _ui_update(content, chap_name):
+            self.text.get_buffer().set_text(content)
+            self.title.set_subtitle(chap_name)
+
+        def worker(chap_n):
+            print(f"设置章节 {chap_n}")
+            if chap_n < 0:
+                chap_n = self._server.get_chap_n()
+            content = self._server.get_chap_txt(chap_n)
+            chap_name = self._server.get_chap_name(chap_n)
+            GLib.idle_add(_ui_update, content, chap_name,
+                          priority=GLib.PRIORITY_DEFAULT)
+
+        threading.Thread(target=worker, args=(_chap_n,), daemon=True).start()
 
     def get_current_text(self, selection_only: bool = True) -> str:
         """当前的文本
@@ -184,6 +215,7 @@ class ReaderPage(Adw.NavigationPage):
         self.toc.set_factory(factory)
 
         def on_activate(_listview, position):
+            print("激活", position)
             # position 是被激活项的索引
             self._on_toc_chapter_activated(int(position))
 
@@ -196,11 +228,6 @@ class ReaderPage(Adw.NavigationPage):
             # 更新正文
             self.set_chap_text(chap_n)
             # 更新标题副标题（可选）
-            if 0 <= chap_n < len(self._chap_names):
-                self.title.set_subtitle(self._chap_names[chap_n])
-            # 记录当前章号（可选）
-            if self.book:
-                self.book.chap_n = chap_n
         except Exception as e:  # pylint: disable=broad-except
             self.show_error(f"切换章节失败：{e}")
 
@@ -220,7 +247,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_retry_load(self, *_args):
-        self.set_data(self.book)  # 重试加载当前书
+        self.set_data(self._server.book)  # 重试加载当前书
 
     @Gtk.Template.Callback()
     def _on_toggle_sidebar(self, *_args):

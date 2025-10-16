@@ -111,7 +111,7 @@
                             <property name="min-content-width">240</property>
                             <property name="child">
                             <object class="GtkListView" id="toc">
-                                <property name="single-click-activate">true</property>
+                                <property name="single-click-activate">false</property>
                             </object>
                             </property>
                         </object>

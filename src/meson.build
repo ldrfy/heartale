@@ -39,7 +39,6 @@ heartale_sources_entity = [
     'entity/__init__.py',
     'entity/book.py',
     'entity/time_read.py',
-    'entity/utils.py',
 ]
 
 install_data(heartale_sources_entity, install_dir: moduledir / 'entity')
@@ -49,8 +48,17 @@ heartale_sources_widgets = [
     'widgets/__init__.py',
     'widgets/shelf_row.py',
 ]
-
 install_data(heartale_sources_widgets, install_dir: moduledir / 'widgets')
+
+
+heartale_sources_servers = [
+    'servers/__init__.py',
+    'servers/legado.py',
+    'servers/tools.py',
+    'servers/txt.py',
+]
+install_data(heartale_sources_servers, install_dir: moduledir / 'servers')
+
 
 
 subdir('res')

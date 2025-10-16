@@ -4,6 +4,12 @@ from datetime import datetime
 
 from gi.repository import GObject  # type: ignore
 
+BOOK_TYPE_TXT = 0
+BOOK_TYPE_LEGADO = 1
+BOOK_TYPE_EPUB = 2
+BOOK_TYPE_MOBI = 3
+BOOK_TYPE_PDF = 4
+BOOK_TYPE_DJVU = 5
 
 @dataclass
 class Book:
@@ -19,6 +25,8 @@ class Book:
     txt_all: int
     encoding: str
     md5: str
+    # 类型，比如 0 txt, 1 legado, 2 epub, 3 mobi, 4 pdf, 5 djvu
+    type: int = BOOK_TYPE_TXT
     update_date: int = field(
         default_factory=lambda: int(datetime.now().timestamp()))
 # -*- coding: utf-8 -*-
