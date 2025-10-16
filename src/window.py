@@ -23,7 +23,4 @@ class HeartaleWindow(Adw.ApplicationWindow):
         self._reader_page = ReaderPage(self.nav)
         self._shelf_page = ShelfPage(self.nav, self._reader_page)
 
-        self.nav.add(self._shelf_page)
-        self.nav.add(self._reader_page)
-
         self.nav.push(self._shelf_page)

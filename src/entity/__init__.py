@@ -20,6 +20,8 @@ class LibraryDB:
         self._init_tables()
 
     def close(self):
+        """关闭
+        """
         self.conn.commit()
         self.conn.close()
 
@@ -46,13 +48,13 @@ class LibraryDB:
         CREATE TABLE IF NOT EXISTS timereads (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             md5 TEXT NOT NULL,
+            type INTEGER NOT NULL DEFAULT 0,
             dt TEXT NOT NULL,              -- ISO datetime string
             day TEXT NOT NULL,             -- YYYY-MM-DD
             month TEXT NOT NULL,           -- YYYY-MM
             year TEXT NOT NULL,            -- YYYY
             words INTEGER NOT NULL DEFAULT 0,
             seconds INTEGER NOT NULL DEFAULT 0,
-            created_at INTEGER NOT NULL,
             FOREIGN KEY(md5) REFERENCES books(md5)
         )
         """)
@@ -94,7 +96,7 @@ class LibraryDB:
         })
         self.conn.commit()
 
-    def delete_book_by_md5(self, md5: str, delete_timereads: bool = True) -> None:
+    def delete_book_by_md5(self, md5: str, delete_timereads: bool = False) -> None:
         """
         删除一本书。
         :param md5: 书的 md5
@@ -107,6 +109,14 @@ class LibraryDB:
         self.conn.commit()
 
     def get_book_by_md5(self, md5: str) -> Optional[Book]:
+        """根据md5找某本书
+
+        Args:
+            md5 (str): _description_
+
+        Returns:
+            Optional[Book]: _description_
+        """    
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM books WHERE md5 = ?", (md5,))
         row = cur.fetchone()
@@ -132,8 +142,8 @@ class LibraryDB:
         if "%" not in name_pattern:
             name_pattern = f"%{name_pattern}%"
         cur = self.conn.cursor()
-        cur.execute(
-            "SELECT * FROM books WHERE name LIKE ? ORDER BY update_date DESC LIMIT ?", (name_pattern, limit))
+        cur.execute("SELECT * FROM books WHERE name LIKE ? ORDER BY update_date DESC LIMIT ?",
+                    (name_pattern, limit))
         rows = cur.fetchall()
         return [
             Book(
@@ -163,21 +173,30 @@ class LibraryDB:
         year = tr.dt.strftime("%Y")
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO timereads(md5, dt, day, month, year, words, seconds, created_at)
-        VALUES(:md5, :dt, :day, :month, :year, :words, :seconds, :created_at)
+        INSERT INTO timereads(md5, type, dt, day, month, year, words, seconds)
+        VALUES(:md5, :type, :dt, :day, :month, :year, :words, :seconds)
         """, {
             "md5": tr.md5,
+            "type": tr.type,
             "dt": iso,
             "day": day,
             "month": month,
             "year": year,
-            "words": int(tr.words),
-            "seconds": int(tr.seconds),
-            "created_at": int(tr.created_at),
+            "words": tr.words,
+            "seconds": tr.seconds,
         })
         self.conn.commit()
 
     def get_time_reads_by_md5_and_day(self, md5: str, day: date) -> List[TimeRead]:
+        """某本书按天
+
+        Args:
+            md5 (str): _description_
+            day (date): _description_
+
+        Returns:
+            List[TimeRead]: _description_
+        """
         day_s = day.strftime("%Y-%m-%d")
         cur = self.conn.cursor()
         cur.execute(
@@ -185,6 +204,14 @@ class LibraryDB:
         return [self._row_to_timeread(r) for r in cur.fetchall()]
 
     def get_time_reads_by_day(self, day: date) -> List[TimeRead]:
+        """按天
+
+        Args:
+            day (date): _description_
+
+        Returns:
+            List[TimeRead]: _description_
+        """
         day_s = day.strftime("%Y-%m-%d")
         cur = self.conn.cursor()
         cur.execute(
@@ -192,6 +219,15 @@ class LibraryDB:
         return [self._row_to_timeread(r) for r in cur.fetchall()]
 
     def get_time_reads_by_month(self, year: int, month: int) -> List[TimeRead]:
+        """按月
+
+        Args:
+            year (int): _description_
+            month (int): _description_
+
+        Returns:
+            List[TimeRead]: _description_
+        """
         month_s = f"{year:04d}-{month:02d}"
         cur = self.conn.cursor()
         cur.execute(
@@ -199,6 +235,14 @@ class LibraryDB:
         return [self._row_to_timeread(r) for r in cur.fetchall()]
 
     def get_time_reads_by_year(self, year: int) -> List[TimeRead]:
+        """按年
+
+        Args:
+            year (int): _description_
+
+        Returns:
+            List[TimeRead]: _description_
+        """
         year_s = f"{year:04d}"
         cur = self.conn.cursor()
         cur.execute(
@@ -210,19 +254,24 @@ class LibraryDB:
         dt_str = row["dt"]
         try:
             dt_obj = datetime.fromisoformat(dt_str)
-        except Exception:
+        except Exception: # pylint: disable=broad-except
             # 容错解析
             dt_obj = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
         return TimeRead(
             md5=row["md5"],
+            type=row["type"],
             words=row["words"],
             seconds=row["seconds"],
             dt=dt_obj,
-            created_at=row["created_at"]
         )
 
     # 用于迭代所有 books（可选）
     def iter_books(self) -> Iterator[Book]:
+        """查找所有书
+
+        Yields:
+            Iterator[Book]: _description_
+        """    
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM books ORDER BY update_date DESC")
         for r in cur:

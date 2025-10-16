@@ -33,13 +33,13 @@ def parse_chap_names(file_content):
     chap_names = []
     chap_ps = []
 
-    ss = file_content.split("\n")
     words = 0
-    for line in ss:
+    for line in file_content.split("\n"):
         # 匹配卷号
         volume_match = re.search(volume_pattern, line)
         if volume_match:
             current_volume = volume_match.group()  # 获取当前卷
+            words += len(line + "\n")
             continue  # 继续找章
 
         # 匹配章号
@@ -123,7 +123,6 @@ def path2book(src: str, cfg_dir: Path | None = None) -> Book:
     dest = cfg_dir / src_path.name
     shutil.copy(src_path, dest)
     md5 = cal_md5(dest)
-    print(dest, md5)
     return Book(str(dest), dest.stem, 0, 0, 0, txt_all, enc, md5)
 
 

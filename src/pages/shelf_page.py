@@ -33,27 +33,27 @@ class ShelfPage(Adw.NavigationPage):
         self._nav: Adw.NavigationView = nav
         self._reader_page: ReaderPage = reader_page
         self._books: Gio.ListStore = Gio.ListStore.new(BookObject)
-        self._factory = self._build_factory()
-        self.set_model()
+        self._build_factory()
+        self.build_bookshel()
 
-    def set_model(self):
+    def build_bookshel(self):
+        """_summary_
+        """
+        self._books.remove_all()
         db = LibraryDB()
         for b in db.iter_books():
             self._books.append(BookObject.from_dataclass(b))
         db.close()
-        # liststore 应为 Gio.ListStore(BookObject)
-        selection = Gtk.SingleSelection.new(self._books)
-        self.list.set_model(selection)
-        self.list.set_factory(self._factory)
-        if self._books.get_n_items() > 0:
-            self.show_list()
-        else:
+        if self._books.get_n_items() == 0:
             self.show_empty()
-
-    def show_list(self):
+            return
+        # liststore 应为 Gio.ListStore(BookObject)
+        self.list.set_model(Gtk.SingleSelection.new(self._books))
         self.stack.set_visible_child(self.scroller)
 
     def show_empty(self):
+        """没有书时显示空状态页
+        """
         self.stack.set_visible_child(self.empty)
 
     def _build_factory(self):
@@ -81,15 +81,17 @@ class ShelfPage(Adw.NavigationPage):
             row: Adw.ActionRow = li.get_child()
             bobj: BookObject = li.get_item()
             row.set_title(bobj.name)
-            pct = 0 if bobj.txt_all == 0 else int(
-                bobj.txt_pos * 100 / bobj.txt_all)
+            pct = 0
+            if bobj.txt_all > 0:
+                pct = int(bobj.txt_pos * 100 / bobj.txt_all)
             row.set_subtitle(f"进度 {pct}% · 编码 {bobj.encoding}")
 
         factory.connect("setup", setup)
         factory.connect("bind", bind)
-        return factory
+        self.list.set_factory(factory)
 
     # ========== 删除逻辑 ==========
+
     def _on_row_delete(self, list_item: Gtk.ListItem):
         # 通过 ListItem 的当前位置删除
         pos = list_item.get_position()
@@ -105,9 +107,6 @@ class ShelfPage(Adw.NavigationPage):
         db.delete_book_by_md5(list_item.get_item().md5)
         db.close()
 
-    def on_import_book(self):
-        self._on_import_book()
-
     @Gtk.Template.Callback()
     def _on_import_book(self, *_args):
         dlg = Gtk.FileDialog.new()
@@ -119,12 +118,14 @@ class ShelfPage(Adw.NavigationPage):
         dlg.set_default_filter(ff)
 
         def _done(d, res):
+            s_error = ""
             try:
                 files = d.open_multiple_finish(res)
-            except GLib.Error:
+            except GLib.Error as e:
+                s_error += f"{e}\n"
                 return
+
             books = []
-            s_error = ""
             for f in files:
                 try:
                     book = path2book(f.get_path())
@@ -133,6 +134,7 @@ class ShelfPage(Adw.NavigationPage):
                     s_error += f"{Path(f.get_path()).name}: {e}\n"
                     continue
                 books.append(book)
+
             if len(books) > 0:
                 db = LibraryDB()
                 for b in books:
@@ -142,11 +144,11 @@ class ShelfPage(Adw.NavigationPage):
                 for b in db.iter_books():
                     self._books.append(BookObject.from_dataclass(b))
                 db.close()
-                self.show_list()
+                self.build_bookshel()
 
             if s_error:
-                edlg = Adw.MessageDialog.new(
-                    self.get_root(), "导入部分失败", s_error)
+                edlg = Adw.MessageDialog.new(self.get_root(),
+                                             "导入部分失败", s_error)
                 edlg.add_response("ok", "确定")
                 edlg.set_default_response("ok")
                 edlg.set_close_response("ok")
@@ -156,9 +158,8 @@ class ShelfPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_shelf_activate(self, listview: Gtk.ListView, position: int):
+        self._nav.push(self._reader_page)
 
         selection: Gtk.SingleSelection = listview.get_model()
         bobj: BookObject = selection.get_item(position)
         self._reader_page.set_data(bobj.to_dataclass())
-
-        self._nav.push(self._reader_page)
