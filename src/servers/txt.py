@@ -4,6 +4,8 @@ import re
 import shutil
 from pathlib import Path
 
+from charset_normalizer import from_path
+
 from ..entity.book import Book
 from . import Server
 
@@ -69,12 +71,20 @@ class TxtServer(Server):
 
     def _get_chap_names(self):
 
-        with open(self.book.path, "r", encoding=self.book.encoding) as f:
+        with open(self.book.path, "r", encoding=self.book.encoding, errors="ignore") as f:
             text = f.read()
         return parse_chap_names(text)
 
 
-def parse_chap_names(file_content):
+VOLUME_PATTERN = r'^第([一二三四五六七八九十\d]+)卷\s*(.*)'  # 匹配卷号
+CHAPTER_PATTERN = r'^第([一二三四五六七八九十百千\d]+)章\s*(.*)'  # 匹配章号
+
+
+VOLUME_PATTERN2 = r'第([一二三四五六七八九十\d]+)卷\s*(.*)'  # 匹配卷号
+CHAPTER_PATTERN2 = r'第([一二三四五六七八九十百千\d]+)章\s*(.*)'  # 匹配章号
+
+
+def parse_chap_names(file_content, volume_pattern=VOLUME_PATTERN, chapter_pattern=CHAPTER_PATTERN):
     """
 
     Args:
@@ -83,10 +93,7 @@ def parse_chap_names(file_content):
     Returns:
         _type_: _description_
     """
-
-    # 匹配 "第xx卷" 和 "第xx章"
-    volume_pattern = r'^第([一二三四五六七八九十\d]+)卷\s*(.*)'  # 匹配卷号
-    chapter_pattern = r'^第([一二三四五六七八九十百千\d]+)章\s*(.*)'  # 匹配章号
+    print(file_content[:100])
 
     current_volume = None
     chap_names = []
@@ -112,6 +119,9 @@ def parse_chap_names(file_content):
                 chap_names.append(f"{current_chapter}")
             chap_ps.append(words)
         words += len(line + "\n")
+
+    if len(chap_names) == 0:
+        return parse_chap_names(file_content, VOLUME_PATTERN2, CHAPTER_PATTERN2)
 
     return chap_names, chap_ps
 
@@ -146,15 +156,19 @@ def detect_encoding(path: Path, sample_size: int = 65536) -> str:
     Returns:
         str: _description_
     """
-    encodings = ["utf-8", "utf-8-sig", "gbk", "gb2312", "big5", "latin1"]
+    print(f"探测文件编码: {path}")
+    encodings = ["gbk", "gb2312", "utf-8-sig", "utf-8"]
     raw = path.open("rb").read(sample_size)
     for enc in encodings:
         try:
             raw.decode(enc)
             return enc
-        except UnicodeDecodeError:
+        except UnicodeDecodeError as e:
+            print(f"尝试用{enc}解码失败: {e}")
             continue
-    raise ValueError(f"Unable to recognize file encoding: {path}")
+    result = from_path(path).best()
+    return result.encoding
+    # raise ValueError(f"Unable to recognize file encoding: {path}")
 
 
 def path2book(src: str, cfg_dir: Path | None = None) -> Book:
