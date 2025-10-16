@@ -44,7 +44,11 @@ class LibraryDB:
         """)
         cur.execute("""
         CREATE INDEX IF NOT EXISTS idx_books_name ON books(name);
+        """)
+        cur.execute("""
         CREATE INDEX IF NOT EXISTS idx_books_update_date ON books(update_date);
+        """)
+        cur.execute("""
         CREATE INDEX IF NOT EXISTS idx_books_path ON books(path);
         """)
         cur.execute("""
@@ -250,7 +254,7 @@ class LibraryDB:
         dt_str = row["dt"]
         try:
             dt_obj = datetime.fromisoformat(dt_str)
-        except Exception: # pylint: disable=broad-except
+        except Exception:  # pylint: disable=broad-except
             # 容错解析
             dt_obj = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
         return TimeRead(
@@ -267,7 +271,7 @@ class LibraryDB:
 
         Yields:
             Iterator[Book]: _description_
-        """    
+        """
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM books ORDER BY update_date DESC")
         for r in cur:

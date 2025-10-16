@@ -23,10 +23,15 @@ class ShelfPage(Adw.NavigationPage):
     """
     __gtype_name__ = "ShelfPage"
 
+    search: Gtk.SearchEntry = Gtk.Template.Child()
+    btn_search: Gtk.ToggleButton = Gtk.Template.Child()
+    rev_search: Gtk.Revealer = Gtk.Template.Child()
+
     list: Gtk.ListView = Gtk.Template.Child()
     stack: Adw.ViewStack = Gtk.Template.Child()
     scroller: Gtk.ScrolledWindow = Gtk.Template.Child()
     empty: Adw.StatusPage = Gtk.Template.Child()
+    search_empty: Adw.StatusPage = Gtk.Template.Child()
     btn_import: Gtk.Button = Gtk.Template.Child()
 
     def __init__(self, nav: Adw.NavigationView, reader_page: ReaderPage, **kwargs):
@@ -34,27 +39,39 @@ class ShelfPage(Adw.NavigationPage):
         self._nav: Adw.NavigationView = nav
         self._reader_page: ReaderPage = reader_page
         self._build_factory()
-        self.build_bookshel()
-
-    def build_bookshel(self):
-        """_summary_
-        """
-        books: Gio.ListStore = Gio.ListStore.new(BookObject)
         db = LibraryDB()
-        for b in db.iter_books():
-            books.append(BookObject.from_dataclass(b))
+        books = list(db.iter_books())
         db.close()
-        if books.get_n_items() == 0:
-            self.show_empty()
+        self.build_bookshel(books)
+        self._search_debounce_id = 0
+
+        self._install_shortcuts()
+
+    def build_bookshel(self, books, is_search=False):
+        """构建书架
+        """
+        if len(books) == 0:
+            if is_search:
+                self.stack.set_visible_child(self.search_empty)  # 空列表但非空态
+                return
+            self.stack.set_visible_child(self.empty)
             return
+
+        gls: Gio.ListStore = Gio.ListStore.new(BookObject)
+        for b in books:
+            gls.append(BookObject.from_dataclass(b))
         # liststore 应为 Gio.ListStore(BookObject)
-        self.list.set_model(Gtk.SingleSelection.new(books))
+        self.list.set_model(Gtk.SingleSelection.new(gls))
         self.stack.set_visible_child(self.scroller)
 
-    def show_empty(self):
-        """没有书时显示空状态页
-        """
-        self.stack.set_visible_child(self.empty)
+    def _install_shortcuts(self):
+        sc = Gtk.ShortcutController()
+        sc.add_shortcut(Gtk.Shortcut.new(
+            Gtk.ShortcutTrigger.parse_string("<Control>F"),
+            Gtk.CallbackAction.new(lambda *_: (self.btn_search.set_active(True),
+                                               self.search.grab_focus(), True))
+        ))
+        self.add_controller(sc)
 
     def _build_factory(self):
         """初始化模型，仅一次
@@ -111,7 +128,7 @@ class ShelfPage(Adw.NavigationPage):
 
         # 空态 or 恢复选中
         if store.get_n_items() == 0:
-            self.show_empty()
+            self.stack.set_visible_child(self.empty)
 
     @Gtk.Template.Callback()
     def _on_import_book(self, *_args):
@@ -145,8 +162,9 @@ class ShelfPage(Adw.NavigationPage):
                 db = LibraryDB()
                 for b in books:
                     db.save_book(b)
+                books_ = db.iter_books()
                 db.close()
-                self.build_bookshel()
+                self.build_bookshel(books_)
 
             if s_error:
                 edlg = Adw.MessageDialog.new(self.get_root(),
@@ -158,6 +176,19 @@ class ShelfPage(Adw.NavigationPage):
 
         dlg.open_multiple(self.get_root(), None, _done)
 
+    def _apply_search(self, *_args):
+        self._search_debounce_id = 0
+        kw = self.search.get_text().strip()
+        # 支持空串 = 全部；转义 %/_，避免被当通配符
+        esc = kw.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+        pat = "%" if not kw else f"%{esc}%"
+
+        db = LibraryDB()
+        books = list(db.search_books_by_name(pat, limit=1000))
+        db.close()
+        self.build_bookshel(books, True)
+        return False
+
     @Gtk.Template.Callback()
     def _on_shelf_activate(self, listview: Gtk.ListView, position: int):
         self._nav.push(self._reader_page)
@@ -165,3 +196,35 @@ class ShelfPage(Adw.NavigationPage):
         selection: Gtk.SingleSelection = listview.get_model()
         bobj: BookObject = selection.get_item(position)
         self._reader_page.set_data(bobj.to_dataclass())
+
+    @Gtk.Template.Callback()
+    def _on_search_changed(self, entry: Gtk.SearchEntry):
+        if self._search_debounce_id:
+            GLib.source_remove(self._search_debounce_id)
+        self._search_debounce_id = GLib.timeout_add(200, self._apply_search,
+                                                    entry.get_text().strip())
+        print(self._search_debounce_id)
+
+    @Gtk.Template.Callback()
+    def _on_clear_search(self, *_):
+        self.search.set_text("")
+        self._apply_search()  # 你的检索函数
+
+    @Gtk.Template.Callback()
+    def _on_search_toggle(self, btn: Gtk.ToggleButton):
+        active = btn.get_active()
+        self.rev_search.set_reveal_child(active)
+        if active:
+            GLib.idle_add(self.search.grab_focus)
+        else:
+            # 可选：收起时清空搜索
+            # self.search.set_text("")
+            pass
+
+    @Gtk.Template.Callback()
+    def _on_search_stop(self, *_):
+        # Esc 或点叉关闭搜索
+        self.search.set_text("")
+        self.rev_search.set_reveal_child(False)
+        self.btn_search.set_active(False)
+        self._apply_search()  # 触发一次“显示全部”
