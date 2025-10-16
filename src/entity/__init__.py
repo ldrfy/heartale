@@ -1,4 +1,5 @@
 """数据"""
+import os
 import sqlite3
 from datetime import date, datetime
 from pathlib import Path
@@ -13,6 +14,7 @@ class LibraryDB:
     """
 
     def __init__(self, db_path: str | Path = Path.home() / ".config" / "heartale" / "heartale.db"):
+        os.makedirs(db_path.parent, exist_ok=True)
         self.db_path = str(db_path)
         self.conn = sqlite3.connect(
             self.db_path, detect_types=sqlite3.PARSE_DECLTYPES)
