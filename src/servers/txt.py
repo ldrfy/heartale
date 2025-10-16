@@ -6,6 +6,7 @@ from pathlib import Path
 
 from charset_normalizer import from_path
 
+from .. import PATH_CONFIG_BOOKS
 from ..entity.book import Book
 from . import Server
 
@@ -171,7 +172,7 @@ def detect_encoding(path: Path, sample_size: int = 65536) -> str:
     # raise ValueError(f"Unable to recognize file encoding: {path}")
 
 
-def path2book(src: str, cfg_dir: Path | None = None) -> Book:
+def path2book(src: str, cfg_dir: Path = PATH_CONFIG_BOOKS) -> Book:
     """根据路径初始化
 
     Args:
@@ -190,10 +191,8 @@ def path2book(src: str, cfg_dir: Path | None = None) -> Book:
 
     txt_all = len(src_path.read_text(encoding=enc))
 
-    if cfg_dir is None:
-        cfg_dir = Path.home() / ".config" / "heartale" / "books"
-    cfg_dir.mkdir(parents=True, exist_ok=True)
     dest = cfg_dir / src_path.name
     shutil.copy(src_path, dest)
     md5 = cal_md5(dest)
+    print(src_path, dest)
     return Book(str(dest), dest.stem, 0, 0, 0, txt_all, enc, md5)

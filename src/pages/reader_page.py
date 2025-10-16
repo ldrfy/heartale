@@ -58,6 +58,7 @@ class ReaderPage(Adw.NavigationPage):
         Args:
             book (Book): _description_
         """
+        self.t = time.time()
         self.show_loading()
 
         self.title.set_title(book.name or "")
@@ -79,7 +80,9 @@ class ReaderPage(Adw.NavigationPage):
                 self._server.set_data(book)
 
                 self._server.initialize()
-                # 回到主线程更新 UI（非常重要：GTK 只能主线程改）
+
+                if time.time() - self.t < 0.5:
+                    time.sleep(0.5 - (time.time() - self.t))
                 GLib.idle_add(self._on_data_ready,
                               priority=GLib.PRIORITY_DEFAULT)
             except Exception as e:  # pylint: disable=broad-except

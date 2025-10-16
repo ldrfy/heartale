@@ -5,6 +5,7 @@ from datetime import date, datetime
 from pathlib import Path
 from typing import Iterator, List, Optional
 
+from .. import PATH_CONFIG
 from .book import Book
 from .time_read import TimeRead
 
@@ -13,8 +14,8 @@ class LibraryDB:
     """_summary_
     """
 
-    def __init__(self, db_path: str | Path = Path.home() / ".config" / "heartale" / "heartale.db"):
-        os.makedirs(db_path.parent, exist_ok=True)
+    def __init__(self, db_path: str | Path = PATH_CONFIG / "heartale.db"):
+
         self.db_path = str(db_path)
         self.conn = sqlite3.connect(
             self.db_path, detect_types=sqlite3.PARSE_DECLTYPES)
