@@ -3,7 +3,7 @@ import asyncio
 import datetime
 import json
 import time
-from urllib.parse import quote
+from urllib.parse import parse_qs, quote, urlparse, urlsplit, urlunsplit
 
 import requests
 
@@ -41,6 +41,35 @@ def data2url(url):
     return quote(url)
 
 
+def get_url_params(url: str) -> dict[str, str | list[str]]:
+    """只要参数
+
+    Args:
+        url (str): _description_
+
+    Returns:
+        dict[str, str | list[str]]: _description_
+    """
+    parsed = urlparse(url)
+    if not parsed.query:
+        return {}
+    qs = parse_qs(parsed.query)
+    return {k: v[0] if len(v) == 1 else v for k, v in qs.items()}
+
+
+def remove_query(url: str) -> str:
+    """去除参数
+
+    Args:
+        url (str): _description_
+
+    Returns:
+        str: _description_
+    """
+    parts = urlsplit(url)
+    return urlunsplit((parts.scheme, parts.netloc, parts.path, '', ''))
+
+
 class LegadoServer(Server):
     """阅读app相关的webapi"""
 
@@ -52,13 +81,25 @@ class LegadoServer(Server):
         """
         # 书籍信息
         self.book_data = ""
+        # 一般是内网地址: http://192.168.x.x:xxxx
+        self.url_base = ""
         super().__init__("legado")
 
     def initialize(self, book: Book):
         self.book = book
 
         #  同步手机端阅读进度
-        self.book_data = get_book_shelf(0, self.book.path)
+        # self.book.path: http://192.168.x.x:xxxx?bn=0
+        params = get_url_params(self.book.path)
+        # 默认第0本书
+        bn = 0
+        if "bn" in params:
+            bn = int(params["bn"])
+        self.url_base = remove_query(self.book.path)
+        print(f"Legado 书籍基础地址：{self.url_base}; 第几本书：{bn}")
+
+        self.book_data = get_book_shelf(bn, self.url_base)
+        print(f"Legado 书籍信息：{self.book_data}")
 
         self.book.name = self.book_data["name"]
         self.save_read_progress(
@@ -103,7 +144,7 @@ class LegadoServer(Server):
         if chap_n < 0:
             return super().get_chap_txt(chap_n)
 
-        url = f"{self.book.path}/getBookContent"
+        url = f"{self.url_base}/getBookContent"
         params = f"{bu(self.book_data)}&index={chap_n}"
 
         resp = requests.get(f"{url}?{params}", timeout=10)
@@ -118,7 +159,7 @@ class LegadoServer(Server):
         Returns:
             list: 章节目录，包含title等
         """
-        url = f"{self.book.path}/getChapterList?{bu(self.book_data)}"
+        url = f"{self.url_base}/getChapterList?{bu(self.book_data)}"
         resp = requests.get(url, timeout=10)
         return [d["title"] for d in resp.json()["data"]]
 
@@ -147,7 +188,7 @@ class LegadoServer(Server):
         json_data = json.dumps(data)
         headers = {'Content-Type': 'application/json'}
 
-        resp = requests.post(f"{self.book.path}/saveBookProgress",
+        resp = requests.post(f"{self.url_base}/saveBookProgress",
                              data=json_data,
                              headers=headers,
                              timeout=10)

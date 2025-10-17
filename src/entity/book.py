@@ -4,12 +4,12 @@ from datetime import datetime
 
 from gi.repository import GObject  # type: ignore
 
-BOOK_TYPE_TXT = 0
-BOOK_TYPE_LEGADO = 1
-BOOK_TYPE_EPUB = 2
-BOOK_TYPE_MOBI = 3
-BOOK_TYPE_PDF = 4
-BOOK_TYPE_DJVU = 5
+BOOK_FMT_TXT = 0
+BOOK_FMT_LEGADO = 1
+BOOK_FMT_EPUB = 2
+BOOK_FMT_MOBI = 3
+BOOK_FMT_PDF = 4
+BOOK_FMT_DJVU = 5
 
 @dataclass
 class Book:
@@ -31,7 +31,7 @@ class Book:
     encoding: str
     md5: str
     # 类型，比如 0 txt, 1 legado, 2 epub, 3 mobi, 4 pdf, 5 djvu
-    type: int = BOOK_TYPE_TXT
+    fmt: int = BOOK_FMT_TXT
     update_date: int = field(
         default_factory=lambda: int(datetime.now().timestamp()))
 
@@ -48,6 +48,7 @@ class BookObject(GObject.GObject):
     txt_all = GObject.Property(type=int)
     encoding = GObject.Property(type=str)
     md5 = GObject.Property(type=str)
+    fmt = GObject.Property(type=int)
     update_date = GObject.Property(type=int)
 
     def __init__(self, **kwargs):
@@ -76,6 +77,7 @@ class BookObject(GObject.GObject):
             txt_all=b.txt_all,
             encoding=b.encoding,
             md5=b.md5,
+            fmt=b.fmt,
             update_date=b.update_date,
         )
 
@@ -96,5 +98,6 @@ class BookObject(GObject.GObject):
             txt_all=self.txt_all,
             encoding=self.encoding,
             md5=self.md5,
+            fmt=self.fmt,
             update_date=self.update_date,
         )

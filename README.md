@@ -11,4 +11,6 @@ chmod +x ~/.local/bin/flatpak-pip-generator
 flatpak-pip-generator requests --yaml
 
 flatpak-builder --user --install --force-clean build-dir cool.ldr.heartale.yaml
+
+flatpak run cool.ldr.heartale
 ```

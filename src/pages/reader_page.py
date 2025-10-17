@@ -7,7 +7,7 @@ import time
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
 from ..entity import LibraryDB
-from ..entity.book import BOOK_TYPE_LEGADO, BOOK_TYPE_TXT, Book
+from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
 from ..servers import Server
 from ..servers.legado import LegadoServer
 from ..servers.txt import TxtServer
@@ -78,7 +78,7 @@ class ReaderPage(Adw.NavigationPage):
                 book = db.get_book_by_md5(book_md5)
                 db.close()
 
-                self._server = self._get_server(book.type)
+                self._server = self._get_server(book.fmt)
                 self._server.initialize(book)
 
                 if time.time() - self.t < 0.5:
@@ -92,14 +92,14 @@ class ReaderPage(Adw.NavigationPage):
                               priority=GLib.PRIORITY_DEFAULT)
         threading.Thread(target=worker, daemon=True).start()
 
-    def _get_server(self, book_type: str):
+    def _get_server(self, fmt: str):
 
-        if book_type == BOOK_TYPE_LEGADO:
+        if fmt == BOOK_FMT_LEGADO:
             return LegadoServer()
-        if book_type == BOOK_TYPE_TXT:
+        if fmt == BOOK_FMT_TXT:
             return TxtServer()
 
-        raise ValueError(f"不支持的书籍类型 {type}")
+        raise ValueError(f"不支持的书籍类型 {fmt}")
 
     def _on_data_ready(self):
         """仅在主线程运行：绑定目录与正文。"""

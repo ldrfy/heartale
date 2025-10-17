@@ -66,7 +66,7 @@ class TxtServer(Server):
         if chap_n < 0:
             return super().get_chap_txt(chap_n)
 
-        with open(self.book.path, "r", encoding=self.book.encoding) as f:
+        with open(self.book.path, "r", encoding=self.book.encoding, errors="ignore") as f:
             if chap_n + 1 == len(self.chap_p2s):
                 return f.read()[self.chap_p2s[chap_n]:]
 
@@ -191,10 +191,16 @@ def path2book(src: str, cfg_dir: Path = PATH_CONFIG_BOOKS) -> Book:
         raise ValueError(f"Unsupported file type: {src_path.suffix}")
     enc = detect_encoding(src_path)
 
-    txt_all = len(src_path.read_text(encoding=enc))
+    chap_all = 0
+    with open(src, "r", encoding=enc, errors="ignore") as file:
+        f_txt = file.read()
+    txt_all = len(f_txt)
+    chap_names, _chap_ps = parse_chap_names(f_txt)
+    chap_all = len(chap_names)
+    print(f"检测到章节数: {chap_all}")
 
     dest = cfg_dir / src_path.name
     shutil.copy(src_path, dest)
     md5 = cal_md5(dest)
     print(src_path, dest)
-    return Book(str(dest), dest.stem, 0, 0, 0, txt_all, enc, md5)
+    return Book(str(dest), dest.stem, "", 0, chap_all, 0, 0, txt_all, enc, md5)

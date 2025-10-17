@@ -1,8 +1,8 @@
 """数据"""
-import os
 import sqlite3
 from datetime import date, datetime
 from pathlib import Path
+from sqlite3 import OperationalError
 from typing import Iterator, List, Optional
 
 from .. import PATH_CONFIG
@@ -22,34 +22,72 @@ class LibraryDB:
         self.conn.row_factory = sqlite3.Row
         self._init_tables()
 
-    #     self._ensure_columns()   # 新增：自动迁移已有表的列
+        self._ensure_columns_and_renames()  # <- 调用迁移函数
 
-    # def _ensure_columns(self):
-    #     """
-    #     检查 books 表的列，缺失则添加。
-    #     安全可重复执行。
-    #     """
-    #     cur = self.conn.cursor()
-    #     # 如果表还没创建，_init_tables 已创建；这里只检查列
-    #     cur.execute("PRAGMA table_info(books)")
-    #     cols = {r["name"] for r in cur.fetchall()}
+    def _ensure_columns_and_renames(self):
+        """
+        检查并添加缺失列，同时尝试把旧列重命名为新列：
+          books.type -> books.fmt
+          timereads.type -> timereads.way
+        兼容旧版 SQLite（退化为 ADD COLUMN + COPY）。
+        可重复执行且安全。
+        """
+        cur = self.conn.cursor()
 
-    #     # 要新增的列与对应的 SQL 片段（确保有合理默认值以兼容旧数据）
-    #     need = []
-    #     if "chap_all" not in cols:
-    #         need.append(
-    #             "ALTER TABLE books ADD COLUMN chap_all INTEGER NOT NULL DEFAULT 0")
-    #     if "author" not in cols:
-    #         # 设默认空作者，避免 NOT NULL 插入失败
-    #         need.append(
-    #             "ALTER TABLE books ADD COLUMN author TEXT NOT NULL DEFAULT ''")
+        # 常规列检查（你原先的需要列）
+        cur.execute("PRAGMA table_info(books)")
+        book_cols = {r["name"] for r in cur.fetchall()}
 
-    #     for stmt in need:
-    #         cur.execute(stmt)
+        # 保证存在 chap_all, author 等（同你之前的逻辑）
+        stmts = []
+        if "chap_all" not in book_cols:
+            stmts.append(
+                "ALTER TABLE books ADD COLUMN chap_all INTEGER NOT NULL DEFAULT 0")
+        if "author" not in book_cols:
+            stmts.append(
+                "ALTER TABLE books ADD COLUMN author TEXT NOT NULL DEFAULT ''")
+        for s in stmts:
+            cur.execute(s)
 
-    #     # 如果你以后添加索引或其他列，也在这里处理
-    #     if need:
-    #         self.conn.commit()
+        # 尝试重命名列的通用函数
+        def rename_column_if_needed(table: str, old: str, new: str):
+            cur.execute(f"PRAGMA table_info({table})")
+            cols = {r["name"] for r in cur.fetchall()}
+            if new in cols:
+                return  # 已存在目标列，跳过
+            if old not in cols:
+                return  # 旧列不存在，也跳过
+
+            # 检查 sqlite 版本是否支持 RENAME COLUMN
+            ver = tuple(int(x) for x in sqlite3.sqlite_version.split("."))
+            # SQLite >= 3.25.0 支持 RENAME COLUMN
+            supports_rename = ver >= (3, 25, 0)
+
+            if supports_rename:
+                try:
+                    cur.execute(
+                        f"ALTER TABLE {table} RENAME COLUMN {old} TO {new}")
+                    return
+                except OperationalError:
+                    # 回退到 add+copy
+                    pass
+
+            # 退化方案：新增目标列，然后把旧列的数据复制过去
+            # 目标列以 TEXT 类型和默认值添加；你可按需改类型/默认值
+            cur.execute(
+                f"ALTER TABLE {table} ADD COLUMN {new} INTEGER NOT NULL DEFAULT 0")
+            cur.execute(
+                f"UPDATE {table} SET {new} = {old} WHERE {old} IS NOT NULL")
+            # 此时旧列仍存在。完全移除旧列需要重建表，操作复杂，风险较高，
+            # 因此仅在确实需要时再实现表重建逻辑。
+            return
+
+        # 执行重命名（或复制）
+        rename_column_if_needed("books", "type", "fmt")
+        rename_column_if_needed("timereads", "type", "way")
+
+        # 提交事务
+        self.conn.commit()
 
     def close(self):
         """关闭
@@ -67,7 +105,7 @@ class LibraryDB:
             path TEXT NOT NULL,
             name TEXT NOT NULL,
             author TEXT NOT NULL,
-            type INTEGER NOT NULL DEFAULT 0,
+            fmt INTEGER NOT NULL DEFAULT 0,
             chap_n INTEGER NOT NULL DEFAULT 0,
             chap_all INTEGER NOT NULL DEFAULT 0,
             chap_txt_pos INTEGER NOT NULL DEFAULT 0,
@@ -90,7 +128,7 @@ class LibraryDB:
         CREATE TABLE IF NOT EXISTS timereads (
             id INTEGER PRIMARY KEY,
             md5 TEXT NOT NULL,
-            type INTEGER NOT NULL DEFAULT 0,
+            way INTEGER NOT NULL DEFAULT 0,
             dt TEXT NOT NULL,              -- ISO datetime string
             day TEXT NOT NULL,             -- YYYY-MM-DD
             month TEXT NOT NULL,           -- YYYY-MM
@@ -116,8 +154,8 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, author, type, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
-        VALUES(:md5, :path, :name, :author, :type, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
+        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
+        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
@@ -125,13 +163,14 @@ class LibraryDB:
             chap_all=excluded.chap_all,
             txt_all=excluded.txt_all,
             encoding=excluded.encoding,
+            fmt=excluded.fmt,
             update_date=excluded.update_date
         """, {
             "md5": book.md5,
             "path": book.path,
             "name": book.name,
             "author": book.author,
-            "type": book.type,
+            "fmt": book.fmt,
             "chap_n": book.chap_n,
             "chap_all": book.chap_all,
             "chap_txt_pos": book.chap_txt_pos,
@@ -147,13 +186,13 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, author, type, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
-        VALUES(:md5, :path, :name, :author, :type, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
+        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
+        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
             author=excluded.author,
-            type=excluded.type,
+            fmt=excluded.fmt,
             chap_n=excluded.chap_n,
             chap_all=excluded.chap_all,
             chap_txt_pos=excluded.chap_txt_pos,
@@ -166,7 +205,7 @@ class LibraryDB:
             "path": book.path,
             "name": book.name,
             "author": book.author,
-            "type": book.type,
+            "fmt": book.fmt,
             "chap_n": book.chap_n,
             "chap_all": book.chap_all,
             "chap_txt_pos": book.chap_txt_pos,
@@ -202,7 +241,7 @@ class LibraryDB:
             path=row["path"],
             name=row["name"],
             author=row["author"],
-            type=row["type"],
+            fmt=row["fmt"],
             chap_n=row["chap_n"],
             chap_all=row["chap_all"],
             chap_txt_pos=row["chap_txt_pos"],
@@ -229,7 +268,7 @@ class LibraryDB:
                 path=r["path"],
                 name=r["name"],
                 author=r["author"],
-                type=r["type"],
+                fmt=r["fmt"],
                 chap_n=r["chap_n"],
                 chap_all=r["chap_all"],
                 chap_txt_pos=r["chap_txt_pos"],
@@ -255,11 +294,11 @@ class LibraryDB:
         year = tr.dt.strftime("%Y")
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO timereads(md5, type, dt, day, month, year, words, seconds)
-        VALUES(:md5, :type, :dt, :day, :month, :year, :words, :seconds)
+        INSERT INTO timereads(md5, way, dt, day, month, year, words, seconds)
+        VALUES(:md5, :way, :dt, :day, :month, :year, :words, :seconds)
         """, {
             "md5": tr.md5,
-            "type": tr.type,
+            "way": tr.way,
             "dt": iso,
             "day": day,
             "month": month,
@@ -340,7 +379,7 @@ class LibraryDB:
             dt_obj = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
         return TimeRead(
             md5=row["md5"],
-            type=row["type"],
+            way=row["way"],
             words=row["words"],
             seconds=row["seconds"],
             dt=dt_obj,
@@ -357,7 +396,7 @@ class LibraryDB:
         cur.execute("SELECT * FROM books ORDER BY update_date DESC")
         for r in cur:
             yield Book(
-                path=r["path"], name=r["name"], author=r["author"], type=r["type"],
+                path=r["path"], name=r["name"], author=r["author"], fmt=r["fmt"],
                 chap_n=r["chap_n"], chap_all=r["chap_all"], chap_txt_pos=r["chap_txt_pos"],
                 txt_all=r["txt_all"], txt_pos=r["txt_pos"], encoding=r["encoding"],
                 md5=r["md5"], update_date=r["update_date"]
