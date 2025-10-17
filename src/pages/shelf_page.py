@@ -90,7 +90,7 @@ class ShelfPage(Adw.NavigationPage):
             row = ShelfRow()
             # 连接一次行内的删除信号，回调里调用页面的方法删除数据
             row.connect("delete-request", lambda _row,
-                        bobj: self._on_row_delete(bobj))
+                        bobj: self._present_delete_confirm_adw(bobj))
             row.connect("top-request", lambda _row,
                         bobj: self._on_shelfrow_top(bobj))
             li.set_child(row)
@@ -121,7 +121,7 @@ class ShelfPage(Adw.NavigationPage):
         db.close()
         self.build_bookshel(books_)
 
-    def _on_row_delete(self, bobj: BookObject):
+    def _do_delete_row(self, bobj: BookObject):
         """从 ListStore 删除对应对象，并维护选中项与空态。
 
         Args:
@@ -156,6 +156,31 @@ class ShelfPage(Adw.NavigationPage):
         # 空态 or 恢复选中
         if store.get_n_items() == 0:
             self.stack.set_visible_child(self.empty)
+
+    def _present_delete_confirm_adw(self, bobj):
+        """删除确认
+
+        Args:
+            bobj (_type_): _description_
+        """
+        dlg = Adw.MessageDialog(
+            transient_for=self.get_root(),
+            modal=True,
+            heading="确认删除？",
+            body=f"将从书库移除《{getattr(bobj, 'name', '未命名')}》。\n此操作不可撤销。",
+        )
+        dlg.add_response("cancel", "取消")
+        dlg.add_response("delete", "删除")
+        dlg.set_default_response("cancel")
+        dlg.set_close_response("cancel")
+        dlg.set_response_appearance(
+            "delete", Adw.ResponseAppearance.DESTRUCTIVE)
+
+        def _on_resp(_d, resp):
+            if resp == "delete":
+                self._do_delete_row(bobj)
+        dlg.connect("response", _on_resp)
+        dlg.present()
 
     @Gtk.Template.Callback()
     def _on_import_book(self, *_args):
