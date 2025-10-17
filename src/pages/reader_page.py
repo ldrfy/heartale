@@ -54,8 +54,12 @@ class ReaderPage(Adw.NavigationPage):
         self._build_factory()
 
         self.ptc = ParagraphTagController(self.gtv_text, self.gsw_text)
-        self.ptc.set_on_paragraph_click(self.on_click_paragraph)
         self.ptc.set_font_size_pt(self.font_size_pt)
+
+        self.ptc.set_on_paragraph_click(self._on_click_paragraph)
+        print("--------- 设置段落点击回调")
+        self.auto_scroll = True
+        self.ptc.set_on_visible_paragraph_changed(self._set_read_jd)
 
     def set_data(self, book: Book):
         """在子线程读取与解析章节，主线程更新 UI。
@@ -123,6 +127,7 @@ class ReaderPage(Adw.NavigationPage):
             self._toc_sel.set_selected(chap_n)
             self.toc.scroll_to(chap_n, Gtk.ListScrollFlags.FOCUS,
                                Gtk.ScrollInfo())
+            self.auto_scroll = False
 
         def worker():
             # 必须延迟
@@ -174,6 +179,7 @@ class ReaderPage(Adw.NavigationPage):
 
             self.ptc.set_paragraphs(self._server.bd.chap_txts)
             self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
+            self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
 
         def worker(chap_n):
             if chap_n > 0:
@@ -252,7 +258,7 @@ class ReaderPage(Adw.NavigationPage):
             get_logger().error("切换章节失败：%s", e)
             self.show_error(f"切换章节失败：{e}")
 
-    def on_click_paragraph(self, idx: int, tag_name: str, start_off: int, end_off: int):
+    def _on_click_paragraph(self, idx: int, tag_name: str, start_off: int, end_off: int):
         """用户点击了段落
 
         Args:
@@ -262,6 +268,21 @@ class ReaderPage(Adw.NavigationPage):
             end_off (int): 段落结束偏移
         """
         print(f"点击了段落 idx={idx} tag={tag_name} range=[{start_off},{end_off})")
+        self._set_read_jd(idx)
+        self.ptc.highlight_paragraph(idx)
+
+    def _set_read_jd(self, idx):
+        """阅读进度
+
+        Args:
+            idx (_type_): _description_
+        """
+        if self.auto_scroll:
+            return
+        print("测试阅读进度：", idx)
+        self._server.set_chap_txt_n(idx)
+        self._server.save_read_progress(self._server.get_chap_n(),
+                                        self._server.get_chap_txt_pos())
 
     @Gtk.Template.Callback()
     def _on_read_aloud(self, *_args):

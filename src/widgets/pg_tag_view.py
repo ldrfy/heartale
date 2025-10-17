@@ -1,11 +1,11 @@
 import gi
-from gi.repository import GLib, Gtk
+from gi.repository import Gdk, GLib, Gtk, Pango
 
 gi.require_version("Gtk", "4.0")
 
 
 # =========================
-# 段落控制器：段落索引/滚动/点击高亮/可视段监听/样式可调
+# 段落控制器：段落索引/滚动/点击着色/可视段监听/样式可调
 # =========================
 class ParagraphTagController:
     """
@@ -22,10 +22,13 @@ class ParagraphTagController:
         self._paragraph_ranges = []
         # 段落 tag 命名 para_{i}
         self._tag_prefix = "para_"
-        # 点击高亮 tag（可外部改样式）
+
+        # 点击着色 tag（仅前景色，可外部改样式）
         self._active_tag = self.buf.create_tag(
             "active_para",
-            background=None,  # 可改为 "rgba(255,255,0,0.25)"
+            foreground="#d9480f",                  # 默认橙色前景
+            weight=Pango.Weight.BOLD               # 默认加粗，可通过 set_active_style 调整
+            # 也可用：foreground-rgba=Gdk.RGBA(0.85, 0.28, 0.06, 1.0)
         )
         self._active_idx = None
 
@@ -43,7 +46,7 @@ class ParagraphTagController:
         self._on_click_cb = None
         self._on_visible_idx_changed = None
 
-        # 滚动监听：上报“当前可视段”，不自动改高亮
+        # 滚动监听：上报“当前可视段”，不自动改着色
         self._last_visible_idx = None
         vadj = self.scroller.get_vadjustment()
         vadj.connect("value-changed", self._on_scroll_value_changed)
@@ -158,21 +161,24 @@ class ParagraphTagController:
                 self._scroll_to_iter_safe(it, center=center)
                 return
 
-    def highlight_paragraph(self, idx: int, ensure_visible: bool = True):
+    def highlight_paragraph(self, idx: int, ensure_visible: bool = False):
         """
-        高亮某段。
-        高亮仅在点击/调用时变化。
-        滚动不会自动改变高亮。
+        文字彩色着色某段（不再使用背景高亮）。
+        着色仅在点击/调用时变化。
+        滚动不会自动改变着色。
         """
         rng = self.get_paragraph_range(idx)
         if not rng:
             return
         self.buf.remove_tag(
-            self._active_tag, self.buf.get_start_iter(), self.buf.get_end_iter())
+            self._active_tag, self.buf.get_start_iter(), self.buf.get_end_iter()
+        )
         s_off, e_off = rng
-        self.buf.apply_tag(self._active_tag,
-                           self.buf.get_iter_at_offset(s_off),
-                           self.buf.get_iter_at_offset(e_off))
+        self.buf.apply_tag(
+            self._active_tag,
+            self.buf.get_iter_at_offset(s_off),
+            self.buf.get_iter_at_offset(e_off),
+        )
         self._active_idx = idx
         if ensure_visible:
             self.scroll_to_paragraph(idx)
@@ -211,6 +217,27 @@ class ParagraphTagController:
         self._reapply_layout_tag()
         self._queue_emit_visible_idx()
 
+    def set_active_style(self, hex_color: str | None = None, bold: bool | None = None, underline: bool | None = None):
+        """
+        动态调整“活动段落”的文字样式（仅前景相关）。
+        hex_color 例子: "#d9480f" 或 "#7c3aed"。
+        """
+        if hex_color:
+            # 使用字符串前景色
+            self._active_tag.set_property("foreground", hex_color)
+            # 如需 RGBA，可改为：
+            # rgba = Gdk.RGBA()
+            # rgba.parse(hex_color)
+            # self._active_tag.set_property("foreground-rgba", rgba)
+        if bold is not None:
+            self._active_tag.set_property(
+                "weight", Pango.Weight.BOLD if bold else Pango.Weight.NORMAL)
+        if underline is not None:
+            self._active_tag.set_property(
+                "underline",
+                Pango.Underline.SINGLE if underline else Pango.Underline.NONE
+            )
+
     # ---------- 内部实现 ----------
     def _append_paragraph(self, i, ptext):
         start_off = self.buf.get_end_iter().get_offset()
@@ -220,14 +247,18 @@ class ParagraphTagController:
 
         tag = self.buf.get_tag_table().lookup(self.get_paragraph_tag_name(i)) \
             or self.buf.create_tag(self.get_paragraph_tag_name(i))
-        self.buf.apply_tag(tag,
-                           self.buf.get_iter_at_offset(start_off),
-                           self.buf.get_iter_at_offset(end_off))
+        self.buf.apply_tag(
+            tag,
+            self.buf.get_iter_at_offset(start_off),
+            self.buf.get_iter_at_offset(end_off)
+        )
 
         # 应用布局 tag（行/段间距）到新段
-        self.buf.apply_tag(self._layout_tag,
-                           self.buf.get_iter_at_offset(start_off),
-                           self.buf.get_iter_at_offset(end_off))
+        self.buf.apply_tag(
+            self._layout_tag,
+            self.buf.get_iter_at_offset(start_off),
+            self.buf.get_iter_at_offset(end_off)
+        )
 
         self._paragraph_ranges.append((start_off, end_off))
 
@@ -247,8 +278,6 @@ class ParagraphTagController:
 
     def _on_released(self, _gesture, _n_press, _x, _y):
         # 使用插入光标位置判段（TextView 会在点击处设置插入光标）
-        # GTK4 的 get_iter_at_location 在 PyGObject 中通常返回 (ok, iter)
-        # 但这里我们直接用插入光标 mark，更稳定也更直观
         it = self.buf.get_iter_at_mark(self.buf.get_insert())
         off = it.get_offset()
         idx = self._locate_paragraph(off)
@@ -290,17 +319,21 @@ class ParagraphTagController:
         )
 
     def _apply_layout_tag_full(self):
-        self.buf.apply_tag(self._layout_tag,
-                           self.buf.get_start_iter(),
-                           self.buf.get_end_iter())
+        self.buf.apply_tag(
+            self._layout_tag,
+            self.buf.get_start_iter(),
+            self.buf.get_end_iter()
+        )
 
     def _reapply_layout_tag(self):
-        self.buf.remove_tag(self._layout_tag,
-                            self.buf.get_start_iter(),
-                            self.buf.get_end_iter())
+        self.buf.remove_tag(
+            self._layout_tag,
+            self.buf.get_start_iter(),
+            self.buf.get_end_iter()
+        )
         self._apply_layout_tag_full()
 
-    # ---- 可视段监听（滚动/布局变化时回调，不自动改变高亮）----
+    # ---- 可视段监听（滚动/布局变化时回调，不自动改变着色）----
     def _on_scroll_value_changed(self, _adj):
         self._queue_emit_visible_idx()
 
@@ -322,12 +355,10 @@ class ParagraphTagController:
         # 兼容两种返回风格：有的绑定返回 (ok, iter)，有的直接抛异常
         it = None
         try:
-            # 若绑定是“直接返回 iter”，会 TypeError
             ok, iter_obj = self.view.get_iter_at_location(probe_x, probe_y)
             if ok:
                 it = iter_obj
         except TypeError:
-            # 新风格（少见）：直接返回 Gtk.TextIter
             it = self.view.get_iter_at_location(probe_x, probe_y)
 
         if it is None:

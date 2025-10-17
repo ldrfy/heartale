@@ -148,6 +148,15 @@ class Server:
         """
         return self.book.chap_txt_pos
 
+    def set_chap_txt_n(self, chap_txt_n: int):
+        """设置当前章节文本位置
+
+        Args:
+            chap_txt_n (int): 章节文本位置
+        """
+        self.bd.chap_txt_n = chap_txt_n
+        self.book.chap_txt_pos = self.bd.chap_txt_p2s[chap_txt_n]
+
     def save_read_progress(self, chap_n: int, chap_txt_pos: int):
         """异步保存阅读进度
 

@@ -183,7 +183,7 @@ class LibraryDB:
             "txt_pos": book.txt_pos,
             "encoding": book.encoding,
             "sort": book.sort,
-            "update_date": int(book.update_date),
+            "update_date": book.update_date,
         })
 
     def update_book(self, book: Book) -> None:
@@ -220,7 +220,7 @@ class LibraryDB:
             "txt_pos": book.txt_pos,
             "encoding": book.encoding,
             "sort": book.sort,
-            "update_date": int(book.update_date),
+            "update_date": book.update_date,
         })
 
     def delete_book_by_md5(self, md5: str) -> None:

@@ -34,7 +34,4 @@ def split_text(text_all, dcp=0):
             last = last + len(text)
             text = ""
 
-    if n_last > 0:
-        n_last -= 1
-
     return result, p2s, n_last

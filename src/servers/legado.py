@@ -189,9 +189,7 @@ class LegadoServer(Server):
         headers = {'Content-Type': 'application/json'}
 
         resp = requests.post(f"{self.url_base}/saveBookProgress",
-                             data=json_data,
-                             headers=headers,
-                             timeout=10)
+                             data=json_data, headers=headers, timeout=10)
         resp_json = resp.json()
 
         if not resp_json["isSuccess"]:

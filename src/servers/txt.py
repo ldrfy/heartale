@@ -28,10 +28,6 @@ class TxtServer(Server):
         """异步初始化"""
         self.book = book
 
-        print(f"文件位置：{self.book.path}")
-
-        print(f"上次读取的位置：章节 {self.book.chap_n}, 位置 {self.book.chap_txt_pos}")
-
         self.chap_names, self.chap_p2s = self._get_chap_names()
         self.bd.update_chap_txts(
             self.get_chap_txt(self.book.chap_n),
@@ -46,7 +42,6 @@ class TxtServer(Server):
         Returns:
             str: 需要转音频的文本
         """
-        print(f"当前位置：{self.bd.chap_txt_n}/{len(self.bd.chap_txts)}")
 
         if self.bd.is_chap_end():
             self.book.chap_n += 1
@@ -97,7 +92,6 @@ def parse_chap_names(file_content, volume_pattern=VOLUME_PATTERN, chapter_patter
     Returns:
         _type_: _description_
     """
-    print(file_content[:100])
 
     current_volume = None
     chap_names = []
@@ -199,10 +193,8 @@ def path2book(src: str, cfg_dir: Path = PATH_CONFIG_BOOKS) -> Book:
     txt_all = len(f_txt)
     chap_names, _chap_ps = parse_chap_names(f_txt)
     chap_all = len(chap_names)
-    print(f"检测到章节数: {chap_all}")
 
     dest = cfg_dir / src_path.name
     shutil.copy(src_path, dest)
     md5 = cal_md5(dest)
-    print(src_path, dest)
     return Book(str(dest), dest.stem, "", 0, chap_all, 0, 0, txt_all, enc, md5)
