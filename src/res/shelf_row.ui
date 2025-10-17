@@ -41,6 +41,7 @@
         <property name="icon-name">user-trash-symbolic</property>
         <property name="valign">center</property>
         <property name="tooltip-text">删除此书</property>
+        <signal name="clicked" handler="_on_book_del" swapped="no"/>
       </object>
     </child>
 
@@ -49,10 +50,20 @@
         <property name="icon-name">go-top-symbolic</property>
         <property name="valign">center</property>
         <property name="tooltip-text">置顶此书</property>
+        <signal name="clicked" handler="_on_book_top" swapped="no"/>
         <style>
             <class name="top-btn"/>
         </style>
       </object>
+    </child>
+
+    <child>
+    <object class="GtkButton">
+        <property name="valign">center</property>
+        <property name="tooltip-text">阅读统计</property>
+        <property name="icon-name">view-statistics-symbolic</property>
+        <signal name="clicked" handler="_on_book_statistics" swapped="no"/>
+    </object>
     </child>
 
   </template>

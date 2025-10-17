@@ -16,27 +16,33 @@ class ShelfRow(Gtk.Box):
         "delete-request": (GObject.SignalFlags.RUN_FIRST, None,
                            (GObject.TYPE_PYOBJECT,)),
         "top-request": (GObject.SignalFlags.RUN_FIRST, None,
-                        (GObject.TYPE_PYOBJECT,))  # 新增信号
+                        (GObject.TYPE_PYOBJECT,)),
+        "statistics-request": (GObject.SignalFlags.RUN_FIRST, None,
+                        (GObject.TYPE_PYOBJECT,)),
     }
 
     lbl_title: Gtk.Label = Gtk.Template.Child()
     lbl_sub: Gtk.Label = Gtk.Template.Child()
-    btn_del: Gtk.Button = Gtk.Template.Child()
     btn_top: Gtk.Button = Gtk.Template.Child()  # 新增按钮
 
     def __init__(self, **kw):
         super().__init__(**kw)
         self._bound_item = None
-        self.btn_del.connect("clicked", self._on_delete)
-        if hasattr(self, "btn_top") and self.btn_top:
-            self.btn_top.connect("clicked", self._on_top)
 
-    def _on_delete(self, *_):
+    @Gtk.Template.Callback()
+    def _on_book_del(self, *_):
         self.emit("delete-request", self._bound_item)
 
-    def _on_top(self, *_):
+    @Gtk.Template.Callback()
+    def _on_book_top(self, *_):
         """置顶处理：发出信号，由上层接管 DB 修改 sort"""
         self.emit("top-request", self._bound_item)
+
+    @Gtk.Template.Callback()
+    def _on_book_statistics(self, *_):
+        """置顶处理：发出信号，由上层接管 DB 修改 sort"""
+        self.emit("statistics-request", self._bound_item)
+        self.get_root().toast_msg("阅读统计功能开发中，敬请期待！")
 
     def update(self, bobj: BookObject):
         """_summary_
