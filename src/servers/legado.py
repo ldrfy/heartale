@@ -260,6 +260,7 @@ def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
         return sync, s_error
 
     db = LibraryDB()
+    book_ns = min(book_ns, len(lbs))
     for i, b in enumerate(lbs[:book_ns]):
         s_error += f"\n----- {i} -----\n"
         try:

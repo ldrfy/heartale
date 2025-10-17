@@ -284,21 +284,14 @@ class ReaderPage(Adw.NavigationPage):
             idx (_type_): _description_
         """
 
-        def uodate_ui():
-            """更新
-            """
-            pass
+        if self.auto_scroll:
+            return
 
         def worker():
             # 耗时操作放线程
-            print("测试阅读进度：", idx)
             self._server.set_chap_txt_n(idx)
             self._server.save_read_progress(self._server.get_chap_n(),
                                             self._server.get_chap_txt_pos())
-            GLib.idle_add(uodate_ui, priority=GLib.PRIORITY_DEFAULT)
-
-        if self.auto_scroll:
-            return
         threading.Thread(target=worker, daemon=True).start()
 
     @Gtk.Template.Callback()

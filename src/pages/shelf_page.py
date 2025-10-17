@@ -10,6 +10,7 @@ from ..entity.book import BookObject
 from ..servers.legado import sync_legado_books
 from ..servers.txt import path2book
 from ..utils.debug import get_logger
+from ..widgets.dialog_input import InputDialog
 from ..widgets.shelf_row import ShelfRow
 from .reader_page import ReaderPage
 
@@ -290,11 +291,7 @@ class ShelfPage(Adw.NavigationPage):
     @Gtk.Template.Callback()
     def _on_import_book_legado(self, *_):
 
-        self.btn_sync.set_visible(False)
-        self.spinner_sync.set_visible(True)
-        self.spinner_sync.start()
-
-        def uodate_ui(sync_ok, s_error):
+        def update_ui(sync_ok, s_error):
             """更新
             """
             self.reload_bookshel()
@@ -314,9 +311,28 @@ class ShelfPage(Adw.NavigationPage):
             edlg.set_close_response("ok")
             edlg.present()
 
-        def worker():
+        def worker(url):
             # 耗时操作放线程
-            sync_ok, s_error = sync_legado_books()
-            GLib.idle_add(uodate_ui, sync_ok,
+            sync_ok, s_error = sync_legado_books(url_base=url)
+            GLib.idle_add(update_ui, sync_ok,
                           s_error, priority=GLib.PRIORITY_DEFAULT)
-        threading.Thread(target=worker, daemon=True).start()
+
+        def runner(d, r):
+            if r != "ok":
+                return
+            url = d.entry.get_text().strip()
+
+            if url == "" or not url.startswith("http"):
+                self.get_root().toast_msg("请输入Legado“web服务”打开以后的内网地址")
+                return
+
+            self.btn_sync.set_visible(False)
+            self.spinner_sync.set_visible(True)
+            self.spinner_sync.start()
+            threading.Thread(target=worker, args=(url,),
+                             daemon=True).start()
+
+        dlg = InputDialog(self.get_root(), title="Legado书籍同步",
+                          subtitle="1. 只同步软件中前5本\n2. 在Legado中 “我的” 页面打开 “web服务”\n3.请输入打开以后看到的内网地址，如：\nhttp://192.168.1.2:1122")
+        dlg.connect("response", runner)
+        dlg.present()
