@@ -1,25 +1,21 @@
 """main"""
 import sys
+from datetime import datetime
 from gettext import gettext as _
-
-import gi
-
-gi.require_version('Gtk', '4.0')
-gi.require_version('Adw', '1')
-gi.require_version("GObject", "2.0")
 
 from gi.repository import Adw, Gio  # type: ignore pylint: disable=C0413
 
-from .window import HeartaleWindow  # pylint: disable=C0413
+from .window import HeartaleWindow
 
 
 class HeartaleApplication(Adw.Application):
     """The main application singleton class."""
 
-    def __init__(self):
+    def __init__(self, version):
         super().__init__(application_id='cool.ldr.heartale',
                          flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
                          resource_base_path='/cool/ldr/heartale')
+        self.version = version
         self.create_action('quit', lambda *_: self.quit(), ['<primary>q'])
         self.create_action('about', self.on_about_action)
         self.create_action('preferences', self.on_preferences_action)
@@ -40,12 +36,18 @@ class HeartaleApplication(Adw.Application):
     def on_about_action(self, *_args):
         """Callback for the app.about actio
         """
-        about = Adw.AboutDialog(application_name='heartale',
-                                application_icon='cool.ldr.heartale',
-                                developer_name='Unknown',
-                                version='0.1.0',
-                                developers=['Unknown'],
-                                copyright='© 2025 Unknown')
+        year = datetime.now().year
+
+        about = Adw.AboutDialog(
+            application_name='heartale',
+            application_icon='cool.ldr.heartale',
+            developer_name='yuhldr',
+            version=self.version,
+            designers=[f'yuh <yuhldr@qq.com>, 2025-{year}'],
+            documenters=[f'yuh <yuhldr@qq.com>, 2025-{year}'],
+            developers=[f'yuh <yuhldr@qq.com>, 2025-{year}'],
+            copyright=f'© 2025 -{year} yuh'
+        )
         about.set_translator_credits(_('translator-credits'))
         about.present(self.props.active_window)
 
@@ -76,6 +78,6 @@ class HeartaleApplication(Adw.Application):
 
 def main(version):
     """The application's entry point."""
-    app = HeartaleApplication()
+    app = HeartaleApplication(version)
     print(version)
     return app.run(sys.argv)

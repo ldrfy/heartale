@@ -7,6 +7,7 @@ from urllib.parse import quote
 
 import requests
 
+from ..entity.book import Book
 from . import Server
 
 # 常量定义
@@ -53,25 +54,25 @@ class LegadoServer(Server):
         self.book_data = ""
         super().__init__("legado")
 
-    def initialize(self):
+    def initialize(self, book: Book):
+        self.book = book
 
-        # self.book_data = get_book_shelf(0, self.book.path)
+        #  同步手机端阅读进度
         self.book_data = get_book_shelf(0, self.book.path)
+
         self.book.name = self.book_data["name"]
+        self.save_read_progress(
+            self.book_data[CHAP_INDEX],
+            self.book_data[CHAP_POS]
+        )
 
-        self.book.chap_n = self.book_data[CHAP_INDEX]
-        self.book.chap_txt_pos = self.book_data[CHAP_POS]
-        self.save_read_progress(self.book.chap_n, self.book.chap_txt_pos)
-
-        names = self._get_chap_names()
-        self._bd.set_data(
-            names,
-            self.book.chap_n,
+        self.chap_names = self._get_chap_names()
+        self.bd.update_chap_txts(
             self.get_chap_txt(self.book.chap_n),
             self.book.chap_txt_pos
         )
 
-        return self.book.name + " " + self._bd.get_chap_name()
+        return f"{self.book.name} {self.get_chap_name()}"
 
     def next(self):
         """下一步
@@ -79,34 +80,29 @@ class LegadoServer(Server):
         Returns:
             _type_: _description_
         """
-        if self._bd.is_chap_end():
-            self._bd.chap_n += 1
-            s = self._bd.get_chap_name()
+        if self.bd.is_chap_end():
+            self.book.chap_n += 1
+            s = self.get_chap_name()
 
             self.book_data[CHAP_POS] = 0
-            self.book_data[CHAP_INDEX] = self._bd.chap_n
+            self.book_data[CHAP_INDEX] = self.book.chap_n
             self.book_data[CHAP_TITLE] = s
 
-            self._bd.update_chap_txts(self.get_chap_txt(self.book.chap_n))
+            self.bd.update_chap_txts(self.get_chap_txt(self.book.chap_n))
 
             return s
 
-        txt = self._bd.chap_txts[self._bd.chap_txt_n]
+        txt = self.bd.chap_txts[self.bd.chap_txt_n]
 
         self._save_book_progress(self.book_data)
-        self._bd.chap_txt_n += 1
+        self.bd.chap_txt_n += 1
 
         return txt
 
-    def get_chap_txt(self, chap_n):
-        """异步获取书某一章节的文本
+    def get_chap_txt(self, chap_n=-1):
+        if chap_n < 0:
+            return super().get_chap_txt(chap_n)
 
-        Args:
-            book_data (dict): 书籍信息
-
-        Returns:
-            str: 某一章节的文字
-        """
         url = f"{self.book.path}/getBookContent"
         params = f"{bu(self.book_data)}&index={chap_n}"
 
@@ -142,10 +138,10 @@ class LegadoServer(Server):
         data = {
             "name": self.book.name,
             "author": book_data["author"],
-            CHAP_INDEX: self._bd.chap_n,
-            CHAP_POS: self._bd.get_chap_txt_pos(),
+            CHAP_INDEX: self.get_chap_n(),
+            CHAP_POS: self.get_chap_txt_pos(),
             "durChapterTime": dct,
-            CHAP_TITLE: self._bd.get_chap_name(),
+            CHAP_TITLE: self.get_chap_name(),
         }
 
         json_data = json.dumps(data)
@@ -159,7 +155,7 @@ class LegadoServer(Server):
 
         if not resp_json["isSuccess"]:
             raise ValueError(f'进度保存错误！\n{resp_json["errorMsg"]}')
-        super().save_read_progress(self._bd.chap_n, self._bd.get_chap_txt_pos())
+        super().save_read_progress(self.get_chap_n(), self.get_chap_txt_pos())
 
 
 async def get_book_shelf_async(book_n: int, url):

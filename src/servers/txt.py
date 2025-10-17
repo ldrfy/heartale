@@ -23,22 +23,21 @@ class TxtServer(Server):
         self.chap_p2s = []
         super().__init__("txt")
 
-    def initialize(self):
+    def initialize(self, book: Book):
         """异步初始化"""
+        self.book = book
 
         print(f"文件位置：{self.book.path}")
 
-        print(f"上次读取的位置：{self.book.chap_n}, {self.book.chap_txt_pos}")
+        print(f"上次读取的位置：章节 {self.book.chap_n}, 位置 {self.book.chap_txt_pos}")
 
-        names, self.chap_p2s = self._get_chap_names()
-        self._bd.set_data(
-            names,
-            self.book.chap_n,
+        self.chap_names, self.chap_p2s = self._get_chap_names()
+        self.bd.update_chap_txts(
             self.get_chap_txt(self.book.chap_n),
             self.book.chap_txt_pos
         )
 
-        return self.book.name + " " + self._bd.get_chap_name()
+        return f"{self.book.name} {self.get_chap_name()}"
 
     def next(self):
         """下一步
@@ -46,24 +45,27 @@ class TxtServer(Server):
         Returns:
             str: 需要转音频的文本
         """
-        print(f"当前位置：{self._bd.chap_txt_n}/{len(self._bd.chap_txts)}")
+        print(f"当前位置：{self.bd.chap_txt_n}/{len(self.bd.chap_txts)}")
 
-        if self._bd.is_chap_end():
-            self._bd.chap_n += 1
+        if self.bd.is_chap_end():
+            self.book.chap_n += 1
 
-            self._bd.update_chap_txts(self._chap_txt)
-            return self._bd.get_chap_name()
+            self.bd.update_chap_txts(self.get_chap_txt(self.book.chap_n))
+            return self.get_chap_name()
 
-        txt = self._bd.chap_txts[self._bd.chap_txt_n]
+        txt = self.bd.chap_txts[self.bd.chap_txt_n]
 
         # 一些异常
-        if len(self._bd.chap_txts) > 1:
-            super().save_read_progress(self._bd.chap_n, self._bd.get_chap_txt_pos())
-        self._bd.chap_txt_n += 1
+        if len(self.bd.chap_txts) > 1:
+            super().save_read_progress(self.get_chap_n(), self.bd.get_chap_txt_pos())
+        self.bd.chap_txt_n += 1
 
         return txt
 
-    def get_chap_txt(self, chap_n: int):
+    def get_chap_txt(self, chap_n=-1):
+        if chap_n < 0:
+            return super().get_chap_txt(chap_n)
+
         with open(self.book.path, "r", encoding=self.book.encoding) as f:
             if chap_n + 1 == len(self.chap_p2s):
                 return f.read()[self.chap_p2s[chap_n]:]

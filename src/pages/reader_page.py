@@ -65,7 +65,8 @@ class ReaderPage(Adw.NavigationPage):
         pct = 0
         if book.txt_all > 0:
             pct = int(book.txt_pos * 100 / book.txt_all)
-        self.title.set_subtitle(f"进度 {pct}%")
+        self.title.set_subtitle(
+            f"进度 {pct}% ({book.txt_pos}/{book.txt_all})")
 
         print(f"准备加载 {book.chap_n} 章，位置 {book.chap_txt_pos}")
         book_md5 = book.md5
@@ -76,16 +77,16 @@ class ReaderPage(Adw.NavigationPage):
                 db = LibraryDB()
                 book = db.get_book_by_md5(book_md5)
                 db.close()
-                self._server = self._get_server(book.type)
-                self._server.set_data(book)
 
-                self._server.initialize()
+                self._server = self._get_server(book.type)
+                self._server.initialize(book)
 
                 if time.time() - self.t < 0.5:
                     time.sleep(0.5 - (time.time() - self.t))
                 GLib.idle_add(self._on_data_ready,
                               priority=GLib.PRIORITY_DEFAULT)
             except Exception as e:  # pylint: disable=broad-except
+                print(e)
                 # 回到主线程展示错误
                 GLib.idle_add(self._on_error, e,
                               priority=GLib.PRIORITY_DEFAULT)
@@ -103,7 +104,7 @@ class ReaderPage(Adw.NavigationPage):
     def _on_data_ready(self):
         """仅在主线程运行：绑定目录与正文。"""
 
-        cn = Gtk.StringList.new(self._server.get_chap_names())
+        cn = Gtk.StringList.new(self._server.chap_names)
         self._toc_sel = Gtk.SingleSelection.new(cn)
         self.toc.set_model(self._toc_sel)
         self.set_chap_text()
@@ -167,8 +168,9 @@ class ReaderPage(Adw.NavigationPage):
 
         def worker(chap_n):
             print(f"设置章节 {chap_n}")
-            if chap_n < 0:
-                chap_n = self._server.get_chap_n()
+            if chap_n > 0:
+                # 初始加载不能动
+                self._server.save_read_progress(chap_n, 0)
             content = self._server.get_chap_txt(chap_n)
             chap_name = self._server.get_chap_name(chap_n)
             GLib.idle_add(_ui_update, content, chap_name,

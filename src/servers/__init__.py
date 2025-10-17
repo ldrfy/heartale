@@ -8,53 +8,24 @@ from .tools import split_text
 
 
 class BookData():
-    """_summary_
+    """某章节的分割
     """
 
     def __init__(self):
-        # 章节目录
-        self.chap_names = []
-        # 现在是第几个章节
-        self.chap_n = 0
+        # # 章节目录
+        # self.chap_names = []
+        # # 现在是第几个章节
+        # self.chap_n = 0
         # 这个章节的文本
         self.chap_txt = ""
         # 某章节的文本分割
         self.chap_txts = []
         # 某章节的文本分割所在位置
         self.chap_txt_p2s = [0]
+
+        # 变量
         # 某章节的文本分割位置
         self.chap_txt_n = 0
-
-    def set_data(self, chap_names, chap_n, chap_content, chap_txt_pos):
-        """_summary_
-
-        Args:
-            chap_names (_type_): 目录
-            chap_n (_type_): 第几个章节
-            chap_content (_type_): 这个章节的文本
-            chap_txt_pos (_type_): 读到这个章节的哪个位置了
-        """
-        self.set_chap_names(chap_names, chap_n)
-        self.update_chap_txts(chap_content, chap_txt_pos)
-
-    def set_chap_names(self, chap_names, chap_n):
-        """初始化数据
-
-        Args:
-            chap_names (list): 章节名
-            chap_n (int): 上次读到哪个章节了
-        """
-        # 防止保存数据太多
-        self.chap_n = chap_n
-        self.chap_names = chap_names
-
-    def get_chap_name(self):
-        """获取章节名字"""
-        return self.chap_names[self.chap_n]
-
-    def get_chap_txt(self):
-        """获取章节文本"""
-        return self.chap_txt
 
     def update_chap_txts(self, chap_content, chap_txt_pos=0):
         """分割章节的文本
@@ -63,6 +34,7 @@ class BookData():
             chap_content (str): 章节文本
             chap_txt_pos (int): 已经读到这个章节的什么位置
         """
+        self.chap_txt = chap_content
         self.chap_txts, self.chap_txt_p2s, self.chap_txt_n = \
             split_text(chap_content, chap_txt_pos)
 
@@ -99,40 +71,36 @@ class Server:
         self.key = key
         # 书名
         self.book: Book = None
-        self._bd: BookData = BookData()
+        self.bd: BookData = BookData()
 
-        self._chap_txt = ""
+        self.chap_names = []
 
-    def set_data(self, book: Book):
-        """设置配置信息"""
-        self.book = book
-
-    def initialize(self):
-        """异步初始化一些操作
+    def initialize(self, book: Book):
+        """子类需要自定义异步初始化一些操作
 
         Returns:
             str: 比如书名等待阅读的文本
         """
-        if not self.book:
-            print("请先设置配置信息")
-        return "initialize"
+        self.book = book
+
+        # 子类设置目录
+        # self.chap_names = self._get_chap_names()
+
+        self.bd.update_chap_txts(
+            self.get_chap_txt(self.book.chap_n),
+            self.book.chap_txt_pos
+        )
+
+        return f"{self.book.name} {self.get_chap_name()}"
 
     def next(self):
-        """接下来要阅读的文本，并保存本地阅读进度等信息
+        """子类需要自定义接下来要阅读的文本，并保存本地阅读进度等信息
         """
         print("next")
         return "每次调用请自动刷新文本，并保存阅读信息"
 
-    def get_chap_n(self):
-        """获取当前章节编号
-
-        Returns:
-            int: 章节编号
-        """
-        return self._bd.chap_n
-
-    def get_chap_txt(self, chap_n: int):
-        """_summary_
+    def get_chap_txt(self, chap_n=-1):
+        """子类需要自定义获取章节文本
 
         Args:
             chap_n (int): _description_
@@ -141,20 +109,15 @@ class Server:
             _type_: _description_
         """
         print(f"获取章节文本 {chap_n}")
-        return self._chap_txt
 
-    def get_chap_names(self):
-        """获取章节目录
+        if chap_n < 0:
+            return self.bd.chap_txt
+        # 子类 实现异步获取章节文本
+        return ""
 
-        Args:
-            book_data (dict): _description_
+    # --------  基础方法   -------- #
 
-        Returns:
-            list: 章节目录
-        """
-        return self._bd.chap_names
-
-    def get_chap_name(self, chap_n: int):
+    def get_chap_name(self, chap_n=-1):
         """获取章节目录
 
         Args:
@@ -164,10 +127,26 @@ class Server:
             list: 章节目录
         """
         if chap_n < 0:
-            return ""
-        self._bd.chap_n = chap_n
-        self.save_read_progress(chap_n, 0)
-        return self.get_chap_names()[chap_n]
+            chap_n = self.book.chap_n
+        else:
+            self.book.chap_n = chap_n
+        return self.chap_names[chap_n]
+
+    def get_chap_n(self):
+        """获取当前章节编号
+
+        Returns:
+            int: 章节编号
+        """
+        return self.book.chap_n
+
+    def get_chap_txt_pos(self):
+        """获取当前章节文本位置
+
+        Returns:
+            int: 章节文本位置
+        """
+        return self.book.chap_txt_pos
 
     def save_read_progress(self, chap_n: int, chap_txt_pos: int):
         """异步保存阅读进度
@@ -178,6 +157,8 @@ class Server:
         Raises:
             ValueError: 当进度保存出错时抛出异常
         """
+
+        self.bd.chap_txt_n = chap_txt_pos
 
         self.book.chap_n = chap_n
         self.book.chap_txt_pos = chap_txt_pos
