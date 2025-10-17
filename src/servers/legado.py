@@ -1,5 +1,6 @@
 """阅读app 相关的webapi"""
 import datetime
+import hashlib
 import json
 import time
 from urllib.parse import parse_qs, quote, urlparse, urlsplit, urlunsplit
@@ -91,16 +92,17 @@ class LegadoServer(Server):
         self.book = book
 
         #  同步手机端阅读进度
-        # self.book.path: http://192.168.x.x:xxxx?bn=0
-        params = get_url_params(self.book.path)
-        # 默认第0本书
-        bn = 0
-        if "bn" in params:
-            bn = int(params["bn"])
-        self.url_base = remove_query(self.book.path)
-        print(f"Legado 书籍基础地址：{self.url_base}; 第几本书：{bn}")
+        # self.book.path: http://192.168.x.x:xxxx
+        self.url_base = self.book.path
+        print(f"Legado 书籍基础地址：{self.url_base};")
 
-        self.book_data = get_book_shelf(self.url_base)[bn]
+        bs = get_book_shelf(self.url_base)
+        for b in bs:
+            if b["name"] == self.book.name and b["author"] == self.book.author:
+                self.book_data = b
+                break
+        if not self.book_data:
+            raise ValueError("Legado 书籍信息获取失败！")
 
         print(f"Legado 书籍信息：{self.book_data}")
 
@@ -238,7 +240,7 @@ def get_txt_all(word_count):
     return int(word_count)
 
 
-def sync_legado_books(book_ns=3, url_base="http://10.8.0.6:1122") -> dict:
+def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
     """导入Legado书籍信息，网络请求
 
     Args:
@@ -261,11 +263,14 @@ def sync_legado_books(book_ns=3, url_base="http://10.8.0.6:1122") -> dict:
     for i, b in enumerate(lbs[:book_ns]):
         s_error += f"\n----- {i} -----\n"
         try:
-            s_error += f"同步 Legado 书籍：{b['name']} 作者：{b['author']}\n"
+            name = b["name"]
+            author = b["author"]
+            s_error += f"同步 Legado 书籍：{name} 作者：{author}\n"
 
-            book = Book(f"{url_base}?bn={i}", b["name"], b["author"],
-                        b["durChapterIndex"], b["totalChapterNum"], b["durChapterPos"],
-                        0, get_txt_all(b["wordCount"]), "utf-8", f"legado_sync_{i}")
+            md5 = hashlib.md5(f"{name}-{author}".encode("utf-8")).hexdigest()
+            book = Book(url_base, name, author, b["durChapterIndex"],
+                        b["totalChapterNum"], b["durChapterPos"], 0,
+                        get_txt_all(b["wordCount"]), "utf-8", md5)
             book.fmt = BOOK_FMT_LEGADO
             db.save_book(book)
 
