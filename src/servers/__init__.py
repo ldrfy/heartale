@@ -176,4 +176,3 @@ class Server:
         db = LibraryDB()
         db.update_book(self.book)
         db.close()
-        print(f"保存进度 {self.book.chap_n}, {self.book.chap_txt_pos}")

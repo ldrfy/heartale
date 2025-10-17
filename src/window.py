@@ -16,6 +16,7 @@ class HeartaleWindow(Adw.ApplicationWindow):
     __gtype_name__ = "HeartaleWindow"
 
     nav: Adw.NavigationView = Gtk.Template.Child()
+    toasts: Adw.ToastOverlay = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -36,3 +37,16 @@ class HeartaleWindow(Adw.ApplicationWindow):
         if isinstance(page, ShelfPage):
             print("当前页面变化为：ShelfPage，重新加载书架数据")
             self._shelf_page.reload_bookshel()
+
+    def toast_msg(self, toast_msg):
+        """在 main.py 中的通知
+
+        Args:
+            toast_msg (str): _description_
+        """
+        # 放置初始化时，不断调用误以为选择
+        toast = Adw.Toast.new("")
+        toast.set_timeout(2)
+        toast.dismiss()
+        toast.set_title(toast_msg)
+        self.toasts.add_toast(toast)

@@ -1,11 +1,13 @@
 """书架页面"""
 
+import threading
 from pathlib import Path
 
 from gi.repository import Adw, Gio, GLib, Gtk  # type: ignore
 
 from ..entity import LibraryDB
 from ..entity.book import BookObject
+from ..servers.legado import sync_legado_books
 from ..servers.txt import path2book
 from ..utils.debug import get_logger
 from ..widgets.shelf_row import ShelfRow
@@ -27,6 +29,8 @@ class ShelfPage(Adw.NavigationPage):
     search: Gtk.SearchEntry = Gtk.Template.Child()
     btn_search: Gtk.ToggleButton = Gtk.Template.Child()
     rev_search: Gtk.Revealer = Gtk.Template.Child()
+    btn_sync: Gtk.Button = Gtk.Template.Child()
+    spinner_sync: Gtk.Spinner = Gtk.Template.Child()
 
     list: Gtk.ListView = Gtk.Template.Child()
     stack: Adw.ViewStack = Gtk.Template.Child()
@@ -282,3 +286,37 @@ class ShelfPage(Adw.NavigationPage):
         self.rev_search.set_reveal_child(False)
         self.btn_search.set_active(False)
         self._apply_search()  # 触发一次“显示全部”
+
+    @Gtk.Template.Callback()
+    def _on_import_book_legado(self, *_):
+
+        self.btn_sync.set_visible(False)
+        self.spinner_sync.set_visible(True)
+        self.spinner_sync.start()
+
+        def uodate_ui(sync_ok, s_error):
+            """更新
+            """
+            self.reload_bookshel()
+
+            self.btn_sync.set_visible(True)
+            self.spinner_sync.stop()
+            self.spinner_sync.set_visible(False)
+
+            if sync_ok:
+                self.get_root().toast_msg("Legado书籍同步完成")
+                return
+
+            edlg = Adw.MessageDialog.new(self.get_root(),
+                                         "Legado书籍同步部分失败", s_error)
+            edlg.add_response("ok", "确定")
+            edlg.set_default_response("ok")
+            edlg.set_close_response("ok")
+            edlg.present()
+
+        def worker():
+            # 耗时操作放线程
+            sync_ok, s_error = sync_legado_books()
+            GLib.idle_add(uodate_ui, sync_ok,
+                          s_error, priority=GLib.PRIORITY_DEFAULT)
+        threading.Thread(target=worker, daemon=True).start()

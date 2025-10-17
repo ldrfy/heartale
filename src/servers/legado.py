@@ -1,5 +1,4 @@
 """阅读app 相关的webapi"""
-import asyncio
 import datetime
 import json
 import time
@@ -7,7 +6,8 @@ from urllib.parse import parse_qs, quote, urlparse, urlsplit, urlunsplit
 
 import requests
 
-from ..entity.book import Book
+from ..entity import LibraryDB
+from ..entity.book import BOOK_FMT_LEGADO, Book
 from . import Server
 
 # 常量定义
@@ -100,9 +100,13 @@ class LegadoServer(Server):
         self.url_base = remove_query(self.book.path)
         print(f"Legado 书籍基础地址：{self.url_base}; 第几本书：{bn}")
 
-        self.book_data = get_book_shelf(bn, self.url_base)
+        self.book_data = get_book_shelf(self.url_base)[bn]
+
+        print(f"Legado 书籍信息：{self.book_data}")
 
         self.book.name = self.book_data["name"]
+        self.book.author = self.book_data["author"]
+        self.book.chap_all = self.book_data["totalChapterNum"]
         self.save_read_progress(
             self.book_data[CHAP_INDEX],
             self.book_data[CHAP_POS]-1
@@ -199,13 +203,12 @@ class LegadoServer(Server):
         resp = requests.post(f"{self.url_base}/saveBookProgress",
                              data=json_data, headers=headers, timeout=10)
         resp_json = resp.json()
-        print(f"Legado 保存进度响应：{resp_json}")
 
         if not resp_json["isSuccess"]:
             raise ValueError(f'进度保存错误！\n{resp_json["errorMsg"]}')
 
 
-async def get_book_shelf_async(book_n: int, url):
+def get_book_shelf(url):
     """异步获取书架信息
 
     Args:
@@ -216,17 +219,59 @@ async def get_book_shelf_async(book_n: int, url):
     """
     url = f"{url}/getBookshelf"
     resp = requests.get(url, timeout=10)
-    return resp.json()["data"][book_n]
+    return resp.json()["data"]
 
 
-def get_book_shelf(book_n: int, base_url: str) -> dict:
+def get_txt_all(word_count):
     """_summary_
 
     Args:
-        book_n (int): _description_
-        base_url (str): _description_
+        word_count (_type_): _description_
 
     Returns:
-        dict: _description_
+        _type_: _description_
     """
-    return asyncio.run(get_book_shelf_async(book_n, base_url))
+    if not word_count:
+        return 0
+    if "K" in word_count:
+        return int(word_count.replace("K", "")) * 1000
+    return int(word_count)
+
+
+def sync_legado_books(book_ns=3, url_base="http://10.8.0.6:1122") -> dict:
+    """导入Legado书籍信息，网络请求
+
+    Args:
+        book_n (int): 第几本书
+        base_url (str): Legado基础URL
+
+    Returns:
+        dict: 书籍信息
+    """
+    sync = True
+    s_error = ""
+    try:
+        lbs = get_book_shelf(url_base)
+    except Exception as e:  # pylint: disable=broad-except
+        sync = False
+        s_error += f"Legado 书籍获取失败，错误：{e}\n"
+        return sync, s_error
+
+    db = LibraryDB()
+    for i, b in enumerate(lbs[:book_ns]):
+        s_error += f"\n----- {i} -----\n"
+        try:
+            s_error += f"同步 Legado 书籍：{b['name']} 作者：{b['author']}\n"
+
+            book = Book(f"{url_base}?bn={i}", b["name"], b["author"],
+                        b["durChapterIndex"], b["totalChapterNum"], b["durChapterPos"],
+                        0, get_txt_all(b["wordCount"]), "utf-8", f"legado_sync_{i}")
+            book.fmt = BOOK_FMT_LEGADO
+            db.save_book(book)
+
+        except Exception as e:  # pylint: disable=broad-except
+            sync = False
+            s_error += f"解析错误：{e}\n"
+
+    db.close()
+    return sync, s_error

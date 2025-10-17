@@ -64,22 +64,46 @@
             </object>
             </child>
 
+                <child type="end">
+                    <object class="GtkMenuButton">
+                        <property name="icon-name">open-menu-symbolic</property>
+                        <property name="menu-model">primary_menu</property>
+                        <property name="primary">True</property>
+                        <property name="tooltip-text" translatable="yes">Main Menu</property>
+                    </object>
+                </child>
+
             <!-- 右侧：导入 与 主菜单 -->
             <child type="end">
               <object class="GtkButton">
                 <property name="icon-name">document-open-symbolic</property>
-                <property name="tooltip-text">导入书籍</property>
+                <property name="tooltip-text">导入本地书籍</property>
                 <signal name="clicked" handler="_on_import_book" swapped="no"/>
               </object>
             </child>
+
+
+
             <child type="end">
-              <object class="GtkMenuButton">
-                <property name="icon-name">open-menu-symbolic</property>
-                <property name="menu-model">primary_menu</property>
-                <property name="primary">True</property>
-                <property name="tooltip-text" translatable="yes">Main Menu</property>
-              </object>
-            </child>
+                <object class="GtkBox" id="sync_box">
+                    <property name="orientation">horizontal</property>
+                    <child>
+                    <object class="GtkButton" id="btn_sync">
+                        <property name="icon-name">emblem-synchronizing</property>
+                        <property name="tooltip-text">同步Legado书籍</property>
+                        <signal name="clicked" handler="_on_import_book_legado" swapped="no"/>
+                    </object>
+                    </child>
+                    <child>
+                    <object class="GtkSpinner" id="spinner_sync">
+                        <property name="visible">false</property>
+                        <property name="valign">center</property>
+                            <property name="margin-end">8</property>
+                    </object>
+                    </child>
+                </object>
+                </child>
+
           </object>
         </child>
 
@@ -136,6 +160,7 @@
                 <property name="description">当前没有书籍，请导入一本开始阅读</property>
                 <child>
                   <object class="GtkButton" id="btn_import">
+                    <property name="halign">center</property>
                     <style>
                       <class name="suggested-action"/>
                     </style>
