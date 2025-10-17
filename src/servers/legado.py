@@ -58,6 +58,7 @@ class LegadoServer(Server):
         # self.book_data = get_book_shelf(0, self.book.path)
         self.book_data = get_book_shelf(0, self.book.path)
         self.book.name = self.book_data["name"]
+
         self.book.chap_n = self.book_data[CHAP_INDEX]
         self.book.chap_txt_pos = self.book_data[CHAP_POS]
         self.save_read_progress(self.book.chap_n, self.book.chap_txt_pos)
@@ -110,7 +111,7 @@ class LegadoServer(Server):
         params = f"{bu(self.book_data)}&index={chap_n}"
 
         resp = requests.get(f"{url}?{params}", timeout=10)
-        return resp.json(content_type=None)["data"]
+        return resp.json()["data"]
 
     def _get_chap_names(self):
         """异步获取书章节目录
@@ -123,8 +124,7 @@ class LegadoServer(Server):
         """
         url = f"{self.book.path}/getChapterList?{bu(self.book_data)}"
         resp = requests.get(url, timeout=10)
-        resp_json = resp.json(content_type=None)
-        return [d["title"] for d in resp_json["data"]]
+        return [d["title"] for d in resp.json()["data"]]
 
     def _save_book_progress(self, book_data: dict):
         """异步保存阅读进度
@@ -155,7 +155,7 @@ class LegadoServer(Server):
                              data=json_data,
                              headers=headers,
                              timeout=10)
-        resp_json = resp.json(content_type=None)
+        resp_json = resp.json()
 
         if not resp_json["isSuccess"]:
             raise ValueError(f'进度保存错误！\n{resp_json["errorMsg"]}')
@@ -173,8 +173,7 @@ async def get_book_shelf_async(book_n: int, url):
     """
     url = f"{url}/getBookshelf"
     resp = requests.get(url, timeout=10)
-    resp_json = await resp.json(content_type=None)
-    return resp_json["data"][book_n]
+    return resp.json()["data"][book_n]
 
 
 def get_book_shelf(book_n: int, base_url: str) -> dict:
