@@ -144,21 +144,75 @@
                     </property>
 
                     <property name="content">
-                    <object class="GtkScrolledWindow" id="gsw_text">
-                        <property name="vexpand">true</property>
-                        <property name="hexpand">true</property>
-                        <property name="child">
-                        <object class="GtkTextView" id="gtv_text">
-                            <property name="wrap-mode">word-char</property>
-                            <property name="editable">false</property>
-                            <property name="left-margin">18</property>
-                            <property name="right-margin">18</property>
-                            <property name="top-margin">12</property>
-                            <property name="bottom-margin">12</property>
+
+                    <object class="GtkBox">
+                        <property name="orientation">vertical</property>
+                        <property name="halign">true</property>
+                        <property name="valign">true</property>
+
+                        <child>
+                        <object class="GtkScrolledWindow" id="gsw_text">
+                            <property name="vexpand">true</property>
+                            <property name="hexpand">true</property>
+
+                            <child>
+                            <object class="GtkTextView" id="gtv_text">
+                                <property name="wrap-mode">word-char</property>
+                                <property name="editable">false</property>
+                                <property name="left-margin">18</property>
+                                <property name="right-margin">18</property>
+                                <property name="top-margin">12</property>
+                                <property name="bottom-margin">12</property>
+                            </object>
+                            </child>
+
                         </object>
-                        </property>
+                        </child>
+
+                        <child>
+                        <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">64</property>
+                            <property name="halign">center</property>
+
+                            <child>
+                            <object class="GtkButton" id="btn_clear_search">
+                                <property name="margin-top">8</property>
+                                <property name="margin-bottom">8</property>
+                                <child>
+                                <object class="AdwButtonContent">
+                                    <!-- <property name="label">上一章</property> -->
+                                    <property name="icon-name">go-up-symbolic</property>
+                                </object>
+                                </child>
+                                    <signal name="clicked" handler="_on_last_chap" swapped="no"/>
+                            </object>
+                            </child>
+
+                            <child>
+                            <object class="GtkButton">
+                                <property name="margin-top">8</property>
+                                <property name="margin-bottom">8</property>
+
+                                <style>
+                                <class name="suggested-action"/>
+                                </style>
+                                <child>
+                                <object class="AdwButtonContent">
+                                    <!-- <property name="label">下一章</property> -->
+                                    <property name="icon-name">go-down-symbolic</property>
+                                </object>
+                                </child>
+                                    <signal name="clicked" handler="_on_next_chap" swapped="no"/>
+                            </object>
+                            </child>
+                        </object>
+                        </child>
+
                     </object>
+
                     </property>
+
                 </object>
             </child>
           

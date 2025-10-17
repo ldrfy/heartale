@@ -116,7 +116,7 @@ class ReaderPage(Adw.NavigationPage):
         """仅在主线程运行：绑定目录与正文。"""
 
         cn = Gtk.StringList.new(self._server.chap_names)
-        self._toc_sel = Gtk.NoSelection.new(cn)
+        self._toc_sel = Gtk.SingleSelection.new(cn)
         self.toc.set_model(self._toc_sel)
         self.set_chap_text()
 
@@ -184,6 +184,7 @@ class ReaderPage(Adw.NavigationPage):
             self.ptc.set_paragraphs(self._server.bd.chap_txts)
             self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
+            print("章节文本设置完成", self._server.bd.chap_txt_n)
             self.spinner_sync.stop()
 
         def worker(chap_n):
@@ -332,3 +333,19 @@ class ReaderPage(Adw.NavigationPage):
     def _on_font_size_smaller(self, *_args):
         self.font_size_pt -= 1
         self.ptc.set_font_size_pt(self.font_size_pt)
+
+    @Gtk.Template.Callback()
+    def _on_next_chap(self, *_args):
+        self._server.book.chap_n += 1
+        self._server.book.chap_txt_pos = 0
+        self._server.bd.chap_txt_n = 0
+        self._on_toc_chapter_activated(self._server.book.chap_n)
+        self._toc_sel.set_selected(self._server.book.chap_n)
+
+    @Gtk.Template.Callback()
+    def _on_last_chap(self, *_args):
+        self._server.book.chap_n -= 1
+        self._server.book.chap_txt_pos = 0
+        self._server.bd.chap_txt_n = 0
+        self._on_toc_chapter_activated(self._server.book.chap_n)
+        self._toc_sel.set_selected(self._server.book.chap_n)
