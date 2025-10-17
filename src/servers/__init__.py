@@ -108,8 +108,6 @@ class Server:
         Returns:
             _type_: _description_
         """
-        print(f"获取章节文本 {chap_n}")
-
         if chap_n < 0:
             return self.bd.chap_txt
         # 子类 实现异步获取章节文本

@@ -61,7 +61,7 @@
     <object class="GtkButton">
         <property name="valign">center</property>
         <property name="tooltip-text">阅读统计</property>
-        <property name="icon-name">view-statistics-symbolic</property>
+        <property name="icon-name">view-list-symbolic</property>
         <signal name="clicked" handler="_on_book_statistics" swapped="no"/>
     </object>
     </child>

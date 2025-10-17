@@ -147,9 +147,6 @@
 
                     <object class="GtkBox">
                         <property name="orientation">vertical</property>
-                        <property name="halign">true</property>
-                        <property name="valign">true</property>
-
                         <child>
                         <object class="GtkScrolledWindow" id="gsw_text">
                             <property name="vexpand">true</property>

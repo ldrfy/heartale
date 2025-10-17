@@ -54,7 +54,6 @@ class ShelfPage(Adw.NavigationPage):
     def reload_bookshel(self):
         """重新加载书架数据
         """
-        print("重新加载书架数据")
         db = LibraryDB()
         books = list(db.iter_books())
         db.close()

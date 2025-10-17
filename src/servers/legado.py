@@ -94,7 +94,6 @@ class LegadoServer(Server):
         #  同步手机端阅读进度
         # self.book.path: http://192.168.x.x:xxxx
         self.url_base = self.book.path
-        print(f"Legado 书籍基础地址：{self.url_base};")
 
         bs = get_book_shelf(self.url_base)
         for b in bs:
@@ -103,8 +102,6 @@ class LegadoServer(Server):
                 break
         if not self.book_data:
             raise ValueError("Legado 书籍信息获取失败！")
-
-        print(f"Legado 书籍信息：{self.book_data}")
 
         self.book.name = self.book_data["name"]
         self.book.author = self.book_data["author"]
@@ -268,7 +265,7 @@ def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
             author = b["author"]
             s_error += f"同步 Legado 书籍：{name} 作者：{author}\n"
 
-            md5 = hashlib.md5(f"{name}-{author}".encode("utf-8")).hexdigest()
+            md5 = hashlib.md5(f"legado-{name}-{author}".encode("utf-8")).hexdigest()
             book = Book(url_base, name, author, b["durChapterIndex"],
                         b["totalChapterNum"], b["durChapterPos"], 0,
                         get_txt_all(b["wordCount"]), "utf-8", md5)

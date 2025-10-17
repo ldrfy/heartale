@@ -79,7 +79,6 @@ class ReaderPage(Adw.NavigationPage):
         self.title.set_subtitle(
             f"进度 {pct}% ({book.txt_pos}/{book.txt_all})")
 
-        print(f"准备加载 {book.chap_n} 章，位置 {book.chap_txt_pos}")
         book_md5 = book.md5
 
         def worker():
@@ -184,7 +183,6 @@ class ReaderPage(Adw.NavigationPage):
             self.ptc.set_paragraphs(self._server.bd.chap_txts)
             self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
-            print("章节文本设置完成", self._server.bd.chap_txt_n)
             self.spinner_sync.stop()
 
         def worker(chap_n):
@@ -193,8 +191,6 @@ class ReaderPage(Adw.NavigationPage):
                 self._server.save_read_progress(chap_n, 0)
 
             chap_name = self._server.get_chap_name(chap_n)
-
-            print(f"章节名称：{chap_name}", chap_n, self._server.book.chap_txt_pos)
 
             self._server.bd.update_chap_txts(
                 self._server.get_chap_txt(chap_n),

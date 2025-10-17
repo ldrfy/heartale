@@ -35,7 +35,6 @@ class HeartaleWindow(Adw.ApplicationWindow):
             return
 
         if isinstance(page, ShelfPage):
-            print("当前页面变化为：ShelfPage，重新加载书架数据")
             self._shelf_page.reload_bookshel()
 
     def toast_msg(self, toast_msg):
