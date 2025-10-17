@@ -11,8 +11,7 @@ from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
 from ..servers import Server
 from ..servers.legado import LegadoServer
 from ..servers.txt import TxtServer
-
-logger = logging.getLogger(__name__)
+from ..utils.debug import get_logger
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/reader_page.ui")
@@ -86,7 +85,7 @@ class ReaderPage(Adw.NavigationPage):
                 GLib.idle_add(self._on_data_ready,
                               priority=GLib.PRIORITY_DEFAULT)
             except Exception as e:  # pylint: disable=broad-except
-                print(e)
+                get_logger().error("加载书籍失败：%s", e)
                 # 回到主线程展示错误
                 GLib.idle_add(self._on_error, e,
                               priority=GLib.PRIORITY_DEFAULT)
@@ -234,6 +233,7 @@ class ReaderPage(Adw.NavigationPage):
             self.set_chap_text(chap_n)
             # 更新标题副标题（可选）
         except Exception as e:  # pylint: disable=broad-except
+            get_logger().error("切换章节失败：%s", e)
             self.show_error(f"切换章节失败：{e}")
 
     @Gtk.Template.Callback()

@@ -7,6 +7,7 @@ from gi.repository import Adw, Gio, GLib, Gtk  # type: ignore
 from ..entity import LibraryDB
 from ..entity.book import BookObject
 from ..servers.txt import path2book
+from ..utils.debug import get_logger
 from ..widgets.shelf_row import ShelfRow
 from .reader_page import ReaderPage
 
@@ -38,14 +39,21 @@ class ShelfPage(Adw.NavigationPage):
         super().__init__(**kwargs)
         self._nav: Adw.NavigationView = nav
         self._reader_page: ReaderPage = reader_page
+        self._reader_page_opened = False
         self._build_factory()
+
+        self._search_debounce_id = 0
+
+        self._install_shortcuts()
+
+    def reload_bookshel(self):
+        """重新加载书架数据
+        """
+        print("重新加载书架数据")
         db = LibraryDB()
         books = list(db.iter_books())
         db.close()
         self.build_bookshel(books)
-        self._search_debounce_id = 0
-
-        self._install_shortcuts()
 
     def build_bookshel(self, books, is_search=False):
         """构建书架
@@ -83,6 +91,8 @@ class ShelfPage(Adw.NavigationPage):
             # 连接一次行内的删除信号，回调里调用页面的方法删除数据
             row.connect("delete-request", lambda _row,
                         bobj: self._on_row_delete(bobj))
+            row.connect("top-request", lambda _row,
+                        bobj: self._on_shelfrow_top(bobj))
             li.set_child(row)
 
         def bind(_f, li: Gtk.ListItem):
@@ -93,6 +103,23 @@ class ShelfPage(Adw.NavigationPage):
         factory.connect("bind", bind)
 
         self.list.set_factory(factory)
+
+    def _on_shelfrow_top(self, bobj: BookObject):
+        db = LibraryDB()
+
+        book = bobj.to_dataclass()
+
+        if book.sort > 0:
+            # 已置顶，取消置顶
+            book.sort = 0.0
+        else:
+            book.sort = 1
+
+        db.save_book(book)
+
+        books_ = list(db.iter_books())
+        db.close()
+        self.build_bookshel(books_)
 
     def _on_row_delete(self, bobj: BookObject):
         """从 ListStore 删除对应对象，并维护选中项与空态。
@@ -121,7 +148,7 @@ class ShelfPage(Adw.NavigationPage):
             db.delete_book_by_md5(bobj.md5)  # 按你的接口调整
             db.close()
         except Exception as e:  # pylint: disable=broad-except
-            print("删除数据库记录失败：", e)
+            get_logger().error("删除数据库记录失败：%s", e)
 
         # 真正从模型移除
         store.remove(idx)
@@ -145,6 +172,7 @@ class ShelfPage(Adw.NavigationPage):
             try:
                 files = d.open_multiple_finish(res)
             except GLib.Error as e:
+                get_logger().error("书架导入失败：%s", e)
                 s_error += f"{e}\n"
                 return
 
@@ -153,7 +181,7 @@ class ShelfPage(Adw.NavigationPage):
                 try:
                     book = path2book(f.get_path())
                 except (FileNotFoundError, ValueError) as e:
-                    print("Import error:", e)
+                    get_logger().error("书籍导入失败：%s", e)
                     s_error += f"{Path(f.get_path()).name}: {e}\n"
                     continue
                 books.append(book)
@@ -191,6 +219,7 @@ class ShelfPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_shelf_activate(self, listview: Gtk.ListView, position: int):
+        self._reader_page_opened = True
         self._nav.push(self._reader_page)
 
         selection: Gtk.SingleSelection = listview.get_model()

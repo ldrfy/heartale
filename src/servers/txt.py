@@ -8,6 +8,7 @@ from charset_normalizer import from_path
 
 from .. import PATH_CONFIG_BOOKS
 from ..entity.book import Book
+from ..utils.debug import get_logger
 from . import Server
 
 
@@ -167,7 +168,8 @@ def detect_encoding(path: Path, sample_size: int = 65536) -> str:
             raw.decode(enc)
             return enc
         except UnicodeDecodeError as e:
-            print(f"尝试用{enc}解码失败: {e}")
+            get_logger().error("尝试用 %s 解码失败: %s", enc, e)
+
             continue
     result = from_path(path).best()
     return result.encoding

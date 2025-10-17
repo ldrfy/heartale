@@ -24,3 +24,15 @@ class HeartaleWindow(Adw.ApplicationWindow):
         self._shelf_page = ShelfPage(self.nav, self._reader_page)
 
         self.nav.push(self._shelf_page)
+
+    @Gtk.Template.Callback()
+    def on_visible_page_changed(self, *_):
+        """加载书架数据
+        """
+        page = self.nav.get_visible_page()
+        if not page:
+            return
+
+        if isinstance(page, ShelfPage):
+            print("当前页面变化为：ShelfPage，重新加载书架数据")
+            self._shelf_page.reload_bookshel()

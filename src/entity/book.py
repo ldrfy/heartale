@@ -31,6 +31,7 @@ class Book:
     encoding: str
     md5: str
     # 类型，比如 0 txt, 1 legado, 2 epub, 3 mobi, 4 pdf, 5 djvu
+    sort: float = 0.0
     fmt: int = BOOK_FMT_TXT
     update_date: int = field(
         default_factory=lambda: int(datetime.now().timestamp()))
@@ -48,6 +49,7 @@ class BookObject(GObject.GObject):
     txt_all = GObject.Property(type=int)
     encoding = GObject.Property(type=str)
     md5 = GObject.Property(type=str)
+    sort = GObject.Property(type=float)
     fmt = GObject.Property(type=int)
     update_date = GObject.Property(type=int)
 
@@ -77,6 +79,7 @@ class BookObject(GObject.GObject):
             txt_all=b.txt_all,
             encoding=b.encoding,
             md5=b.md5,
+            sort=b.sort,
             fmt=b.fmt,
             update_date=b.update_date,
         )
@@ -98,6 +101,7 @@ class BookObject(GObject.GObject):
             txt_all=self.txt_all,
             encoding=self.encoding,
             md5=self.md5,
+            sort=self.sort,
             fmt=self.fmt,
             update_date=self.update_date,
         )

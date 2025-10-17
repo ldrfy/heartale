@@ -1,18 +1,9 @@
-.book-tile {
-    min-width: 100px;
-    min-height: 180px;
-    padding: 8px;
-    border-radius: 12px;
+/* 普通状态 */
+.top-btn {
+    color: @theme_fg_color;
 }
 
-.book-tile .cover {
-    min-width: 100px;
-    min-height: 150px;
-    border-radius: 8px;
-    background: @theme_bg_color;
-}
-
-.book-tile .title {
-    min-height: 30px;
-    margin-top: 6px;
+/* 置顶状态 */
+.top-btn.top {
+    color: @theme_selected_bg_color;
 }

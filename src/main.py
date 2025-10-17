@@ -5,6 +5,7 @@ from gettext import gettext as _
 
 from gi.repository import Adw, Gio  # type: ignore pylint: disable=C0413
 
+from .utils.debug import get_gtk_msg
 from .window import HeartaleWindow
 
 
@@ -46,7 +47,8 @@ class HeartaleApplication(Adw.Application):
             designers=[f'yuh <yuhldr@qq.com>, 2025-{year}'],
             documenters=[f'yuh <yuhldr@qq.com>, 2025-{year}'],
             developers=[f'yuh <yuhldr@qq.com>, 2025-{year}'],
-            copyright=f'© 2025 -{year} yuh'
+            copyright=f'© 2025 -{year} yuh',
+            debug_info=get_gtk_msg(self.version),
         )
         about.set_translator_credits(_('translator-credits'))
         about.present(self.props.active_window)

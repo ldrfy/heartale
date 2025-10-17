@@ -43,5 +43,17 @@
         <property name="tooltip-text">删除此书</property>
       </object>
     </child>
+
+    <child>
+      <object class="GtkButton" id="btn_top">
+        <property name="icon-name">go-top-symbolic</property>
+        <property name="valign">center</property>
+        <property name="tooltip-text">置顶此书</property>
+        <style>
+            <class name="top-btn"/>
+        </style>
+      </object>
+    </child>
+
   </template>
 </interface>

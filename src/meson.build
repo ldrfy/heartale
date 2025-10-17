@@ -60,5 +60,13 @@ heartale_sources_servers = [
 install_data(heartale_sources_servers, install_dir: moduledir / 'servers')
 
 
+heartale_sources_utils = [
+    'utils/__init__.py',
+    'utils/debug.py',
+]
+install_data(heartale_sources_utils, install_dir: moduledir / 'utils')
+
+
+
 
 subdir('res')

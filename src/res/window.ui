@@ -11,7 +11,9 @@
     <child>
       <object class="AdwToastOverlay" id="toasts">
         <property name="child">
-          <object class="AdwNavigationView" id="nav"/>
+          <object class="AdwNavigationView" id="nav">
+            <signal name="notify::visible-page" handler="on_visible_page_changed"/>
+            </object>
         </property>
       </object>
     </child>

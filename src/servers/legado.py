@@ -8,6 +8,7 @@ from urllib.parse import parse_qs, quote, urlparse, urlsplit, urlunsplit
 import requests
 
 from ..entity.book import Book
+from ..utils.debug import get_logger
 from . import Server
 
 # 常量定义
@@ -99,7 +100,6 @@ class LegadoServer(Server):
         print(f"Legado 书籍基础地址：{self.url_base}; 第几本书：{bn}")
 
         self.book_data = get_book_shelf(bn, self.url_base)
-        print(f"Legado 书籍信息：{self.book_data}")
 
         self.book.name = self.book_data["name"]
         self.save_read_progress(

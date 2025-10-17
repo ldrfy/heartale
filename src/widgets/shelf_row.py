@@ -14,19 +14,29 @@ class ShelfRow(Gtk.Box):
     __gtype_name__ = "ShelfRow"
     __gsignals__ = {
         "delete-request": (GObject.SignalFlags.RUN_FIRST, None,
-                           (GObject.TYPE_PYOBJECT,))
+                           (GObject.TYPE_PYOBJECT,)),
+        "top-request": (GObject.SignalFlags.RUN_FIRST, None,
+                        (GObject.TYPE_PYOBJECT,))  # 新增信号
     }
+
     lbl_title: Gtk.Label = Gtk.Template.Child()
     lbl_sub: Gtk.Label = Gtk.Template.Child()
     btn_del: Gtk.Button = Gtk.Template.Child()
+    btn_top: Gtk.Button = Gtk.Template.Child()  # 新增按钮
 
     def __init__(self, **kw):
         super().__init__(**kw)
         self._bound_item = None
         self.btn_del.connect("clicked", self._on_delete)
+        if hasattr(self, "btn_top") and self.btn_top:
+            self.btn_top.connect("clicked", self._on_top)
 
     def _on_delete(self, *_):
         self.emit("delete-request", self._bound_item)
+
+    def _on_top(self, *_):
+        """置顶处理：发出信号，由上层接管 DB 修改 sort"""
+        self.emit("top-request", self._bound_item)
 
     def update(self, bobj: BookObject):
         """_summary_
@@ -38,7 +48,6 @@ class ShelfRow(Gtk.Box):
         book: Book = bobj.to_dataclass()
         name = book.name or "(未命名)"
 
-        print(name, book.fmt)
         if book.fmt == BOOK_FMT_LEGADO:
             name += " [Legado]"
         elif book.fmt == BOOK_FMT_TXT:
@@ -55,3 +64,14 @@ class ShelfRow(Gtk.Box):
         subtitle = f"进度 {pct}% ({book.chap_n}/{book.chap_all}) · 编码 {enc} · 路径 {path}"
 
         self.lbl_sub.set_text(subtitle)
+
+        context = self.btn_top.get_style_context()
+
+        if book.sort > 0:
+            context.add_class("top")  # 添加选中样式
+            self.btn_top.set_icon_name("go-bottom-symbolic")  # 不可点击
+            self.btn_top.set_tooltip_text("取消置顶")  # 不可点击
+        else:
+            context.remove_class("top")  # 移除选中样式
+            self.btn_top.set_icon_name("go-top-symbolic")  # 不可点击
+            self.btn_top.set_tooltip_text("置顶此书")  # 不可点击

@@ -40,6 +40,9 @@ class LibraryDB:
 
         # 保证存在 chap_all, author 等（同你之前的逻辑）
         stmts = []
+        if "sort" not in book_cols:
+            stmts.append(
+                "ALTER TABLE books ADD COLUMN sort REAL NOT NULL DEFAULT 0")
         if "chap_all" not in book_cols:
             stmts.append(
                 "ALTER TABLE books ADD COLUMN chap_all INTEGER NOT NULL DEFAULT 0")
@@ -111,6 +114,7 @@ class LibraryDB:
             chap_txt_pos INTEGER NOT NULL DEFAULT 0,
             txt_pos INTEGER NOT NULL DEFAULT 0,
             txt_all INTEGER NOT NULL DEFAULT 0,
+            sort REAL NOT NULL DEFAULT 0,
             encoding TEXT,
             update_date INTEGER NOT NULL
         )
@@ -154,8 +158,8 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
-        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
+        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, sort, update_date)
+        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :sort, :update_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
@@ -163,6 +167,7 @@ class LibraryDB:
             chap_all=excluded.chap_all,
             txt_all=excluded.txt_all,
             encoding=excluded.encoding,
+            sort=excluded.sort,
             fmt=excluded.fmt,
             update_date=excluded.update_date
         """, {
@@ -177,6 +182,7 @@ class LibraryDB:
             "txt_all": book.txt_all,
             "txt_pos": book.txt_pos,
             "encoding": book.encoding,
+            "sort": book.sort,
             "update_date": int(book.update_date),
         })
 
@@ -186,8 +192,8 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
-        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
+        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, sort, update_date)
+        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :sort, :update_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
@@ -199,6 +205,7 @@ class LibraryDB:
             txt_all=excluded.txt_all,
             txt_pos=excluded.txt_pos,
             encoding=excluded.encoding,
+            sort=excluded.sort,
             update_date=excluded.update_date
         """, {
             "md5": book.md5,
@@ -212,6 +219,7 @@ class LibraryDB:
             "txt_all": book.txt_all,
             "txt_pos": book.txt_pos,
             "encoding": book.encoding,
+            "sort": book.sort,
             "update_date": int(book.update_date),
         })
 
@@ -248,6 +256,7 @@ class LibraryDB:
             txt_all=row["txt_all"],
             txt_pos=row["txt_pos"],
             encoding=row["encoding"],
+            sort=row["sort"],
             md5=row["md5"],
             update_date=row["update_date"]
         )
@@ -260,7 +269,7 @@ class LibraryDB:
         if "%" not in name_pattern:
             name_pattern = f"%{name_pattern}%"
         cur = self.conn.cursor()
-        cur.execute("SELECT * FROM books WHERE name LIKE ? ORDER BY update_date DESC LIMIT ?",
+        cur.execute("SELECT * FROM books WHERE name LIKE ? ORDER BY sort DESC, update_date DESC LIMIT ?",
                     (name_pattern, limit))
         rows = cur.fetchall()
         return [
@@ -275,14 +284,44 @@ class LibraryDB:
                 txt_all=r["txt_all"],
                 txt_pos=r["txt_pos"],
                 encoding=r["encoding"],
+                sort=r["sort"],
                 md5=r["md5"],
                 update_date=r["update_date"]
             ) for r in rows
         ]
 
+    # 用于迭代所有 books（可选）
+    def iter_books(self) -> Iterator[Book]:
+        """查找所有书
+
+        Yields:
+            Iterator[Book]: _description_
+        """
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM books ORDER BY sort DESC, update_date DESC")
+        for r in cur:
+            yield Book(
+                path=r["path"], name=r["name"], author=r["author"], fmt=r["fmt"],
+                chap_n=r["chap_n"], chap_all=r["chap_all"], chap_txt_pos=r["chap_txt_pos"],
+                txt_all=r["txt_all"], txt_pos=r["txt_pos"], encoding=r["encoding"],
+                sort=r["sort"], md5=r["md5"], update_date=r["update_date"]
+            )
+
+    def get_max_sort(self) -> float:
+        """目前最大的排序
+
+        Returns:
+            float: _description_
+        """    
+        cur = self.conn.cursor()
+        cur.execute("SELECT MAX(sort) as max_sort FROM books")
+        row = cur.fetchone()
+        return row["max_sort"] if row and row["max_sort"] is not None else 0.0
+
     # -------------------------
     # TimeRead 操作
     # -------------------------
+
     def save_time_read(self, tr: TimeRead) -> None:
         """
         保存一个 TimeRead 条目。
@@ -384,20 +423,3 @@ class LibraryDB:
             seconds=row["seconds"],
             dt=dt_obj,
         )
-
-    # 用于迭代所有 books（可选）
-    def iter_books(self) -> Iterator[Book]:
-        """查找所有书
-
-        Yields:
-            Iterator[Book]: _description_
-        """
-        cur = self.conn.cursor()
-        cur.execute("SELECT * FROM books ORDER BY update_date DESC")
-        for r in cur:
-            yield Book(
-                path=r["path"], name=r["name"], author=r["author"], fmt=r["fmt"],
-                chap_n=r["chap_n"], chap_all=r["chap_all"], chap_txt_pos=r["chap_txt_pos"],
-                txt_all=r["txt_all"], txt_pos=r["txt_pos"], encoding=r["encoding"],
-                md5=r["md5"], update_date=r["update_date"]
-            )
