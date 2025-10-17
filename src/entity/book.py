@@ -17,7 +17,12 @@ class Book:
     """
     path: str
     name: str
+    author: str
+    # 读到第几章节
     chap_n: int
+    # 总章节数
+    chap_all: int
+    # 章节内读到哪里了
     chap_txt_pos: int
     # 读到哪里了
     txt_pos: int
@@ -29,14 +34,15 @@ class Book:
     type: int = BOOK_TYPE_TXT
     update_date: int = field(
         default_factory=lambda: int(datetime.now().timestamp()))
-# -*- coding: utf-8 -*-
 
 
 class BookObject(GObject.GObject):
     """供 Gtk/Gio 模型使用的 GObject 封装"""
     path = GObject.Property(type=str)
     name = GObject.Property(type=str)
+    author = GObject.Property(type=str)
     chap_n = GObject.Property(type=int)
+    chap_all = GObject.Property(type=int)
     chap_txt_pos = GObject.Property(type=int)
     txt_pos = GObject.Property(type=int)
     txt_all = GObject.Property(type=int)
@@ -45,14 +51,26 @@ class BookObject(GObject.GObject):
     update_date = GObject.Property(type=int)
 
     def __init__(self, **kwargs):
+        """_summary_
+        """
         super().__init__(**kwargs)
 
     @classmethod
     def from_dataclass(cls, b: Book) -> "BookObject":
+        """_summary_
+
+        Args:
+            b (Book): _description_
+
+        Returns:
+            BookObject: _description_
+        """
         return cls(
             path=b.path,
             name=b.name,
+            author=b.author,
             chap_n=b.chap_n,
+            chap_all=b.chap_all,
             chap_txt_pos=b.chap_txt_pos,
             txt_pos=b.txt_pos,
             txt_all=b.txt_all,
@@ -62,10 +80,17 @@ class BookObject(GObject.GObject):
         )
 
     def to_dataclass(self) -> Book:
+        """_summary_
+
+        Returns:
+            Book: _description_
+        """
         return Book(
             path=self.path,
             name=self.name,
+            author=self.author,
             chap_n=self.chap_n,
+            chap_all=self.chap_all,
             chap_txt_pos=self.chap_txt_pos,
             txt_pos=self.txt_pos,
             txt_all=self.txt_all,

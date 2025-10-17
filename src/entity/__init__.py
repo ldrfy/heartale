@@ -22,6 +22,35 @@ class LibraryDB:
         self.conn.row_factory = sqlite3.Row
         self._init_tables()
 
+    #     self._ensure_columns()   # 新增：自动迁移已有表的列
+
+    # def _ensure_columns(self):
+    #     """
+    #     检查 books 表的列，缺失则添加。
+    #     安全可重复执行。
+    #     """
+    #     cur = self.conn.cursor()
+    #     # 如果表还没创建，_init_tables 已创建；这里只检查列
+    #     cur.execute("PRAGMA table_info(books)")
+    #     cols = {r["name"] for r in cur.fetchall()}
+
+    #     # 要新增的列与对应的 SQL 片段（确保有合理默认值以兼容旧数据）
+    #     need = []
+    #     if "chap_all" not in cols:
+    #         need.append(
+    #             "ALTER TABLE books ADD COLUMN chap_all INTEGER NOT NULL DEFAULT 0")
+    #     if "author" not in cols:
+    #         # 设默认空作者，避免 NOT NULL 插入失败
+    #         need.append(
+    #             "ALTER TABLE books ADD COLUMN author TEXT NOT NULL DEFAULT ''")
+
+    #     for stmt in need:
+    #         cur.execute(stmt)
+
+    #     # 如果你以后添加索引或其他列，也在这里处理
+    #     if need:
+    #         self.conn.commit()
+
     def close(self):
         """关闭
         """
@@ -37,8 +66,10 @@ class LibraryDB:
             md5 TEXT NOT NULL UNIQUE,           -- 仍保证唯一
             path TEXT NOT NULL,
             name TEXT NOT NULL,
+            author TEXT NOT NULL,
             type INTEGER NOT NULL DEFAULT 0,
             chap_n INTEGER NOT NULL DEFAULT 0,
+            chap_all INTEGER NOT NULL DEFAULT 0,
             chap_txt_pos INTEGER NOT NULL DEFAULT 0,
             txt_pos INTEGER NOT NULL DEFAULT 0,
             txt_all INTEGER NOT NULL DEFAULT 0,
@@ -85,11 +116,13 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, type, chap_n, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
-        VALUES(:md5, :path, :name, :type, :chap_n, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
+        INSERT INTO books(md5, path, name, author, type, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
+        VALUES(:md5, :path, :name, :author, :type, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
+            author=excluded.author,
+            chap_all=excluded.chap_all,
             txt_all=excluded.txt_all,
             encoding=excluded.encoding,
             update_date=excluded.update_date
@@ -97,8 +130,10 @@ class LibraryDB:
             "md5": book.md5,
             "path": book.path,
             "name": book.name,
+            "author": book.author,
             "type": book.type,
             "chap_n": book.chap_n,
+            "chap_all": book.chap_all,
             "chap_txt_pos": book.chap_txt_pos,
             "txt_all": book.txt_all,
             "txt_pos": book.txt_pos,
@@ -112,13 +147,15 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, type, chap_n, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
-        VALUES(:md5, :path, :name, :type, :chap_n, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
+        INSERT INTO books(md5, path, name, author, type, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, update_date)
+        VALUES(:md5, :path, :name, :author, :type, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :update_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
+            author=excluded.author,
             type=excluded.type,
             chap_n=excluded.chap_n,
+            chap_all=excluded.chap_all,
             chap_txt_pos=excluded.chap_txt_pos,
             txt_all=excluded.txt_all,
             txt_pos=excluded.txt_pos,
@@ -128,8 +165,10 @@ class LibraryDB:
             "md5": book.md5,
             "path": book.path,
             "name": book.name,
+            "author": book.author,
             "type": book.type,
             "chap_n": book.chap_n,
+            "chap_all": book.chap_all,
             "chap_txt_pos": book.chap_txt_pos,
             "txt_all": book.txt_all,
             "txt_pos": book.txt_pos,
@@ -162,8 +201,10 @@ class LibraryDB:
         return Book(
             path=row["path"],
             name=row["name"],
+            author=row["author"],
             type=row["type"],
             chap_n=row["chap_n"],
+            chap_all=row["chap_all"],
             chap_txt_pos=row["chap_txt_pos"],
             txt_all=row["txt_all"],
             txt_pos=row["txt_pos"],
@@ -187,8 +228,10 @@ class LibraryDB:
             Book(
                 path=r["path"],
                 name=r["name"],
+                author=r["author"],
                 type=r["type"],
                 chap_n=r["chap_n"],
+                chap_all=r["chap_all"],
                 chap_txt_pos=r["chap_txt_pos"],
                 txt_all=r["txt_all"],
                 txt_pos=r["txt_pos"],
@@ -314,8 +357,8 @@ class LibraryDB:
         cur.execute("SELECT * FROM books ORDER BY update_date DESC")
         for r in cur:
             yield Book(
-                path=r["path"], name=r["name"], type=r["type"],
-                chap_n=r["chap_n"], chap_txt_pos=r["chap_txt_pos"],
+                path=r["path"], name=r["name"], author=r["author"], type=r["type"],
+                chap_n=r["chap_n"], chap_all=r["chap_all"], chap_txt_pos=r["chap_txt_pos"],
                 txt_all=r["txt_all"], txt_pos=r["txt_pos"], encoding=r["encoding"],
                 md5=r["md5"], update_date=r["update_date"]
             )
