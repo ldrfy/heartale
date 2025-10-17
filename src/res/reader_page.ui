@@ -26,6 +26,15 @@
               </object>
             </child>
 
+
+            <child type="start">
+            <object class="GtkSpinner" id="spinner_sync">
+                <property name="valign">center</property>
+                <property name="margin-start">8</property>
+                <property name="margin-end">8</property>
+            </object>
+            </child>
+
             <child type="end">
               <object class="GtkButton">
                 <property name="icon-name">list-remove-symbolic</property>
@@ -128,7 +137,7 @@
                             <property name="min-content-width">240</property>
                             <property name="child">
                             <object class="GtkListView" id="toc">
-                                <property name="single-click-activate">false</property>
+                                <property name="single-click-activate">true</property>
                             </object>
                             </property>
                         </object>

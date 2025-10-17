@@ -36,6 +36,8 @@ class ReaderPage(Adw.NavigationPage):
     toc: Gtk.ListView = Gtk.Template.Child()
     stack: Adw.ViewStack = Gtk.Template.Child()
 
+    spinner_sync: Gtk.Spinner = Gtk.Template.Child()
+
     aos_reader: Adw.OverlaySplitView = Gtk.Template.Child()
     page_error: Adw.StatusPage = Gtk.Template.Child()
     page_loading: Adw.StatusPage = Gtk.Template.Child()
@@ -114,7 +116,7 @@ class ReaderPage(Adw.NavigationPage):
         """仅在主线程运行：绑定目录与正文。"""
 
         cn = Gtk.StringList.new(self._server.chap_names)
-        self._toc_sel = Gtk.SingleSelection.new(cn)
+        self._toc_sel = Gtk.NoSelection.new(cn)
         self.toc.set_model(self._toc_sel)
         self.set_chap_text()
 
@@ -172,6 +174,8 @@ class ReaderPage(Adw.NavigationPage):
             chap_n (int): 章节编号
         """
 
+        self.spinner_sync.start()
+
         def _ui_update(chap_name):
 
             self.title.set_subtitle(
@@ -180,6 +184,7 @@ class ReaderPage(Adw.NavigationPage):
             self.ptc.set_paragraphs(self._server.bd.chap_txts)
             self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
+            self.spinner_sync.stop()
 
         def worker(chap_n):
             if chap_n > 0:
