@@ -8,7 +8,6 @@ from urllib.parse import parse_qs, quote, urlparse, urlsplit, urlunsplit
 import requests
 
 from ..entity.book import Book
-from ..utils.debug import get_logger
 from . import Server
 
 # 常量定义
@@ -84,6 +83,8 @@ class LegadoServer(Server):
         self.book_data = ""
         # 一般是内网地址: http://192.168.x.x:xxxx
         self.url_base = ""
+        # 刚开始读取进度,但是不能保存云端
+        self.init = True
         super().__init__("legado")
 
     def initialize(self, book: Book):
@@ -104,7 +105,7 @@ class LegadoServer(Server):
         self.book.name = self.book_data["name"]
         self.save_read_progress(
             self.book_data[CHAP_INDEX],
-            self.book_data[CHAP_POS]
+            self.book_data[CHAP_POS]-1
         )
 
         self.chap_names = self._get_chap_names()
@@ -112,6 +113,7 @@ class LegadoServer(Server):
             self.get_chap_txt(self.book.chap_n),
             self.book.chap_txt_pos
         )
+        self.init = False
 
         return f"{self.book.name} {self.get_chap_name()}"
 
@@ -163,6 +165,12 @@ class LegadoServer(Server):
         resp = requests.get(url, timeout=10)
         return [d["title"] for d in resp.json()["data"]]
 
+    def save_read_progress(self, chap_n: int, chap_txt_pos: int):
+        if not self.init:
+            # 刚开始读取进度,但是不能保存云端
+            self._save_book_progress(self.book_data)
+        super().save_read_progress(chap_n, chap_txt_pos)
+
     def _save_book_progress(self, book_data: dict):
         """异步保存阅读进度
 
@@ -191,10 +199,10 @@ class LegadoServer(Server):
         resp = requests.post(f"{self.url_base}/saveBookProgress",
                              data=json_data, headers=headers, timeout=10)
         resp_json = resp.json()
+        print(f"Legado 保存进度响应：{resp_json}")
 
         if not resp_json["isSuccess"]:
             raise ValueError(f'进度保存错误！\n{resp_json["errorMsg"]}')
-        super().save_read_progress(self.get_chap_n(), self.get_chap_txt_pos())
 
 
 async def get_book_shelf_async(book_n: int, url):

@@ -208,7 +208,7 @@ class ReaderPage(Adw.NavigationPage):
         Returns:
             str: _description_
         """
-        buf = self.gtv.get_buffer()
+        buf = self.gtv_text.get_buffer()
         if selection_only and buf.get_has_selection():
             start, end = buf.get_selection_bounds()
             return buf.get_text(start, end, False)
