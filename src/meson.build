@@ -47,6 +47,7 @@ install_data(heartale_sources_entity, install_dir: moduledir / 'entity')
 heartale_sources_widgets = [
     'widgets/__init__.py',
     'widgets/shelf_row.py',
+    'widgets/pg_tag_view.py',
 ]
 install_data(heartale_sources_widgets, install_dir: moduledir / 'widgets')
 
@@ -54,7 +55,6 @@ install_data(heartale_sources_widgets, install_dir: moduledir / 'widgets')
 heartale_sources_servers = [
     'servers/__init__.py',
     'servers/legado.py',
-    'servers/tools.py',
     'servers/txt.py',
 ]
 install_data(heartale_sources_servers, install_dir: moduledir / 'servers')
@@ -63,6 +63,7 @@ install_data(heartale_sources_servers, install_dir: moduledir / 'servers')
 heartale_sources_utils = [
     'utils/__init__.py',
     'utils/debug.py',
+    'utils/text.py',
 ]
 install_data(heartale_sources_utils, install_dir: moduledir / 'utils')
 

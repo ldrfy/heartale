@@ -38,5 +38,3 @@ def split_text(text_all, dcp=0):
         n_last -= 1
 
     return result, p2s, n_last
-
-

@@ -1,10 +1,9 @@
 """阅读页面"""
 
-import logging
 import threading
 import time
 
-from gi.repository import Adw, GLib, Gtk  # type: ignore
+from gi.repository import Adw, GLib, Gtk
 
 from ..entity import LibraryDB
 from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
@@ -12,6 +11,7 @@ from ..servers import Server
 from ..servers.legado import LegadoServer
 from ..servers.txt import TxtServer
 from ..utils.debug import get_logger
+from ..widgets.pg_tag_view import ParagraphTagController
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/reader_page.ui")
@@ -31,7 +31,8 @@ class ReaderPage(Adw.NavigationPage):
 
     # 这些 id 必须与 .ui 一致
     title: Adw.WindowTitle = Gtk.Template.Child()
-    text: Gtk.TextView = Gtk.Template.Child()
+    gtv_text: Gtk.TextView = Gtk.Template.Child()
+    gsw_text: Gtk.ScrolledWindow = Gtk.Template.Child()
     toc: Gtk.ListView = Gtk.Template.Child()
     stack: Adw.ViewStack = Gtk.Template.Child()
 
@@ -46,10 +47,15 @@ class ReaderPage(Adw.NavigationPage):
 
         self._nav = nav
         self.t = 0
+        self.font_size_pt = 14
         self._toc_sel: Gtk.SingleSelection = None
         self._server: Server = None
         self.toggle_sidebar = False
         self._build_factory()
+
+        self.ptc = ParagraphTagController(self.gtv_text, self.gsw_text)
+        self.ptc.set_on_paragraph_click(self.on_click_paragraph)
+        self.ptc.set_font_size_pt(self.font_size_pt)
 
     def set_data(self, book: Book):
         """在子线程读取与解析章节，主线程更新 UI。
@@ -161,18 +167,28 @@ class ReaderPage(Adw.NavigationPage):
             chap_n (int): 章节编号
         """
 
-        def _ui_update(content, chap_name):
-            self.text.get_buffer().set_text(content)
-            self.title.set_subtitle(chap_name)
+        def _ui_update(chap_name):
+
+            self.title.set_subtitle(
+                f"{chap_name} ({self._server.book.chap_n}/{self._server.book.chap_all})")
+
+            self.ptc.set_paragraphs(self._server.bd.chap_txts)
+            self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
 
         def worker(chap_n):
-            print(f"设置章节 {chap_n}")
             if chap_n > 0:
                 # 初始加载不能动
                 self._server.save_read_progress(chap_n, 0)
-            content = self._server.get_chap_txt(chap_n)
+
             chap_name = self._server.get_chap_name(chap_n)
-            GLib.idle_add(_ui_update, content, chap_name,
+
+            print(f"章节名称：{chap_name}", chap_n, self._server.book.chap_txt_pos)
+
+            self._server.bd.update_chap_txts(
+                self._server.get_chap_txt(chap_n),
+                self._server.book.chap_txt_pos)
+
+            GLib.idle_add(_ui_update, chap_name,
                           priority=GLib.PRIORITY_DEFAULT)
 
         threading.Thread(target=worker, args=(_chap_n,), daemon=True).start()
@@ -186,7 +202,7 @@ class ReaderPage(Adw.NavigationPage):
         Returns:
             str: _description_
         """
-        buf = self.text.get_buffer()
+        buf = self.gtv.get_buffer()
         if selection_only and buf.get_has_selection():
             start, end = buf.get_selection_bounds()
             return buf.get_text(start, end, False)
@@ -236,6 +252,17 @@ class ReaderPage(Adw.NavigationPage):
             get_logger().error("切换章节失败：%s", e)
             self.show_error(f"切换章节失败：{e}")
 
+    def on_click_paragraph(self, idx: int, tag_name: str, start_off: int, end_off: int):
+        """用户点击了段落
+
+        Args:
+            idx (int): 段落索引
+            tag_name (str): 段落标签名
+            start_off (int): 段落起始偏移
+            end_off (int): 段落结束偏移
+        """
+        print(f"点击了段落 idx={idx} tag={tag_name} range=[{start_off},{end_off})")
+
     @Gtk.Template.Callback()
     def _on_read_aloud(self, *_args):
         text = self.get_current_text(selection_only=True)
@@ -258,3 +285,13 @@ class ReaderPage(Adw.NavigationPage):
     def _on_toggle_sidebar(self, *_args):
         self.aos_reader.set_show_sidebar(self.toggle_sidebar)
         self.toggle_sidebar = not self.toggle_sidebar
+
+    @Gtk.Template.Callback()
+    def _on_font_size_larger(self, *_args):
+        self.font_size_pt += 1
+        self.ptc.set_font_size_pt(self.font_size_pt)
+
+    @Gtk.Template.Callback()
+    def _on_font_size_smaller(self, *_args):
+        self.font_size_pt -= 1
+        self.ptc.set_font_size_pt(self.font_size_pt)

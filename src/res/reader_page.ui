@@ -28,6 +28,23 @@
 
             <child type="end">
               <object class="GtkButton">
+                <property name="icon-name">list-remove-symbolic</property>
+                <property name="tooltip-text">字体减少</property>
+                <signal name="clicked" handler="_on_font_size_smaller" swapped="no"/>
+              </object>
+            </child>
+
+
+            <child type="end">
+              <object class="GtkButton">
+                <property name="icon-name">list-add-symbolic</property>
+                <property name="tooltip-text">字体增加</property>
+                <signal name="clicked" handler="_on_font_size_larger" swapped="no"/>
+              </object>
+            </child>
+
+            <child type="end">
+              <object class="GtkButton">
                 <property name="icon-name">media-playback-start-symbolic</property>
                 <property name="tooltip-text">朗读</property>
                 <signal name="clicked" handler="_on_read_aloud" swapped="no"/>
@@ -118,11 +135,11 @@
                     </property>
 
                     <property name="content">
-                    <object class="GtkScrolledWindow">
+                    <object class="GtkScrolledWindow" id="gsw_text">
                         <property name="vexpand">true</property>
                         <property name="hexpand">true</property>
                         <property name="child">
-                        <object class="GtkTextView" id="text">
+                        <object class="GtkTextView" id="gtv_text">
                             <property name="wrap-mode">word-char</property>
                             <property name="editable">false</property>
                             <property name="left-margin">18</property>

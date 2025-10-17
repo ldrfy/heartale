@@ -4,7 +4,7 @@ from datetime import datetime
 
 from ..entity import LibraryDB
 from ..entity.book import Book
-from .tools import split_text
+from ..utils.text import split_text
 
 
 class BookData():

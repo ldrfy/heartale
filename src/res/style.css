@@ -7,3 +7,12 @@
 .top-btn.top {
     color: @theme_selected_bg_color;
 }
+
+.paragraph {
+    font-size: 16px;
+    line-height: 1.6;
+}
+
+.highlight {
+    background-color: @theme_selected_bg_color;
+}
