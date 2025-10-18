@@ -1,0 +1,9 @@
+package: @APP_NAME@
+Section: net
+version: @VERSION@
+Depends: @DEPS@
+architecture: amd64
+Maintainer: yuhldr <yuhldr@qq.com>
+Homepage: https://github.com/ldrfy/@APP_NAME@
+description: @APP_DES@
+Installed-Size: 45

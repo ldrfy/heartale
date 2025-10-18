@@ -37,7 +37,7 @@ class InMemoryLogHandler(logging.Handler):
 
 
 # 初始化日志系统
-logger = logging.getLogger("lfy")
+logger = logging.getLogger("heartale")
 logger.setLevel(logging.DEBUG)
 
 # 设置格式

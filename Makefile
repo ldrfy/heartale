@@ -2,8 +2,6 @@ TO_LANG=zh_CN
 VERSION=0.1.0
 NAME=heartale
 APP_ID=cool.ldr.${NAME}
-DISK = ../../../dist/
-BUILD_PKG=build/pkg
 DESTDIR = "/"
 PREFIX = "${PWD}/test/"
 BASE_URL = https://github.com/ldrfy/${NAME}/releases/download/auto
@@ -78,7 +76,7 @@ pkg_aur: clear build build_zip pkg_aur_
 
 
 PATH_FLATPAK = build/pkg/flatpak/
-pkg_flatpak_: build_zip
+pkg_flatpak_:
 	mkdir -p ${PATH_FLATPAK}
 	cp pkg/flatpak/* ${PATH_FLATPAK}
 	cp ${PATH_ZIP}/../${NAME}-${VERSION}.zip ${PATH_FLATPAK}
@@ -95,6 +93,38 @@ pkg_flatpak_: build_zip
 pkg_flatpak: clear build build_zip pkg_flatpak_
 # flatpak install --user dist/${APP_ID}-${VERSION}.flatpak
 
+
+
+PATH_DEB = build/pkg/deb/
+
+pkg_deb_:
+	$(MAKE) test PREFIX="${PWD}/${PATH_DEB}/usr"
+
+	cd "${PWD}/${PATH_DEB}/../" && \
+	dpkg -b deb ./deb/${NAME}-${VERSION}-x86_64.deb
+
+	cp ${PATH_DEB}/${NAME}-${VERSION}-x86_64.deb dist/
+
+pkg_deb: clear build pkg_deb_
+
+
+PATH_RPM = build/pkg/rpm/
+pkg_rpm_:
+
+	mkdir -p ${PWD}/${PATH_RPM}/SOURCES/${NAME}-${VERSION} && \
+	cp ${PATH_ZIP}/../${NAME}-${VERSION}.zip ${PATH_RPM}/SOURCES/
+
+	rpmbuild -bb ${PWD}/${PATH_RPM}/SPECS/${NAME}.spec \
+		--define "_topdir ${PWD}/${PATH_RPM}/"
+
+	cp ${PATH_RPM}/RPMS/x86_64/${NAME}-${VERSION}-1.x86_64.rpm dist/${NAME}-${VERSION}-1.x86_64.rpm
+
+	rpmbuild -bb ${PWD}/${PATH_RPM}/SPECS/${NAME}-suse.spec \
+		--define "_topdir ${PWD}/${PATH_RPM}/"
+
+	cp ${PATH_RPM}/RPMS/x86_64/${NAME}-${VERSION}-1.x86_64.rpm dist/${NAME}-${VERSION}-1.x86_64-suse.rpm
+
+pkg_rpm: clear build build_zip pkg_rpm_
 
 
 pkg_all: clear build build_zip pkg_flatpak_ pkg_aur_
