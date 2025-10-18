@@ -9,7 +9,7 @@ license=('GPL3')
 depends=(@DEPS@)
 makedepends=(@BUILD_DEPS@)
 checkdepends=('appstream-glib')
-source=(${url}/archive/refs/tags/v${pkgver}.zip)
+source=(@APP_NAME@-@VERSION@.zip)
 sha256sums=("SKIP")
 
 

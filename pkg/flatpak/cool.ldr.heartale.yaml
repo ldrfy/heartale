@@ -29,7 +29,7 @@ modules:
     buildsystem: meson
     sources:
       - type: dir
-        path: /home/yuh/code/yuh/py/heartale
+        path: ./heartale/
     config-opts:
       - --libdir=lib
 
