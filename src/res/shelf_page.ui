@@ -5,6 +5,10 @@
   <menu id="primary_menu">
     <section>
       <item>
+        <attribute name="action">app.find_update</attribute>
+        <attribute name="label" translatable="yes">Check for updates</attribute>
+      </item>
+      <item>
         <attribute name="action">app.preferences</attribute>
         <attribute name="label" translatable="yes">_Preferences</attribute>
       </item>

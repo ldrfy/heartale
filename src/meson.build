@@ -65,6 +65,7 @@ heartale_sources_utils = [
     'utils/__init__.py',
     'utils/debug.py',
     'utils/text.py',
+    'utils/check_update.py',
 ]
 install_data(heartale_sources_utils, install_dir: moduledir / 'utils')
 
