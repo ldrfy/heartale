@@ -2,8 +2,8 @@
 <!DOCTYPE cambalache-project SYSTEM "cambalache-project.dtd">
 <!-- Created with Cambalache 0.96.1 -->
 <cambalache-project version="0.96.0" target_tk="gtk-4.0">
-  <ui template-class="HeartaleWindow" filename="window.ui" sha256="4addb49e2f7e9300eec3f41ff90bf5012753fd0d99d4821ee70afd84f0b63fe9"/>
-  <ui template-class="BookshelfPage" filename="shelf_page.ui" sha256="3254ff1c61f78698cd775a41c4399c95f162cb2432218b798fa9dceb84f55393"/>
-  <ui template-class="ShelfRow" filename="shelf_row.ui" sha256="3254ff1c61f78698cd775a41c4399c95f162cb2432218b798fa9dceb84f55393"/>
-  <ui template-class="ReaderPage" filename="reader_page.ui" sha256="5a111e73a88af7f7e1d62f55717b90f01c816e6f37adcd923a29195fea234b11"/>
+  <ui template-class="HeartaleWindow" filename="window.ui" sha256="f05e64c1b53631d2339427ebc4f4a33b5f688d375d1db89d0ea9a72ab769aa9f"/>
+  <ui template-class="ShelfPage" filename="shelf_page.ui" sha256="f024ee960b34ffd16a8562ee23d449aae2a7af9f913e76440fa24877e481b0ec"/>
+  <ui template-class="ShelfRow" filename="shelf_row.ui" sha256="ad742b27e839a54e88fbb1d7f02228cb6664aeaa5f9d307b77240035f60e4601"/>
+  <ui template-class="ReaderPage" filename="reader_page.ui" sha256="c6af32eba51278800064c248e8a6be2f09d2d0b0a83d9f32a4f1e95e22bf81c9"/>
 </cambalache-project>

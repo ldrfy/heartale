@@ -1,70 +1,67 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.96.1 -->
 <interface>
+  <!-- interface-name shelf_row.ui -->
   <requires lib="gtk" version="4.12"/>
   <template class="ShelfRow" parent="GtkBox">
+    <property name="hexpand">true</property>
+    <property name="margin-bottom">6</property>
+    <property name="margin-end">12</property>
+    <property name="margin-start">12</property>
+    <property name="margin-top">6</property>
     <property name="orientation">horizontal</property>
     <property name="spacing">12</property>
-    <property name="hexpand">true</property>
-    <property name="margin-start">12</property>
-    <property name="margin-end">12</property>
-    <property name="margin-top">6</property>
-    <property name="margin-bottom">6</property>
-
     <child>
       <object class="GtkBox" id="text_box">
+        <property name="hexpand">true</property>
         <property name="orientation">vertical</property>
         <property name="spacing">2</property>
-        <property name="hexpand">true</property>
         <child>
           <object class="GtkLabel" id="lbl_title">
-            <property name="xalign">0.0</property>
             <property name="ellipsize">end</property>
+            <property name="xalign">0.0</property>
             <style>
-                <class name="title"/>
+              <class name="title"/>
             </style>
           </object>
         </child>
         <child>
           <object class="GtkLabel" id="lbl_sub">
-            <property name="xalign">0.0</property>
             <property name="ellipsize">end</property>
+            <property name="xalign">0.0</property>
             <style>
-                <class name="subtitle"/>
+              <class name="subtitle"/>
             </style>
           </object>
         </child>
       </object>
     </child>
-
     <child>
       <object class="GtkButton" id="btn_del">
         <property name="icon-name">user-trash-symbolic</property>
-        <property name="valign">center</property>
         <property name="tooltip-text">删除此书</property>
-        <signal name="clicked" handler="_on_book_del" swapped="no"/>
+        <property name="valign">center</property>
+        <signal name="clicked" handler="_on_book_del"/>
       </object>
     </child>
-
     <child>
       <object class="GtkButton" id="btn_top">
         <property name="icon-name">go-top-symbolic</property>
-        <property name="valign">center</property>
         <property name="tooltip-text">置顶此书</property>
-        <signal name="clicked" handler="_on_book_top" swapped="no"/>
+        <property name="valign">center</property>
+        <signal name="clicked" handler="_on_book_top"/>
         <style>
-            <class name="top-btn"/>
+          <class name="top-btn"/>
         </style>
       </object>
     </child>
-
     <child>
-    <object class="GtkButton">
-        <property name="valign">center</property>
-        <property name="tooltip-text">阅读统计</property>
+      <object class="GtkButton">
         <property name="icon-name">view-list-symbolic</property>
-        <signal name="clicked" handler="_on_book_statistics" swapped="no"/>
-    </object>
+        <property name="tooltip-text">阅读统计</property>
+        <property name="valign">center</property>
+        <signal name="clicked" handler="_on_book_statistics"/>
+      </object>
     </child>
-
   </template>
 </interface>

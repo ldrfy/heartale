@@ -1,22 +1,22 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version='1.0' encoding='UTF-8'?>
+<!-- Created with Cambalache 0.96.1 -->
 <interface>
-  <requires lib="gtk" version="4.12"/>
+  <!-- interface-name window.ui -->
   <requires lib="adw" version="1.4"/>
-
+  <requires lib="gtk" version="4.12"/>
+  <requires lib="libadwaita" version="1.4"/>
   <template class="HeartaleWindow" parent="AdwApplicationWindow">
-    <property name="default-width">1024</property>
     <property name="default-height">700</property>
+    <property name="default-width">1024</property>
     <property name="title">简阅</property>
-
     <child>
       <object class="AdwToastOverlay" id="toasts">
         <property name="child">
           <object class="AdwNavigationView" id="nav">
             <signal name="notify::visible-page" handler="on_visible_page_changed"/>
-            </object>
+          </object>
         </property>
       </object>
     </child>
   </template>
 </interface>
-
