@@ -49,14 +49,15 @@ class ReaderPage(Adw.NavigationPage):
 
         self._nav = nav
         self.t = 0
-        self.font_size_pt = 14
         self._toc_sel: Gtk.SingleSelection = None
         self._server: Server = None
         self.toggle_sidebar = False
         self._build_factory()
 
         self.ptc = ParagraphTagController(self.gtv_text, self.gsw_text)
-        self.ptc.set_font_size_pt(self.font_size_pt)
+        self.ptc.set_line_spacing(10)
+        self.ptc.set_paragraph_spacing(0, 0)
+        self.ptc.set_font_size_pt(14)
 
         self.ptc.set_on_paragraph_click(self._on_click_paragraph)
         print("--------- 设置段落点击回调")
@@ -314,16 +315,6 @@ class ReaderPage(Adw.NavigationPage):
         self.toggle_sidebar = not self.toggle_sidebar
 
     @Gtk.Template.Callback()
-    def _on_font_size_larger(self, *_args):
-        self.font_size_pt += 1
-        self.ptc.set_font_size_pt(self.font_size_pt)
-
-    @Gtk.Template.Callback()
-    def _on_font_size_smaller(self, *_args):
-        self.font_size_pt -= 1
-        self.ptc.set_font_size_pt(self.font_size_pt)
-
-    @Gtk.Template.Callback()
     def _on_next_chap(self, *_args):
         self._server.book.chap_n += 1
         self._server.book.chap_txt_pos = 0
@@ -338,3 +329,36 @@ class ReaderPage(Adw.NavigationPage):
         self._server.bd.chap_txt_n = 0
         self._on_toc_chapter_activated(self._server.book.chap_n)
         self._toc_sel.set_selected(self._server.book.chap_n)
+
+    @Gtk.Template.Callback()
+    def _on_fontsize_changed(self, a) -> None:
+        """字体
+
+        Args:
+            spin (Adw.SpinRow): _description_
+            value (_type_): _description_
+        """
+        v = int(a.get_value())
+        self.ptc.set_font_size_pt(v)
+
+    @Gtk.Template.Callback()
+    def _on_paragraph_space_changed(self, b) -> None:
+        """字体
+
+        Args:
+            spin (Adw.SpinRow): _description_
+            value (_type_): _description_
+        """
+        v = int(b.get_value())
+        self.ptc.set_paragraph_spacing(v, v)
+
+    @Gtk.Template.Callback()
+    def _on_line_space_changed(self, b) -> None:
+        """字体
+
+        Args:
+            spin (Adw.SpinRow): _description_
+            value (_type_): _description_
+        """
+        v = int(b.get_value())
+        self.ptc.set_line_spacing(v)

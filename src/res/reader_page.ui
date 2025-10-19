@@ -167,17 +167,79 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkButton">
-                <property name="icon-name">list-remove-symbolic</property>
-                <property name="tooltip-text">字体减少</property>
-                <signal name="clicked" handler="_on_font_size_smaller"/>
-              </object>
-            </child>
-            <child type="end">
-              <object class="GtkButton">
-                <property name="icon-name">list-add-symbolic</property>
-                <property name="tooltip-text">字体增加</property>
-                <signal name="clicked" handler="_on_font_size_larger"/>
+              <object class="GtkMenuButton" id="btn_settings">
+                <property name="icon-name">open-menu-symbolic</property>
+                <property name="popover">
+                  <object class="GtkPopover" id="popover_settings">
+                    <child>
+                      <object class="GtkBox" id="popover_box">
+                        <property name="can-focus">False</property>
+                        <property name="focusable">False</property>
+                        <property name="orientation">vertical</property>
+                        <property name="spacing">8</property>
+
+                        <child>
+                        <object class="AdwSpinRow" id="spin_f">
+                            <signal name="output" handler="_on_fontsize_changed"/>
+                            <property name="icon-name">format-text-bold-symbolic</property>
+                            <property name="subtitle" translatable="yes">_Font Size</property>
+                            <property name="title">字体大小</property>
+                            <property name="adjustment">
+                                <object class="GtkAdjustment">
+                                <property name="lower">0</property>
+                                <property name="upper">72</property>
+                                <property name="value">14</property>
+                                <property name="page-increment">5</property>
+                                <property name="step-increment">1</property>
+                                </object>
+                            </property>
+                        </object>
+                        </child>
+
+
+
+                        <child>
+                        <object class="AdwSpinRow" id="spin_l">
+                            <signal name="output" handler="_on_line_space_changed"/>
+                            <property name="icon-name">format-text-italic-symbolic</property>
+                            <property name="subtitle" translatable="yes">_Line Space</property>
+                            <property name="title">行间距</property>
+                            <property name="adjustment">
+                                <object class="GtkAdjustment">
+                                <property name="lower">0</property>
+                                <property name="upper">30</property>
+                                <property name="value">10</property>
+                                <property name="page-increment">5</property>
+                                <property name="step-increment">1</property>
+                                </object>
+                            </property>
+                        </object>
+                        </child>
+
+
+                        <child>
+                        <object class="AdwSpinRow" id="spin_p">
+                            <signal name="output" handler="_on_paragraph_space_changed"/>
+                            <property name="icon-name">format-text-strikethrough-symbolic</property>
+                            <property name="subtitle" translatable="yes">_Paragraph Space</property>
+                            <property name="title">段间距</property>
+                            <property name="adjustment">
+                                <object class="GtkAdjustment">
+                                <property name="lower">0</property>
+                                <property name="upper">40</property>
+                                <property name="value">0</property>
+                                <property name="page-increment">5</property>
+                                <property name="step-increment">1</property>
+                                </object>
+                            </property>
+                        </object>
+                        </child>
+
+
+                      </object>
+                    </child>
+                  </object>
+                 </property>
               </object>
             </child>
             <child type="end">
