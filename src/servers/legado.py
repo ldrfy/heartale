@@ -217,11 +217,13 @@ def get_book_shelf(url):
         dict: 书籍信息
     """
     url = f"{url}/getBookshelf"
+    print(f"获取 Legado 书架信息：{url}")
     resp = requests.get(url, timeout=10)
+    print(resp.json())
     return resp.json()["data"]
 
 
-def get_txt_all(word_count):
+def get_txt_all(b):
     """_summary_
 
     Args:
@@ -230,6 +232,9 @@ def get_txt_all(word_count):
     Returns:
         _type_: _description_
     """
+    if "wordCount" not in b:
+        return 0
+    word_count = b["wordCount"]
     if not word_count:
         return 0
     if "K" in word_count:
@@ -254,6 +259,7 @@ def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
     except Exception as e:  # pylint: disable=broad-except
         sync = False
         s_error += f"Legado 书籍获取失败，错误：{e}\n"
+        print(e)
         return sync, s_error
 
     db = LibraryDB()
@@ -268,7 +274,7 @@ def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
             md5 = hashlib.md5(f"legado-{name}-{author}".encode("utf-8")).hexdigest()
             book = Book(url_base, name, author, b["durChapterIndex"],
                         b["totalChapterNum"], b["durChapterPos"], 0,
-                        get_txt_all(b["wordCount"]), "utf-8", md5)
+                        get_txt_all(b), "utf-8", md5)
             book.fmt = BOOK_FMT_LEGADO
             db.save_book(book)
 

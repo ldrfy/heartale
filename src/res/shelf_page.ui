@@ -46,36 +46,14 @@
             </object>
             </child>
 
-            <child type="start">
-            <object class="GtkRevealer" id="rev_search">
-                <property name="reveal-child">false</property>
-                <property name="transition-type">slide-right</property>
-                <child>
-                <object class="GtkBox">
-                    <property name="orientation">horizontal</property>
-                    <property name="spacing">6</property>
-                    <child>
-                    <object class="GtkSearchEntry" id="search">
-                        <property name="placeholder-text">搜索书名…</property>
-                        <property name="width-chars">20</property>
-                        <signal name="search-changed" handler="_on_search_changed" swapped="no"/>
-                        <!-- 按 Esc 或点叉触发 -->
-                        <signal name="stop-search" handler="_on_search_stop" swapped="no"/>
-                    </object>
-                    </child>
+            <child type="end">
+                <object class="GtkMenuButton">
+                    <property name="icon-name">open-menu-symbolic</property>
+                    <property name="menu-model">primary_menu</property>
+                    <property name="primary">True</property>
+                    <property name="tooltip-text" translatable="yes">Main Menu</property>
                 </object>
-                </child>
-            </object>
             </child>
-
-                <child type="end">
-                    <object class="GtkMenuButton">
-                        <property name="icon-name">open-menu-symbolic</property>
-                        <property name="menu-model">primary_menu</property>
-                        <property name="primary">True</property>
-                        <property name="tooltip-text" translatable="yes">Main Menu</property>
-                    </object>
-                </child>
 
             <!-- 右侧：导入 与 主菜单 -->
             <child type="end">
@@ -85,7 +63,6 @@
                 <signal name="clicked" handler="_on_import_book" swapped="no"/>
               </object>
             </child>
-
 
 
             <child type="end">
@@ -106,96 +83,128 @@
                     </object>
                     </child>
                 </object>
-                </child>
+            </child>
 
           </object>
         </child>
 
         <property name="content">
-          <object class="AdwViewStack" id="stack">
 
-            <child>
-            <object class="AdwStatusPage" id="search_empty">
-                <property name="icon-name">system-search-symbolic</property>
-                <property name="title">没有匹配的书籍</property>
-                <property name="description">换个关键词，或清空搜索再试试</property>
+            <object class="GtkBox" id="gb_bookshelf">
+                <property name="orientation">vertical</property>
+                <property name="spacing">6</property>
+
                 <child>
-                <object class="GtkBox">
-                    <property name="orientation">horizontal</property>
-                    <property name="spacing">8</property>
-                    <property name="halign">center</property>
-
+                <object class="GtkRevealer" id="rev_search">
+                    <property name="reveal-child">false</property>
+                    <property name="transition-type">slide-top</property>
                     <child>
-                    <object class="GtkButton" id="btn_clear_search">
-                        <style>
-                        <class name="suggested-action"/>
-                        </style>
-                        <child>
-                        <object class="AdwButtonContent">
-                            <property name="label">清空搜索</property>
-                            <property name="icon-name">edit-clear-symbolic</property>
-                        </object>
-                        </child>
-                        <signal name="clicked" handler="_on_clear_search" swapped="no"/>
-                    </object>
-                    </child>
-
-                    <child>
-                    <object class="GtkButton">
-                        <child>
-                        <object class="AdwButtonContent">
-                            <property name="label">导入书籍</property>
-                            <property name="icon-name">document-open-symbolic</property>
-                        </object>
-                        </child>
-                        <signal name="clicked" handler="_on_import_book" swapped="no"/>
+                    <object class="GtkSearchEntry" id="search">
+                        <property name="placeholder-text">搜索书名…</property>
+                        <property name="width-chars">20</property>
+                        <signal name="search-changed" handler="_on_search_changed" swapped="no"/>
+                        <!-- 按 Esc 或点叉触发 -->
+                        <signal name="stop-search" handler="_on_search_stop" swapped="no"/>
                     </object>
                     </child>
                 </object>
                 </child>
-            </object>
-            </child>
 
-
-            <child>
-              <object class="AdwStatusPage" id="empty">
-                <property name="icon-name">cool.ldr.heartale</property>
-                <property name="title">欢迎使用兰阅</property>
-                <property name="description">当前没有书籍，请导入一本开始阅读</property>
                 <child>
-                  <object class="GtkButton" id="btn_import">
-                    <property name="halign">center</property>
-                    <style>
-                      <class name="suggested-action"/>
-                    </style>
-                    <child>
-                      <object class="AdwButtonContent">
-                        <property name="label">导入书籍</property>
-                        <property name="icon-name">document-open-symbolic</property>
-                      </object>
-                    </child>
-                    <signal name="clicked" handler="_on_import_book" swapped="no"/>
-                  </object>
-                </child>
-              </object>
-            </child>
+                <object class="AdwViewStack" id="stack">
 
-            <child>
-              <object class="GtkScrolledWindow" id="scroller">
-                <property name="vexpand">true</property>
-                <property name="hexpand">true</property>
-                <property name="child">
-                  <object class="GtkListView" id="list">
-                    <property name="single-click-activate">true</property>
-                    <signal name="activate" handler="_on_shelf_activate" swapped="no"/>
-                    <style><class name="navigation-sidebar"/></style>
-                  </object>
-                </property>
-              </object>
-            </child>
-          </object>
+                    <child>
+                    <object class="AdwStatusPage" id="search_empty">
+                        <property name="icon-name">system-search-symbolic</property>
+                        <property name="title">没有匹配的书籍</property>
+                        <property name="description">换个关键词，或清空搜索再试试</property>
+                        <child>
+                        <object class="GtkBox">
+                            <property name="orientation">horizontal</property>
+                            <property name="spacing">8</property>
+                            <property name="halign">center</property>
+
+                            <child>
+                            <object class="GtkButton" id="btn_clear_search">
+                                <style>
+                                <class name="suggested-action"/>
+                                </style>
+                                <child>
+                                <object class="AdwButtonContent">
+                                    <property name="label">清空搜索</property>
+                                    <property name="icon-name">edit-clear-symbolic</property>
+                                </object>
+                                </child>
+                                <signal name="clicked" handler="_on_clear_search" swapped="no"/>
+                            </object>
+                            </child>
+
+                            <child>
+                            <object class="GtkButton">
+                                <child>
+                                <object class="AdwButtonContent">
+                                    <property name="label">导入书籍</property>
+                                    <property name="icon-name">document-open-symbolic</property>
+                                </object>
+                                </child>
+                                <signal name="clicked" handler="_on_import_book" swapped="no"/>
+                            </object>
+                            </child>
+                        </object>
+                        </child>
+                    </object>
+                    </child>
+
+
+                    <child>
+                    <object class="AdwStatusPage" id="empty">
+                        <property name="icon-name">cool.ldr.heartale</property>
+                        <property name="title">欢迎使用兰阅</property>
+                        <property name="description">当前没有书籍，请导入一本开始阅读</property>
+                        <child>
+                            <object class="GtkButton" id="btn_import">
+                            <property name="halign">center</property>
+                            <style>
+                                <class name="suggested-action"/>
+                            </style>
+                            <child>
+                                <object class="AdwButtonContent">
+                                <property name="label">导入书籍</property>
+                                <property name="icon-name">document-open-symbolic</property>
+                                </object>
+                            </child>
+                            <signal name="clicked" handler="_on_import_book" swapped="no"/>
+                            </object>
+                        </child>
+                    </object>
+                    </child>
+
+
+                    <child>
+                    <object class="GtkScrolledWindow" id="scroller">
+                        <property name="vexpand">true</property>
+                        <property name="hexpand">true</property>
+                        <property name="child">
+                        <object class="GtkListView" id="list">
+                            <property name="single-click-activate">true</property>
+                            <signal name="activate" handler="_on_shelf_activate" swapped="no"/>
+                            <style><class name="navigation-sidebar"/></style>
+                        </object>
+                        </property>
+                    </object>
+                    </child>
+
+
+                </object>
+                </child>
+
+            </object>
+
         </property>
+
       </object>
     </child>
+
   </template>
+
 </interface>
