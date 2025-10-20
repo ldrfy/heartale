@@ -4,7 +4,7 @@ import threading
 from datetime import datetime
 from gettext import gettext as _
 
-from gi.repository import Adw, Gio, GLib  # type: ignore pylint: disable=C0413
+from gi.repository import Adw, Gio, GLib  # type: ignore
 
 from .utils import PACKAGE_URL, open_url
 from .utils.check_update import main as check_update

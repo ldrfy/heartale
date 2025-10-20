@@ -228,11 +228,19 @@
                         <property name="orientation">vertical</property>
                         <property name="spacing">8</property>
 
+
+                        <child>
+                        <object class="GtkButton">
+                            <property name="label" translatable="yes">恢复默认</property>
+                            <signal name="clicked" handler="_on_set_default"/>
+                        </object>
+                        </child>
+
                         <child>
                         <object class="AdwSpinRow" id="spin_f">
                             <signal name="output" handler="_on_fontsize_changed"/>
                             <property name="icon-name">format-text-bold-symbolic</property>
-                            <property name="subtitle" translatable="yes">_Font Size</property>
+                            <property name="subtitle" translatable="yes">Font Size</property>
                             <property name="title">字体大小</property>
                             <property name="adjustment">
                                 <object class="GtkAdjustment">
@@ -252,12 +260,12 @@
                         <object class="AdwSpinRow" id="spin_l">
                             <signal name="output" handler="_on_line_space_changed"/>
                             <property name="icon-name">format-text-italic-symbolic</property>
-                            <property name="subtitle" translatable="yes">_Line Space</property>
+                            <property name="subtitle" translatable="yes">Line Space</property>
                             <property name="title">行间距</property>
                             <property name="adjustment">
                                 <object class="GtkAdjustment">
                                 <property name="lower">0</property>
-                                <property name="upper">30</property>
+                                <property name="upper">100</property>
                                 <property name="value">10</property>
                                 <property name="page-increment">5</property>
                                 <property name="step-increment">1</property>
@@ -271,13 +279,13 @@
                         <object class="AdwSpinRow" id="spin_p">
                             <signal name="output" handler="_on_paragraph_space_changed"/>
                             <property name="icon-name">format-text-strikethrough-symbolic</property>
-                            <property name="subtitle" translatable="yes">_Paragraph Space</property>
+                            <property name="subtitle" translatable="yes">Paragraph Space</property>
                             <property name="title">段间距</property>
                             <property name="adjustment">
                                 <object class="GtkAdjustment">
                                 <property name="lower">0</property>
-                                <property name="upper">40</property>
-                                <property name="value">0</property>
+                                <property name="upper">100</property>
+                                <property name="value">20</property>
                                 <property name="page-increment">5</property>
                                 <property name="step-increment">1</property>
                                 </object>

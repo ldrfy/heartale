@@ -4,7 +4,6 @@
 from gettext import gettext as _
 
 import requests
-from gi.repository import Gio, Gtk
 
 from . import PACKAGE_URL
 from .debug import get_logger

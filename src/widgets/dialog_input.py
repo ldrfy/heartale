@@ -1,5 +1,5 @@
 """输入对话框"""
-from gi.repository import Adw, Gtk
+from gi.repository import Adw, Gtk  # type: ignore
 
 
 class InputDialog(Adw.MessageDialog):

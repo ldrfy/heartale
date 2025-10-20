@@ -3,7 +3,7 @@
 import threading
 import time
 
-from gi.repository import Adw, GLib, Gtk
+from gi.repository import Adw, GLib, Gtk  # type: ignore
 
 from ..entity import LibraryDB
 from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
@@ -66,9 +66,7 @@ class ReaderPage(Adw.NavigationPage):
         self._build_factory()
 
         self.ptc = ParagraphTagController(self.gtv_text, self.gsw_text)
-        self.ptc.set_line_spacing(10)
-        self.ptc.set_paragraph_spacing(0, 0)
-        self.ptc.set_font_size_pt(14)
+        self._on_set_default()
 
         self.ptc.set_on_paragraph_click(self._on_click_paragraph)
         self.ptc.set_on_visible_paragraph_changed(self._set_read_jd)
@@ -342,14 +340,17 @@ class ReaderPage(Adw.NavigationPage):
         self._locate_toc(self._server.get_chap_n())
 
     @Gtk.Template.Callback()
-    def _on_fontsize_changed(self, a) -> None:
+    def _on_fontsize_changed(self, b) -> None:
         """字体
 
         Args:
             spin (Adw.SpinRow): _description_
             value (_type_): _description_
         """
-        v = int(a.get_value())
+        if isinstance(b, Adw.SpinRow):
+            v = b.get_value()
+        else:
+            v = b
         self.ptc.set_font_size_pt(v)
 
     @Gtk.Template.Callback()
@@ -360,8 +361,11 @@ class ReaderPage(Adw.NavigationPage):
             spin (Adw.SpinRow): _description_
             value (_type_): _description_
         """
-        v = int(b.get_value())
-        self.ptc.set_paragraph_spacing(v, v)
+        if isinstance(b, Adw.SpinRow):
+            v = b.get_value()
+        else:
+            v = b
+        self.ptc.set_paragraph_spacing(0, v)
 
     @Gtk.Template.Callback()
     def _on_line_space_changed(self, b) -> None:
@@ -371,8 +375,11 @@ class ReaderPage(Adw.NavigationPage):
             spin (Adw.SpinRow): _description_
             value (_type_): _description_
         """
-        v = int(b.get_value())
-        self.ptc.set_line_spacing(v)
+        if isinstance(b, Adw.SpinRow):
+            v = b.get_value()
+        else:
+            v = b
+        self.ptc.set_line_spacing(int(v))
 
     @Gtk.Template.Callback()
     def _on_click_title(self, *_args) -> None:
@@ -431,3 +438,11 @@ class ReaderPage(Adw.NavigationPage):
         self.gr_toc.set_reveal_child(active)
         if active:
             GLib.idle_add(self.gse_toc.grab_focus)
+
+    @Gtk.Template.Callback()
+    def _on_set_default(self, *_args) -> None:
+        """恢复默认设置
+        """
+        self._on_fontsize_changed(14)
+        self._on_line_space_changed(10)
+        self._on_paragraph_space_changed(20)

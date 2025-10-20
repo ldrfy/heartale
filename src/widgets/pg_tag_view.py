@@ -1,6 +1,6 @@
 """段落控制器"""
 import gi
-from gi.repository import GLib, Gtk, Pango
+from gi.repository import GLib, Gtk, Pango  # type: ignore
 
 gi.require_version("Gtk", "4.0")
 

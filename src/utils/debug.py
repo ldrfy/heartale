@@ -1,11 +1,8 @@
-'错误缓存'
-import json
+"""错误缓存"""
 import logging
-import os
 import platform
-import subprocess
 
-from gi.repository import Adw, Gio, Gtk  # type: ignore
+from gi.repository import Adw, Gtk  # type: ignore
 
 
 class InMemoryLogHandler(logging.Handler):
