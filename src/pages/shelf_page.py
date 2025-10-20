@@ -2,8 +2,9 @@
 
 import threading
 from pathlib import Path
+from urllib.parse import unquote, urlparse
 
-from gi.repository import Adw, Gio, GLib, Gtk  # type: ignore
+from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk  # type: ignore
 
 from ..entity import LibraryDB
 from ..entity.book import BookObject
@@ -51,6 +52,24 @@ class ShelfPage(Adw.NavigationPage):
         self._search_debounce_id = 0
 
         self._install_shortcuts()
+
+        # 拖拽导入书籍
+        drop_controller = Gtk.DropTarget.new(
+            type=GObject.TYPE_NONE, actions=Gdk.DragAction.COPY
+        )
+        drop_controller.set_gtypes([Gdk.FileList])
+        drop_controller.connect("drop", self._on_drop)
+        self.add_controller(drop_controller)
+
+    def _on_drop(self, _drop, value, _x, _y):
+        """
+        value 通常是一个包含 URI 列表的字符串。
+        返回 True 表示处理完成。
+        """
+        if not value:
+            return False
+        self._add_book(value)
+        return True
 
     def reload_bookshel(self):
         """重新加载书架数据
@@ -202,37 +221,53 @@ class ShelfPage(Adw.NavigationPage):
             try:
                 files = d.open_multiple_finish(res)
             except GLib.Error as e:
-                get_logger().error("书架导入失败：%s", e)
+                get_logger().error("文件获取失败：%s", e)
                 s_error += f"{e}\n"
+                self.get_root().toast_msg("文件获取失败")
                 return
 
-            books = []
-            for f in files:
-                try:
-                    book = path2book(f.get_path())
-                except (FileNotFoundError, ValueError) as e:
-                    get_logger().error("书籍导入失败：%s", e)
-                    s_error += f"{Path(f.get_path()).name}: {e}\n"
-                    continue
-                books.append(book)
-
-            if len(books) > 0:
-                db = LibraryDB()
-                for b in books:
-                    db.save_book(b)
-                books_ = list(db.iter_books())
-                db.close()
-                self.build_bookshel(books_)
-
-            if s_error:
-                edlg = Adw.MessageDialog.new(self.get_root(),
-                                             "导入部分失败", s_error)
-                edlg.add_response("ok", "确定")
-                edlg.set_default_response("ok")
-                edlg.set_close_response("ok")
-                edlg.present()
+            self._add_book(files)
 
         dlg.open_multiple(self.get_root(), None, _done)
+
+    def _add_book(self, files):
+        """根据路径保存书籍并刷新
+
+        Args:
+            paths (_type_): _description_
+        """
+        paths = []
+        for f in files:
+            paths.append(f.get_path())
+        books = []
+        s_error = ""
+        for path in paths:
+            try:
+                book = path2book(path)
+            except (FileNotFoundError, ValueError) as e:
+                get_logger().error("书籍导入失败：%s", e)
+                s_error += f"{Path(path).name}: {e}\n"
+                continue
+            books.append(book)
+
+        if len(books) > 0:
+            db = LibraryDB()
+            for b in books:
+                db.save_book(b)
+            books_ = list(db.iter_books())
+            db.close()
+            self.build_bookshel(books_)
+
+        if s_error:
+            edlg = Adw.MessageDialog.new(self.get_root(),
+                                         "导入部分失败", s_error)
+            edlg.add_response("ok", "确定")
+            edlg.set_default_response("ok")
+            edlg.set_close_response("ok")
+            edlg.present()
+            return
+
+        self.get_root().toast_msg("书籍导入完成")
 
     def _apply_search(self, *_args):
         self._search_debounce_id = 0

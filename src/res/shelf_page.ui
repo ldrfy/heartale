@@ -94,7 +94,7 @@
                 </child>
                 <child>
                   <object class="AdwStatusPage" id="empty">
-                    <property name="description">当前没有书籍，请导入一本开始阅读</property>
+                    <property name="description">当前没有书籍，请导入一本开始阅读：点击下方按钮、或拖拽文件到这里</property>
                     <property name="icon-name">cool.ldr.heartale</property>
                     <property name="title">欢迎使用兰阅</property>
                     <child>
