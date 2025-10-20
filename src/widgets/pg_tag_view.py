@@ -106,6 +106,11 @@ class ParagraphTagController:
         return idx
 
     def get_paragraph_count(self) -> int:
+        """_summary_
+
+        Returns:
+            int: _description_
+        """
         return len(self._paragraph_ranges)
 
     def get_paragraph_range(self, idx):
@@ -243,7 +248,7 @@ class ParagraphTagController:
     def _append_paragraph(self, i, ptext):
         start_off = self.buf.get_end_iter().get_offset()
         # 使用空行作为段落分隔，便于视觉与逻辑划分
-        self.buf.insert(self.buf.get_end_iter(), ptext + "\n\n")
+        self.buf.insert(self.buf.get_end_iter(), ptext)
         end_off = self.buf.get_end_iter().get_offset()
 
         tag = self.buf.get_tag_table().lookup(self.get_paragraph_tag_name(i)) \

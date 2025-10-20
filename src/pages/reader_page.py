@@ -33,7 +33,13 @@ class ReaderPage(Adw.NavigationPage):
     title: Adw.WindowTitle = Gtk.Template.Child()
     gtv_text: Gtk.TextView = Gtk.Template.Child()
     gsw_text: Gtk.ScrolledWindow = Gtk.Template.Child()
+
     toc: Gtk.ListView = Gtk.Template.Child()
+    gr_toc: Gtk.Revealer = Gtk.Template.Child()
+    gse_toc: Gtk.SearchEntry = Gtk.Template.Child()
+    btn_show_search: Gtk.ToggleButton = Gtk.Template.Child()
+    btn_toggle_sidebar: Gtk.ToggleButton = Gtk.Template.Child()
+
     stack: Adw.ViewStack = Gtk.Template.Child()
 
     spinner_sync: Gtk.Spinner = Gtk.Template.Child()
@@ -50,8 +56,13 @@ class ReaderPage(Adw.NavigationPage):
         self._nav = nav
         self.t = 0
         self._toc_sel: Gtk.SingleSelection = None
+        self.chap_ns = []
+
+        self.auto_scroll = True
+        self._search_debounce_id = 0
+
         self._server: Server = None
-        self.toggle_sidebar = False
+
         self._build_factory()
 
         self.ptc = ParagraphTagController(self.gtv_text, self.gsw_text)
@@ -60,8 +71,6 @@ class ReaderPage(Adw.NavigationPage):
         self.ptc.set_font_size_pt(14)
 
         self.ptc.set_on_paragraph_click(self._on_click_paragraph)
-        print("--------- 设置段落点击回调")
-        self.auto_scroll = True
         self.ptc.set_on_visible_paragraph_changed(self._set_read_jd)
 
     def set_data(self, book: Book):
@@ -70,8 +79,13 @@ class ReaderPage(Adw.NavigationPage):
         Args:
             book (Book): _description_
         """
+        self._search_debounce_id = 0
+
+        self._server = None
+        self._on_search_toc_stop()
+
         self.t = time.time()
-        self.show_loading()
+        self.stack.set_visible_child(self.page_loading)
 
         self.title.set_title(book.name or "")
         pct = 0
@@ -81,6 +95,11 @@ class ReaderPage(Adw.NavigationPage):
             f"进度 {pct}% ({book.txt_pos}/{book.txt_all})")
 
         book_md5 = book.md5
+
+        def update_ui(err: Exception):
+            """仅在主线程运行：统一错误处理。"""
+            self.show_error(f"无法打开本书或目录，请重试或返回。\n{err}")
+            return False
 
         def worker():
             try:
@@ -99,7 +118,7 @@ class ReaderPage(Adw.NavigationPage):
             except Exception as e:  # pylint: disable=broad-except
                 get_logger().error("加载书籍失败：%s", e)
                 # 回到主线程展示错误
-                GLib.idle_add(self._on_error, e,
+                GLib.idle_add(update_ui, e,
                               priority=GLib.PRIORITY_DEFAULT)
         threading.Thread(target=worker, daemon=True).start()
 
@@ -112,46 +131,42 @@ class ReaderPage(Adw.NavigationPage):
 
         raise ValueError(f"不支持的书籍类型 {fmt}")
 
+    def _locate_toc(self, chap_n: int):
+        """定位到某个章节
+
+        Args:
+            chap_n (int): _description_
+        """
+        self._toc_sel.set_selected(chap_n)
+        self.toc.scroll_to(chap_n, Gtk.ListScrollFlags.FOCUS,
+                           Gtk.ScrollInfo())
+
     def _on_data_ready(self):
         """仅在主线程运行：绑定目录与正文。"""
 
-        cn = Gtk.StringList.new(self._server.chap_names)
-        self._toc_sel = Gtk.SingleSelection.new(cn)
+        self.chap_ns = range(len(self._server.chap_names))
+
+        self._toc_sel = Gtk.SingleSelection.new(
+            Gtk.StringList.new(self._server.chap_names))
         self.toc.set_model(self._toc_sel)
+
         self.set_chap_text()
 
-        self.show_reader()
+        self.stack.set_visible_child(self.aos_reader)
 
         def sel_chap_name():
             """选中目录
             """
-            chap_n = self._server.get_chap_n()
-            self._toc_sel.set_selected(chap_n)
-            self.toc.scroll_to(chap_n, Gtk.ListScrollFlags.FOCUS,
-                               Gtk.ScrollInfo())
-            self.auto_scroll = False
+            self._locate_toc(self._server.get_chap_n())
 
         def worker():
             # 必须延迟
             time.sleep(0.5)
             GLib.idle_add(sel_chap_name, priority=GLib.PRIORITY_DEFAULT)
+
         threading.Thread(target=worker, daemon=True).start()
 
-        # 告诉 GLib.idle_add 只执行一次
         return False
-
-    def _on_error(self, err: Exception):
-        """仅在主线程运行：统一错误处理。"""
-        self.show_error(f"无法打开本书或目录，请重试或返回。\n{err}")
-        return False
-
-    def show_loading(self):
-        """载入中
-
-        Args:
-            desc (str | None, optional): _description_. Defaults to None.
-        """
-        self.stack.set_visible_child(self.page_loading)
 
     def show_error(self, des="无法打开本书或目录，请重试或返回。"):
         """显示错误
@@ -161,11 +176,6 @@ class ReaderPage(Adw.NavigationPage):
         """
         self.stack.set_visible_child(self.page_error)
         self.page_error.set_description(des)
-
-    def show_reader(self):
-        """显示阅读
-        """
-        self.stack.set_visible_child(self.aos_reader)
 
     def set_chap_text(self, _chap_n=-1):
         """设置文本
@@ -181,10 +191,14 @@ class ReaderPage(Adw.NavigationPage):
             self.title.set_subtitle(
                 f"{chap_name} ({self._server.book.chap_n}/{self._server.book.chap_all})")
 
+            self.auto_scroll = True
+
             self.ptc.set_paragraphs(self._server.bd.chap_txts)
             self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
             self.spinner_sync.stop()
+
+            self.auto_scroll = False
 
         def worker(chap_n):
             if chap_n > 0:
@@ -250,18 +264,16 @@ class ReaderPage(Adw.NavigationPage):
 
         self.toc.connect("activate", on_activate)
 
-    def _on_toc_chapter_activated(self, chap_n: int):
+    def _on_toc_chapter_activated(self, i: int):
         """用户点击目录中的第 idx 章。"""
-        # 如果你已经把整书文本缓存进内存，直接切片；否则按你现有逻辑读取
         try:
-            # 更新正文
-            self.set_chap_text(chap_n)
+            self.set_chap_text(self.chap_ns[i])
             # 更新标题副标题（可选）
         except Exception as e:  # pylint: disable=broad-except
             get_logger().error("切换章节失败：%s", e)
             self.show_error(f"切换章节失败：{e}")
 
-    def _on_click_paragraph(self, idx: int, tag_name: str, start_off: int, end_off: int):
+    def _on_click_paragraph(self, idx: int, *_args):
         """用户点击了段落
 
         Args:
@@ -270,7 +282,6 @@ class ReaderPage(Adw.NavigationPage):
             start_off (int): 段落起始偏移
             end_off (int): 段落结束偏移
         """
-        print(f"点击了段落 idx={idx} tag={tag_name} range=[{start_off},{end_off})")
         self._set_read_jd(idx)
         self.ptc.highlight_paragraph(idx)
 
@@ -311,8 +322,8 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_toggle_sidebar(self, *_args):
-        self.aos_reader.set_show_sidebar(self.toggle_sidebar)
-        self.toggle_sidebar = not self.toggle_sidebar
+        self.aos_reader.set_show_sidebar(
+            not self.btn_toggle_sidebar.get_active())
 
     @Gtk.Template.Callback()
     def _on_next_chap(self, *_args):
@@ -320,7 +331,7 @@ class ReaderPage(Adw.NavigationPage):
         self._server.book.chap_txt_pos = 0
         self._server.bd.chap_txt_n = 0
         self._on_toc_chapter_activated(self._server.book.chap_n)
-        self._toc_sel.set_selected(self._server.book.chap_n)
+        self._locate_toc(self._server.get_chap_n())
 
     @Gtk.Template.Callback()
     def _on_last_chap(self, *_args):
@@ -328,7 +339,7 @@ class ReaderPage(Adw.NavigationPage):
         self._server.book.chap_txt_pos = 0
         self._server.bd.chap_txt_n = 0
         self._on_toc_chapter_activated(self._server.book.chap_n)
-        self._toc_sel.set_selected(self._server.book.chap_n)
+        self._locate_toc(self._server.get_chap_n())
 
     @Gtk.Template.Callback()
     def _on_fontsize_changed(self, a) -> None:
@@ -362,3 +373,61 @@ class ReaderPage(Adw.NavigationPage):
         """
         v = int(b.get_value())
         self.ptc.set_line_spacing(v)
+
+    @Gtk.Template.Callback()
+    def _on_click_title(self, *_args) -> None:
+        """字体
+
+        Args:
+            spin (Adw.SpinRow): _description_
+            value (_type_): _description_
+        """
+        self._locate_toc(self._server.get_chap_n())
+
+    @Gtk.Template.Callback()
+    def _on_search_toc_changed(self, entry: Gtk.SearchEntry) -> None:
+        if self._search_debounce_id:
+            GLib.source_remove(self._search_debounce_id)
+        self._search_debounce_id = GLib.timeout_add(200, self._apply_search,
+                                                    entry.get_text().strip())
+
+    @Gtk.Template.Callback()
+    def _on_search_toc_stop(self, *_) -> None:
+        self.gse_toc.set_text("")
+        self.gr_toc.set_reveal_child(False)
+        self.btn_show_search.set_active(False)
+
+        if not self._server:
+            return
+
+        self._apply_search()
+
+    def _apply_search(self, kw=""):
+        if not kw:
+            self.toc.set_model(Gtk.SingleSelection.new(
+                Gtk.StringList.new(self._server.chap_names)))
+            return False
+
+        kw = kw.strip()
+        print(kw)
+        self._search_debounce_id = 0
+
+        self.chap_ns = []
+        chap_names = []
+        for i, name in enumerate(self._server.chap_names):
+            if kw not in name:
+                continue
+            self.chap_ns.append(i)
+            chap_names.append(name)
+
+        self.toc.set_model(Gtk.SingleSelection.new(
+            Gtk.StringList.new(chap_names)))
+
+        return False
+
+    @Gtk.Template.Callback()
+    def _on_show_search_toc(self, btn: Gtk.ToggleButton) -> None:
+        active = btn.get_active()
+        self.gr_toc.set_reveal_child(active)
+        if active:
+            GLib.idle_add(self.gse_toc.grab_focus)

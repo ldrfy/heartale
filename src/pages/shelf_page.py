@@ -2,7 +2,6 @@
 
 import threading
 from pathlib import Path
-from urllib.parse import unquote, urlparse
 
 from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk  # type: ignore
 
@@ -44,6 +43,8 @@ class ShelfPage(Adw.NavigationPage):
 
     def __init__(self, nav: Adw.NavigationView, reader_page: ReaderPage, **kwargs):
         super().__init__(**kwargs)
+
+        self.url_legado_sync = "http://"
         self._nav: Adw.NavigationView = nav
         self._reader_page: ReaderPage = reader_page
         self._reader_page_opened = False
@@ -310,10 +311,6 @@ class ShelfPage(Adw.NavigationPage):
         self.rev_search.set_reveal_child(active)
         if active:
             GLib.idle_add(self.search.grab_focus)
-        else:
-            # 可选：收起时清空搜索
-            # self.search.set_text("")
-            pass
 
     @Gtk.Template.Callback()
     def _on_search_stop(self, *_):
@@ -349,8 +346,9 @@ class ShelfPage(Adw.NavigationPage):
         def worker(url):
             # 耗时操作放线程
             sync_ok, s_error = sync_legado_books(url_base=url)
-            GLib.idle_add(update_ui, sync_ok,
-                          s_error, priority=GLib.PRIORITY_DEFAULT)
+            self.url_legado_sync = url
+            GLib.idle_add(update_ui, sync_ok, s_error,
+                          priority=GLib.PRIORITY_DEFAULT)
 
         def runner(d, r):
             if r != "ok":
@@ -368,6 +366,9 @@ class ShelfPage(Adw.NavigationPage):
                              daemon=True).start()
 
         dlg = InputDialog(self.get_root(), title="Legado书籍同步",
-                          subtitle="1. 只同步软件中前5本\n2. 在Legado中 “我的” 页面打开 “web服务”\n3.请输入打开以后看到的内网地址，如：\nhttp://192.168.1.2:1122")
+                          subtitle="1. 只同步软件中前5本"
+                          "\n2. 在Legado中 “我的” 页面打开 “web服务”"
+                          "\n3.请输入打开以后看到的内网地址，如：\nhttp://192.168.1.2:1122")
+        dlg.set_input_text(self.url_legado_sync)
         dlg.connect("response", runner)
         dlg.present()

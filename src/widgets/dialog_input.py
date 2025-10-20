@@ -15,15 +15,22 @@ class InputDialog(Adw.MessageDialog):
         if subtitle:
             self.set_body(subtitle)
 
-        entry = Gtk.Entry()
-        entry.set_hexpand(True)
-        self.set_extra_child(entry)
-        self.entry = entry
+        self.entry = Gtk.Entry()
+        self.entry.set_hexpand(True)
+        self.set_extra_child(self.entry)
 
         self.add_response("cancel", "取消")
         self.add_response("ok", "确定")
         self.set_default_response("ok")
         self.set_close_response("cancel")
+    
+    def set_input_text(self, text: str):
+        """设置输入框文字
+
+        Args:
+            text (str): 文字
+        """
+        self.entry.set_text(text)
 
 
 # win = Adw.ApplicationWindow()

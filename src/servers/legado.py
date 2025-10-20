@@ -3,6 +3,7 @@ import datetime
 import hashlib
 import json
 import time
+from gettext import gettext as _
 from urllib.parse import parse_qs, quote, urlparse, urlsplit, urlunsplit
 
 import requests
@@ -216,10 +217,10 @@ def get_book_shelf(url):
     Returns:
         dict: 书籍信息
     """
-    url = f"{url}/getBookshelf"
-    print(f"获取 Legado 书架信息：{url}")
-    resp = requests.get(url, timeout=10)
-    print(resp.json())
+    resp = requests.get(f"{url}/getBookshelf", timeout=10)
+    if resp.status_code != 200:
+        raise ValueError(_("大概率输入的网址错误，当前网址为：{}").format(url))
+    print(resp.status_code)
     return resp.json()["data"]
 
 

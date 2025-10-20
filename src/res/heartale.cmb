@@ -3,7 +3,8 @@
 <!-- Created with Cambalache 0.96.1 -->
 <cambalache-project version="0.96.0" target_tk="gtk-4.0">
   <ui template-class="HeartaleWindow" filename="window.ui" sha256="f05e64c1b53631d2339427ebc4f4a33b5f688d375d1db89d0ea9a72ab769aa9f"/>
-  <ui template-class="ShelfPage" filename="shelf_page.ui" sha256="f024ee960b34ffd16a8562ee23d449aae2a7af9f913e76440fa24877e481b0ec"/>
+  <ui template-class="ShelfPage" filename="shelf_page.ui" sha256="779a73ca2706f651369b9e0bb543798ed366908f067eadcf97546c61c5e10999"/>
   <ui template-class="ShelfRow" filename="shelf_row.ui" sha256="ad742b27e839a54e88fbb1d7f02228cb6664aeaa5f9d307b77240035f60e4601"/>
   <ui template-class="ReaderPage" filename="reader_page.ui" sha256="c6af32eba51278800064c248e8a6be2f09d2d0b0a83d9f32a4f1e95e22bf81c9"/>
+  <ui filename="preference.ui" sha256="d837725bc8b7950aa05efe2e2e5478d17cd99e8480215ade2c0ee340556abf28"/>
 </cambalache-project>

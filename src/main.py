@@ -102,7 +102,6 @@ class HeartaleApplication(Adw.Application):
         dlg.set_close_response("cancel")
 
         def _on_resp(_d, resp):
-            print(resp)
             if resp == "ok":
                 open_url(PACKAGE_URL)
         dlg.connect("response", _on_resp)

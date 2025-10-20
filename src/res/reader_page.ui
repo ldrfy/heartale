@@ -129,16 +129,45 @@
                 </property>
                 <property name="hexpand">true</property>
                 <property name="show-sidebar">true</property>
+
                 <property name="sidebar">
-                  <object class="GtkScrolledWindow">
-                    <property name="child">
-                      <object class="GtkListView" id="toc">
-                        <property name="single-click-activate">true</property>
-                      </object>
-                    </property>
-                    <property name="min-content-width">240</property>
-                  </object>
+                <object class="GtkBox" id="gb_toc">
+                    <property name="orientation">vertical</property>
+                    <property name="vexpand">true</property>
+                    <property name="hexpand">true</property>
+                    <child>
+                    <object class="GtkRevealer" id="gr_toc">
+                        <property name="reveal-child">false</property>
+                        <child>
+                        <object class="GtkSearchEntry" id="gse_toc">
+                            <property name="margin-end">36</property>
+                            <property name="margin-start">36</property>
+                            <property name="placeholder-text">搜索目录…</property>
+                            <property name="width-chars">20</property>
+                            <signal name="search-changed" handler="_on_search_toc_changed"/>
+                            <!-- 按 Esc 或点叉触发 -->
+                            <signal name="stop-search" handler="_on_search_toc_stop"/>
+                        </object>
+                        </child>
+                    </object>
+                    </child>
+
+                    <child>
+                    <object class="GtkScrolledWindow">
+                        <property name="vexpand">true</property>
+                        <property name="hexpand">true</property>
+                        <child>
+                        <object class="GtkListView" id="toc">
+                            <property name="single-click-activate">false</property>
+                            <property name="vexpand">true</property>
+                            <property name="hexpand">true</property>
+                        </object>
+                        </child>
+                    </object>
+                    </child>
+                </object>
                 </property>
+
                 <property name="vexpand">true</property>
               </object>
             </child>
@@ -147,13 +176,34 @@
         <child type="top">
           <object class="AdwHeaderBar">
             <property name="title-widget">
-              <object class="AdwWindowTitle" id="title">
-                <property name="subtitle">章节标题</property>
-                <property name="title">书名</property>
-              </object>
+                <object class="GtkButton">
+                <property name="valign">center</property>
+                <property name="has-frame">false</property>
+                <property name="can-focus">false</property>
+                <style>
+                    <class name="flat"/>
+                </style>
+                <property name="valign">center</property>
+                <signal name="clicked" handler="_on_click_title"/>
+                <child>
+                    <object class="AdwWindowTitle" id="title">
+                    <property name="title">书名</property>
+                    <property name="subtitle">章节标题</property>
+                    </object>
+                </child>
+                </object>
             </property>
             <child type="start">
-              <object class="GtkToggleButton">
+            <object class="GtkToggleButton" id="btn_show_search">
+                <property name="icon-name">system-search-symbolic</property>
+                <property name="tooltip-text">搜索</property>
+                <property name="active">false</property>
+                <signal name="clicked" handler="_on_show_search_toc"/>
+              </object>
+            </child>
+
+            <child type="start">
+              <object class="GtkToggleButton" id="btn_toggle_sidebar">
                 <property name="icon-name">sidebar-show-symbolic</property>
                 <property name="tooltip-text">显示/隐藏目录</property>
                 <signal name="clicked" handler="_on_toggle_sidebar"/>

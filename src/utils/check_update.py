@@ -104,10 +104,8 @@ def main(version_now):
     """
     try:
         data = get_by_github()
-        print(data)
         if not isinstance(data, dict):
             data = get_by_gitee()
-            print(data)
 
         if not isinstance(data, dict):
             return data
