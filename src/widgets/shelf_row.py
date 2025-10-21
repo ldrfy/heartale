@@ -18,7 +18,7 @@ class ShelfRow(Gtk.Box):
         "top-request": (GObject.SignalFlags.RUN_FIRST, None,
                         (GObject.TYPE_PYOBJECT,)),
         "statistics-request": (GObject.SignalFlags.RUN_FIRST, None,
-                        (GObject.TYPE_PYOBJECT,)),
+                               (GObject.TYPE_PYOBJECT,)),
     }
 
     lbl_title: Gtk.Label = Gtk.Template.Child()
@@ -60,14 +60,8 @@ class ShelfRow(Gtk.Box):
             name += " [TXT]"
 
         self.lbl_title.set_text(name)
-        txt_all = book.txt_all or 0
-        txt_pos = book.txt_pos or 0
-        pct = int(txt_pos * 100 / txt_all) if txt_all else 0
         enc = getattr(bobj, "encoding", "") or ""
-        home = GLib.get_home_dir()
-
-        path = book.path.replace(home, '~')
-        subtitle = f"进度 {pct}% ({book.chap_n}/{book.chap_all}) · 编码 {enc} · 路径 {path}"
+        subtitle = f"{book.get_jd_str()} · 编码 {enc} · 路径 {book.get_path()}"
 
         self.lbl_sub.set_text(subtitle)
 

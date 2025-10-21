@@ -2,7 +2,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 
-from gi.repository import GObject  # type: ignore
+from gi.repository import GLib, GObject  # type: ignore
 
 BOOK_FMT_TXT = 0
 BOOK_FMT_LEGADO = 1
@@ -10,6 +10,7 @@ BOOK_FMT_EPUB = 2
 BOOK_FMT_MOBI = 3
 BOOK_FMT_PDF = 4
 BOOK_FMT_DJVU = 5
+
 
 @dataclass
 class Book:
@@ -35,6 +36,26 @@ class Book:
     fmt: int = BOOK_FMT_TXT
     update_date: int = field(
         default_factory=lambda: int(datetime.now().timestamp()))
+
+    def get_jd_str(self) -> float:
+        """获取进度，0.0-1.0
+
+        Returns:
+            float: 进度
+        """
+        pct = 0
+        if self.txt_all > 0:
+            pct = int(self.txt_pos * 100 / self.txt_all)
+        return f"进度 {pct}% ({self.txt_pos}/{self.txt_all})"
+
+    def get_path(self) -> str:
+        """获取书籍路径
+
+        Returns:
+            str: 书籍路径
+        """
+        path_home = GLib.get_home_dir()
+        return self.path.replace(path_home, '~')
 
 
 class BookObject(GObject.GObject):

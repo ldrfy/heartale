@@ -66,8 +66,6 @@ class ReaderPage(Adw.NavigationPage):
         self._build_factory()
 
         self.ptc = ParagraphTagController(self.gtv_text, self.gsw_text)
-        self._on_set_default()
-
         self.ptc.set_on_paragraph_click(self._on_click_paragraph)
         self.ptc.set_on_visible_paragraph_changed(self._set_read_jd)
 
@@ -77,33 +75,32 @@ class ReaderPage(Adw.NavigationPage):
         Args:
             book (Book): _description_
         """
+        self.t = time.time()
         self._search_debounce_id = 0
-
         self._server = None
+        self._on_set_default()
         self._on_search_toc_stop()
 
-        self.t = time.time()
+        self.title.set_title(book.name or "")
+        self.title.set_subtitle(book.get_jd_str())
+
         self.stack.set_visible_child(self.page_loading)
 
-        self.title.set_title(book.name or "")
-        pct = 0
-        if book.txt_all > 0:
-            pct = int(book.txt_pos * 100 / book.txt_all)
-        self.title.set_subtitle(
-            f"进度 {pct}% ({book.txt_pos}/{book.txt_all})")
-
-        book_md5 = book.md5
-
-        def update_ui(err: Exception):
+        def update_ui(_b: Book, err: Exception):
             """仅在主线程运行：统一错误处理。"""
-            self.show_error(f"无法打开本书或目录，请重试或返回。\n{err}")
+            if _b.md5 != self._server.book.md5:
+                print("已切换书籍，忽略错误显示")
+                return False
+            self.show_error("无法打开本书"
+                            f"\n{_b.name}: {_b.get_path()}"
+                            f"\n\n请重试或返回：\n{err}")
             return False
 
-        def worker():
+        def worker(_book: Book):
             try:
 
                 db = LibraryDB()
-                book = db.get_book_by_md5(book_md5)
+                book = db.get_book_by_md5(_book.md5)
                 db.close()
 
                 self._server = self._get_server(book.fmt)
@@ -111,14 +108,16 @@ class ReaderPage(Adw.NavigationPage):
 
                 if time.time() - self.t < 0.5:
                     time.sleep(0.5 - (time.time() - self.t))
-                GLib.idle_add(self._on_data_ready,
+                GLib.idle_add(self._on_data_ready, _book,
                               priority=GLib.PRIORITY_DEFAULT)
             except Exception as e:  # pylint: disable=broad-except
                 get_logger().error("加载书籍失败：%s", e)
-                # 回到主线程展示错误
-                GLib.idle_add(update_ui, e,
+                if time.time() - self.t < 0.5:
+                    time.sleep(0.5 - (time.time() - self.t))
+                GLib.idle_add(update_ui, _book, e,
                               priority=GLib.PRIORITY_DEFAULT)
-        threading.Thread(target=worker, daemon=True).start()
+
+        threading.Thread(target=worker, args=(book,), daemon=True).start()
 
     def _get_server(self, fmt: str):
 
@@ -139,8 +138,13 @@ class ReaderPage(Adw.NavigationPage):
         self.toc.scroll_to(chap_n, Gtk.ListScrollFlags.FOCUS,
                            Gtk.ScrollInfo())
 
-    def _on_data_ready(self):
+    def _on_data_ready(self, _b: Book):
         """仅在主线程运行：绑定目录与正文。"""
+
+        if _b.md5 != self._server.book.md5:
+            # 已切换书籍，忽略
+            print("已切换书籍，忽略错误显示")
+            return False
 
         self.chap_ns = range(len(self._server.chap_names))
 

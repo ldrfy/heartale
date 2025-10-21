@@ -1,5 +1,6 @@
 """阅读本地txt文件"""
 import hashlib
+import os
 import re
 import shutil
 from pathlib import Path
@@ -69,6 +70,8 @@ class TxtServer(Server):
             return f.read()[self.chap_p2s[chap_n]: self.chap_p2s[chap_n + 1]]
 
     def _get_chap_names(self):
+        if not os.path.isfile(self.book.path):
+            raise FileNotFoundError(f"文件不存在: {self.book.get_path()}")
 
         with open(self.book.path, "r", encoding=self.book.encoding, errors="ignore") as f:
             text = f.read()
