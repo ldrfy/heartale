@@ -1,5 +1,6 @@
 """阅读页面"""
 
+import copy
 import threading
 import time
 import traceback
@@ -142,6 +143,8 @@ class ReaderPage(Adw.NavigationPage):
         Args:
             chap_n (int): _description_
         """
+        if not self._toc_sel:
+            return
         self._toc_sel.set_selected(chap_n)
         self.toc.scroll_to(chap_n, Gtk.ListScrollFlags.FOCUS,
                            Gtk.ScrollInfo())
@@ -156,11 +159,7 @@ class ReaderPage(Adw.NavigationPage):
 
         self.stack.set_visible_child(self.aos_reader)
 
-        self.chap_ns = range(len(self._server.chap_names))
-
-        self._toc_sel = Gtk.SingleSelection.new(
-            Gtk.StringList.new(self._server.chap_names))
-        self.toc.set_model(self._toc_sel)
+        self._apply_search()
 
         self.set_chap_text()
 
@@ -169,12 +168,7 @@ class ReaderPage(Adw.NavigationPage):
             """
             self._locate_toc(self._server.get_chap_n())
 
-        def worker():
-            # 必须延迟
-            time.sleep(0.5)
-            GLib.idle_add(sel_chap_name, priority=GLib.PRIORITY_DEFAULT)
-
-        threading.Thread(target=worker, daemon=True).start()
+        GLib.timeout_add(500, sel_chap_name)
 
         return False
 
@@ -403,7 +397,7 @@ class ReaderPage(Adw.NavigationPage):
     def _on_search_toc_changed(self, entry: Gtk.SearchEntry) -> None:
         if self._search_debounce_id:
             GLib.source_remove(self._search_debounce_id)
-        self._search_debounce_id = GLib.timeout_add(200, self._apply_search,
+        self._search_debounce_id = GLib.timeout_add(500, self._apply_search,
                                                     entry.get_text().strip())
 
     @Gtk.Template.Callback()
@@ -416,25 +410,34 @@ class ReaderPage(Adw.NavigationPage):
 
         self._apply_search()
 
-    def _apply_search(self, kw=""):
-        if not kw:
-            self.toc.set_model(Gtk.SingleSelection.new(
-                Gtk.StringList.new(self._server.chap_names)))
+    def _apply_search(self, kw_=""):
+        print(f"搜索章节：{kw_}")
+
+        def update_ui():
+            self.toc.set_model(self._toc_sel)
             return False
 
-        kw = kw.strip()
-        self._search_debounce_id = 0
+        def worker(kw):
+            self._search_debounce_id = 0
+            kw = kw.strip()
+            if kw:
+                self.chap_ns = []
+                chap_names = []
+                for i, name in enumerate(self._server.chap_names):
+                    if kw not in name:
+                        continue
+                    self.chap_ns.append(i)
+                    chap_names.append(name)
+            else:
+                chap_names = copy.deepcopy(self._server.chap_names)
+                self.chap_ns = range(len(chap_names))
 
-        self.chap_ns = []
-        chap_names = []
-        for i, name in enumerate(self._server.chap_names):
-            if kw not in name:
-                continue
-            self.chap_ns.append(i)
-            chap_names.append(name)
+            self._toc_sel = Gtk.SingleSelection.new(
+                Gtk.StringList.new(chap_names))
 
-        self.toc.set_model(Gtk.SingleSelection.new(
-            Gtk.StringList.new(chap_names)))
+            GLib.idle_add(update_ui, priority=GLib.PRIORITY_DEFAULT)
+
+        threading.Thread(target=worker, args=(kw_,), daemon=True).start()
 
         return False
 
