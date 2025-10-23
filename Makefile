@@ -31,21 +31,21 @@ test:build
 
 
 install: test
-	$(MAKE) test PREFIX="$(HOME)/.local/"
+	$(MAKE) test PREFIX="${HOME}/.local/"
 	${NAME}
 
 uninstall:
-	rm -rf ${PREFIX}/share/${NAME}
-	rm -rf ${PREFIX}/share/applications/${APP_ID}.desktop
-	rm -rf ${PREFIX}/share/dbus-1/services/${APP_ID}.service
-	rm -rf ${PREFIX}/share/metainfo/${APP_ID}.metainfo.xml
-	rm -rf ${PREFIX}/share/icons/hicolor/scalable/apps/${APP_ID}.svg
-	rm -rf ${PREFIX}/share/icons/hicolor/symbolic/apps/${APP_ID}-symbolic.svg
-	rm -rf ${PREFIX}/share/metainfo/${APP_ID}.metainfo.xml
-	rm -rf ${PREFIX}/share/glib-2.0/schemas/${APP_ID}.gschema.xml
-	rm -rf ${PREFIX}/.local/share/glib-2.0/schemas/gschemas.compiled
-	rm -rf ${PREFIX}/.local/lib/${NAME}
-	rm -rf ${PREFIX}/.local/bin/${NAME}
+	rm -rf ${HOME}/.local/share/${NAME}
+	rm -rf ${HOME}/.local/share/applications/${APP_ID}.desktop
+	rm -rf ${HOME}/.local/share/dbus-1/services/${APP_ID}.service
+	rm -rf ${HOME}/.local/share/metainfo/${APP_ID}.metainfo.xml
+	rm -rf ${HOME}/.local/share/icons/hicolor/scalable/apps/${APP_ID}.svg
+	rm -rf ${HOME}/.local/share/icons/hicolor/symbolic/apps/${APP_ID}-symbolic.svg
+	rm -rf ${HOME}/.local/share/metainfo/${APP_ID}.metainfo.xml
+	rm -rf ${HOME}/.local/share/glib-2.0/schemas/${APP_ID}.gschema.xml
+	rm -rf ${HOME}/.local/share/glib-2.0/schemas/gschemas.compiled
+	rm -rf ${HOME}/.local/lib/${NAME}
+	rm -rf ${HOME}/.local/bin/${NAME}
 	rm -rf /tmp/v${VERSION}.zip
 	rm -rf /tmp/${NAME}-${VERSION}
 
