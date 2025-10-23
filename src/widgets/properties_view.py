@@ -39,10 +39,15 @@ class HPropertiesView(Adw.Bin):
 
         self.aar_book_txt_all.set_subtitle(f"{book.txt_all} 字")
         self.aar_book_fmt.set_subtitle(self._get_fmt())
-        self.aar_file_size.set_subtitle(get_file_size(self.book.path))
+        self.aar_file_size.set_subtitle(self._get_file_size())
 
         self.file_created.set_subtitle(get_time(book.create_date))
         self.file_modified.set_subtitle(get_time(book.update_date))
+
+    def _get_file_size(self):
+        if self.book.fmt == BOOK_FMT_LEGADO:
+            return "未知大小"
+        return get_file_size(self.book.path)
 
     def _get_fmt(self):
         if self.book.fmt == BOOK_FMT_LEGADO:

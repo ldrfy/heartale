@@ -52,6 +52,7 @@ class ShelfPage(Adw.NavigationPage):
         super().__init__(**kwargs)
 
         self.url_legado_sync = "http://"
+        self.books = []
         self._nav: Adw.NavigationView = nav
         self._reader_page: ReaderPage = reader_page
         self._reader_page_opened = False
@@ -97,12 +98,17 @@ class ShelfPage(Adw.NavigationPage):
             self.stack.set_visible_child(self.empty)
             return
 
+        self.books = books
+
         gls: Gio.ListStore = Gio.ListStore.new(BookObject)
         for b in books:
             gls.append(BookObject.from_dataclass(b))
         # liststore 应为 Gio.ListStore(BookObject)
-        self.list.set_model(Gtk.SingleSelection.new(gls))
+        selection_model = Gtk.SingleSelection.new(gls)
+        self.list.set_model(selection_model)
         self.stack.set_visible_child(self.mlv_bookshelf)
+        selection_model.connect("selection-changed",
+                                self._on_selection_changed)
 
     def _install_shortcuts(self):
         sc = Gtk.ShortcutController()
@@ -125,8 +131,6 @@ class ShelfPage(Adw.NavigationPage):
                         book: self._present_delete_confirm_adw(book))
             row.connect("top-request", lambda _row,
                         book: self._on_shelfrow_top(book))
-            row.connect("info-request", lambda _row,
-                        d: self._on_shelfrow_info(d))
             li.set_child(row)
 
         def bind(_f, li: Gtk.ListItem):
@@ -138,13 +142,8 @@ class ShelfPage(Adw.NavigationPage):
 
         self.list.set_factory(factory)
 
-    def _on_shelfrow_info(self, d):
-        book, show = d
-        # self.mlv_bookshelf.set_property("show-properties", show)
-        self.hpv_book.set_visible(show)
-        self.properties_split_view.set_show_sidebar(show)
-        if show:
-            self.hpv_book.set_data(book)
+    def _on_selection_changed(self, model: Gtk.SelectionModel, *_args):
+        self.hpv_book.set_data(self.books[model.get_selected()])
 
     def _on_shelfrow_top(self, book: Book):
         db = LibraryDB()

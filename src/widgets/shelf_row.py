@@ -17,8 +17,6 @@ class ShelfRow(Gtk.Box):
                            (GObject.TYPE_PYOBJECT,)),
         "top-request": (GObject.SignalFlags.RUN_FIRST, None,
                         (GObject.TYPE_PYOBJECT,)),
-        "info-request": (GObject.SignalFlags.RUN_FIRST, None,
-                        (GObject.TYPE_PYOBJECT,)),
         "statistics-request": (GObject.SignalFlags.RUN_FIRST, None,
                                (GObject.TYPE_PYOBJECT,)),
     }
@@ -26,7 +24,6 @@ class ShelfRow(Gtk.Box):
     lbl_title: Gtk.Label = Gtk.Template.Child()
     lbl_sub: Gtk.Label = Gtk.Template.Child()
     btn_top: Gtk.Button = Gtk.Template.Child()  # 新增按钮
-    btn_info: Gtk.ToggleButton = Gtk.Template.Child()
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -40,11 +37,6 @@ class ShelfRow(Gtk.Box):
     def _on_book_top(self, *_):
         """置顶处理：发出信号，由上层接管 DB 修改 sort"""
         self.emit("top-request", self.book)
-
-    @Gtk.Template.Callback()
-    def _on_show_info(self, *_):
-        """置顶处理：发出信号，由上层接管 DB 修改 sort"""
-        self.emit("info-request", (self.book, self.btn_info.get_active()))
 
     @Gtk.Template.Callback()
     def _on_book_statistics(self, *_):

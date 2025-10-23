@@ -125,7 +125,7 @@
                             <object class="AdwOverlaySplitView" id="properties_split_view">
                                 <property name="sidebar-position">end</property>
                                 <property name="min-sidebar-width">255</property>
-                                <property name="show-sidebar">false</property>
+                                <property name="show-sidebar" bind-source="properties_button" bind-property="active" bind-flags="bidirectional|sync-create" />
                                 <property name="sidebar">
                                     <object class="AdwLayoutSlot">
                                         <property name="id">properties</property>
@@ -145,7 +145,7 @@
                         <object class="GtkScrolledWindow" id="scroller">
                             <property name="child">
                             <object class="GtkListView" id="list">
-                                <property name="single-click-activate">true</property>
+                                <property name="single-click-activate">false</property>
                                 <signal name="activate" handler="_on_shelf_activate"/>
                                 <style>
                                 <class name="navigation-sidebar"/>
@@ -183,6 +183,12 @@
                 <signal name="toggled" handler="_on_search_toggle"/>
               </object>
             </child>
+                <child type="end">
+                  <object class="GtkToggleButton" id="properties_button">
+                    <property name="icon-name">info-outline-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Image Properties</property>
+                  </object>
+                </child>
             <child type="end">
               <object class="GtkMenuButton">
                 <property name="icon-name">open-menu-symbolic</property>
