@@ -56,6 +56,7 @@ class HPropertiesView(Adw.Bin):
                 db.get_td_month(book_md5),
                 db.get_td_week(book_md5),
                 db.get_td_day(book_md5),
+                db.get_td_all(book_md5),
 
                 f"{book.txt_all} 字",
                 self._get_fmt(),
@@ -70,7 +71,7 @@ class HPropertiesView(Adw.Bin):
                           priority=GLib.PRIORITY_DEFAULT)
 
         def update_ui(ps):
-            name, path, y, m, w, d, ws, fmt, fs, dc, du = ps
+            name, path, y, m, w, d, a, ws, fmt, fs, dc, du = ps
             self.aar_folder.set_subtitle(name)
             self.aar_book_uri.set_subtitle(path)
 
@@ -78,6 +79,7 @@ class HPropertiesView(Adw.Bin):
             self.read_time_month.set_subtitle(m)
             self.read_time_week.set_subtitle(w)
             self.read_time_day.set_subtitle(d)
+            self.read_time_all.set_subtitle(a)
 
             self.aar_book_txt_all.set_subtitle(ws)
             self.aar_book_fmt.set_subtitle(fmt)

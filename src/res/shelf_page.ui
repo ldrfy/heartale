@@ -224,7 +224,7 @@
                 <property name="orientation">horizontal</property>
                 <child>
                   <object class="GtkButton" id="btn_sync">
-                    <property name="icon-name">view-refresh-symbolic</property>
+                    <property name="icon-name">folder-remote-symbolic</property>
                     <property name="tooltip-text">同步Legado书籍</property>
                     <signal name="clicked" handler="_on_import_book_legado"/>
                   </object>

@@ -515,6 +515,10 @@ class LibraryDB:
 
         return self._data2str(trs)
 
+    def get_td_all(self, md5: Optional[str] = None) -> str:
+        """某书所有的时间和字数，md5=None 表示全书"""
+        return self._data2str(self._query_time_reads(md5=md5))
+
     def get_td_week(self, md5: Optional[str] = None) -> str:
         """本月阅读时间和字数，md5=None 表示全书"""
         today = date.today()

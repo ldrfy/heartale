@@ -294,6 +294,8 @@ class ReaderPage(Adw.NavigationPage):
         """
 
         if self._server.bd.chap_txt_n > idx:
+            # 自动滚动到上次位置，会在几秒内一直回调这个
+            # 但是这会导致往回看不保存进度
             return
 
         def worker():
