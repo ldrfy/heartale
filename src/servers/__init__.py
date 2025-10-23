@@ -171,7 +171,6 @@ class Server:
 
         w = len(self.bd.chap_txts[self.bd.chap_txt_n])
         sec = time.time()-self.read_time
-        print(sec)
 
         self.book.chap_n = chap_n
         self.book.chap_name = self.get_chap_name(chap_n)

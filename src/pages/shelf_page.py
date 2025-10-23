@@ -30,6 +30,8 @@ class ShelfPage(Adw.NavigationPage):
     """
     __gtype_name__ = "ShelfPage"
 
+    gl_shelf_read_time: Gtk.Label = Gtk.Template.Child()
+
     search: Gtk.SearchEntry = Gtk.Template.Child()
     btn_search: Gtk.ToggleButton = Gtk.Template.Child()
     rev_search: Gtk.Revealer = Gtk.Template.Child()
@@ -83,10 +85,26 @@ class ShelfPage(Adw.NavigationPage):
     def reload_bookshel(self):
         """重新加载书架数据
         """
-        db = LibraryDB()
-        books = list(db.iter_books())
-        db.close()
-        self.build_bookshel(books)
+
+        self.spinner_sync.start()
+        self.spinner_sync.set_visible(True)
+
+        def worker():
+            db = LibraryDB()
+            books = list(db.iter_books())
+            s = f"今天：{db.get_td_day()} · 本周：{db.get_td_week()}"
+            s += f" · 本月：{db.get_td_month()} · 今年{db.get_td_year()}"
+            db.close()
+            GLib.idle_add(update_ui, books, s,
+                          priority=GLib.PRIORITY_DEFAULT)
+
+        def update_ui(books, s):
+            self.gl_shelf_read_time.set_label(s)
+            self.build_bookshel(books)
+            self.spinner_sync.set_visible(False)
+            self.spinner_sync.stop()
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def build_bookshel(self, books, is_search=False):
         """构建书架
@@ -276,7 +294,7 @@ class ShelfPage(Adw.NavigationPage):
             edlg.set_close_response("ok")
             edlg.present()
             return
-        
+
         if len(books) == 0:
             return
 

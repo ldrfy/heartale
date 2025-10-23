@@ -502,42 +502,40 @@ class LibraryDB:
         cur.execute(sql, params)
         return [self._r2td(r) for r in cur.fetchall()]
 
-    def get_td_day(self, md5: Optional[str] = None) -> str:
-        """今天阅读时间和字数，md5=None 表示全书"""
-        today = date.today()
-        trs = self._query_time_reads(
-            md5=md5, day=today.day, month=today.month, year=today.year)
+    def _data2str(self, trs: list[TimeRead]):
         total_seconds = sum(tr.seconds for tr in trs)
         total_words = sum(tr.words for tr in trs)
         return f"{sec2str(total_seconds)} / {total_words}字"
+
+    def get_td_day(self, md5: Optional[str] = None) -> str:
+        """今天阅读时间和字数，md5=None 表示全书"""
+        today = date.today()
+        trs = self._query_time_reads(md5=md5, day=today.day,
+                                     month=today.month, year=today.year)
+
+        return self._data2str(trs)
 
     def get_td_week(self, md5: Optional[str] = None) -> str:
         """本月阅读时间和字数，md5=None 表示全书"""
         today = date.today()
         week = int(today.strftime("%W"))
 
-        trs = self._query_time_reads(
-            md5=md5, year=today.year, week=week)
-        total_seconds = sum(tr.seconds for tr in trs)
-        total_words = sum(tr.words for tr in trs)
-        return f"{sec2str(total_seconds)} / {total_words}字"
+        trs = self._query_time_reads(md5=md5, year=today.year,
+                                     week=week)
+        return self._data2str(trs)
 
     def get_td_month(self, md5: Optional[str] = None) -> str:
         """本月阅读时间和字数，md5=None 表示全书"""
         today = date.today()
-        trs = self._query_time_reads(
-            md5=md5, year=today.year, month=today.month)
-        total_seconds = sum(tr.seconds for tr in trs)
-        total_words = sum(tr.words for tr in trs)
-        return f"{sec2str(total_seconds)} / {total_words}字"
+        trs = self._query_time_reads(md5=md5, year=today.year,
+                                     month=today.month)
+        return self._data2str(trs)
 
     def get_td_year(self, md5: Optional[str] = None) -> str:
         """本年阅读时间和字数，md5=None 表示全书"""
         today = date.today()
         trs = self._query_time_reads(md5=md5, year=today.year)
-        total_seconds = sum(tr.seconds for tr in trs)
-        total_words = sum(tr.words for tr in trs)
-        return f"{sec2str(total_seconds)} / {total_words}字"
+        return self._data2str(trs)
 
     def delete_tr(self, tr: TimeRead) -> None:
         """

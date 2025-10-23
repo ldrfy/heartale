@@ -1,8 +1,10 @@
 """属性"""
-from gi.repository import Adw, Gtk
+import threading
+
+from gi.repository import Adw, GLib, Gtk
 
 from ..entity import LibraryDB
-from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book, BookObject
+from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
 from ..utils import get_file_size, get_time, open_folder
 
 
@@ -30,8 +32,8 @@ class HPropertiesView(Adw.Bin):
 
     def __init__(self, **kwargs):
         self.book: Book = None
-        self.db = LibraryDB()
         super().__init__(**kwargs)
+
         # Template 的子控件可用 Gtk.Template.Child() 绑定
 
     def set_data(self, book: Book):
@@ -42,22 +44,49 @@ class HPropertiesView(Adw.Bin):
         """
         self.book = book
 
-        self.aar_folder.set_subtitle(f"{book.name}")
-        self.aar_book_uri.set_subtitle(f"{book.get_path()}")
+        def worker():
+            book_md5 = self.book.md5
+            db = LibraryDB()
 
-        self.aar_book_txt_all.set_subtitle(f"{book.txt_all} 字")
-        self.aar_book_fmt.set_subtitle(self._get_fmt())
-        self.aar_file_size.set_subtitle(self._get_file_size())
+            ps = (
+                f"{book.name}",
+                f"{book.get_path()}",
 
-        self.file_created.set_subtitle(get_time(book.create_date))
-        self.file_modified.set_subtitle(get_time(book.update_date))
+                db.get_td_year(book_md5),
+                db.get_td_month(book_md5),
+                db.get_td_week(book_md5),
+                db.get_td_day(book_md5),
 
-        book_md5 = self.book.md5
+                f"{book.txt_all} 字",
+                self._get_fmt(),
+                self._get_file_size(),
 
-        self.read_time_year.set_subtitle(self.db.get_td_year(book_md5))
-        self.read_time_month.set_subtitle(self.db.get_td_month(book_md5))
-        self.read_time_week.set_subtitle(self.db.get_td_week(book_md5))
-        self.read_time_day.set_subtitle(self.db.get_td_day(book_md5))
+                get_time(book.create_date),
+                get_time(book.update_date),
+            )
+
+            db.close()
+            GLib.idle_add(update_ui, ps,
+                          priority=GLib.PRIORITY_DEFAULT)
+
+        def update_ui(ps):
+            name, path, y, m, w, d, ws, fmt, fs, dc, du = ps
+            self.aar_folder.set_subtitle(name)
+            self.aar_book_uri.set_subtitle(path)
+
+            self.read_time_year.set_subtitle(y)
+            self.read_time_month.set_subtitle(m)
+            self.read_time_week.set_subtitle(w)
+            self.read_time_day.set_subtitle(d)
+
+            self.aar_book_txt_all.set_subtitle(ws)
+            self.aar_book_fmt.set_subtitle(fmt)
+            self.aar_file_size.set_subtitle(fs)
+
+            self.file_created.set_subtitle(dc)
+            self.file_modified.set_subtitle(du)
+
+        threading.Thread(target=worker, daemon=True).start()
 
     def _get_file_size(self):
         if self.book.fmt == BOOK_FMT_LEGADO:
