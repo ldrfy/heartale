@@ -59,7 +59,6 @@ class ReaderPage(Adw.NavigationPage):
         self._toc_sel: Gtk.SingleSelection = None
         self.chap_ns = []
 
-        self.auto_scroll = True
         self._search_debounce_id = 0
 
         self._server: Server = None
@@ -195,14 +194,10 @@ class ReaderPage(Adw.NavigationPage):
             self.title.set_subtitle(
                 f"{chap_name} ({self._server.book.chap_n}/{self._server.book.chap_all})")
 
-            self.auto_scroll = True
-
             self.ptc.set_paragraphs(self._server.bd.chap_txts)
             self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
             self.spinner_sync.stop()
-
-            self.auto_scroll = False
 
         def worker(chap_n):
             if chap_n > 0:
@@ -294,11 +289,10 @@ class ReaderPage(Adw.NavigationPage):
             idx (_type_): _description_
         """
 
-        if self.auto_scroll:
+        if self._server.bd.chap_txt_n > idx:
             return
 
         def worker():
-            # 耗时操作放线程
             self._server.set_chap_txt_n(idx)
             self._server.save_read_progress(self._server.get_chap_n(),
                                             self._server.get_chap_txt_pos())
@@ -420,7 +414,6 @@ class ReaderPage(Adw.NavigationPage):
             return False
 
         kw = kw.strip()
-        print(kw)
         self._search_debounce_id = 0
 
         self.chap_ns = []

@@ -14,24 +14,30 @@ def split_text(text_all, dcp=0):
     result = []
     p2s = [0]
     text = ""
-    n_last = 0
+    n_last = -1
 
     last = 0
     text_list = text_all.strip().split("\n")
     for i, line in enumerate(text_list):
+        line = line.strip()
+        if not line:
+            continue
         text += line + "\n"
         # 至少一段，如果一段没超过100个字，把下一段也连上，还不够100,继续
         # 如果这个章节最后，也算上
-        if len(text) > 100 or i == len(text_list) - 1:
+        if len(text) < 100 and i < len(text_list) - 1:
+            continue
 
-            if last <= dcp <= last + len(text):
-                n_last = len(result)
+        if last <= dcp <= last + len(text):
+            n_last = len(result)
 
-            result.append(text)
-            # 这个分割是第几个字符，方便保存进度
-            p2s.append(last + len(text))
+        # text = text.strip() +"\n"
+        result.append(text)
+        # 这个分割是第几个字符，方便保存进度
+        p2s.append(last + len(text))
 
-            last = last + len(text)
-            text = ""
-
+        last = last + len(text)
+        text = ""
+    if n_last < 0:
+        n_last = len(result) - 1
     return result, p2s, n_last
