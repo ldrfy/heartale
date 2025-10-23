@@ -15,7 +15,7 @@ class LibraryDB:
     """_summary_
     """
 
-    def __init__(self, db_path: str | Path = PATH_CONFIG / "heartale.db"):
+    def __init__(self, db_path: Path = PATH_CONFIG / "heartale.db"):
 
         self.db_path = str(db_path)
         self.conn = sqlite3.connect(

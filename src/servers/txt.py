@@ -178,7 +178,7 @@ def path2book(src: str, cfg_dir: Path = PATH_CONFIG_BOOKS) -> Book:
 
     Args:
         src (str): _description_
-        cfg_dir (Path | None, optional): _description_. Defaults to None.
+        cfg_dir (Path, optional): _description_. Defaults to None.
 
     Returns:
         Book: _description_

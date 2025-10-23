@@ -1,4 +1,4 @@
-deps = 'python3,python3-requests,python3-pillow'
+deps = 'python3,python3-requests'
 deps += ',python3-gi,libadwaita-1-0(>= 1.4)'
 
 

@@ -223,7 +223,7 @@ class ParagraphTagController:
         self._reapply_layout_tag()
         self._queue_emit_visible_idx()
 
-    def set_active_style(self, hex_color: str | None = None, bold: bool | None = None, underline: bool | None = None):
+    def set_active_style(self, hex_color: str, bold: bool, underline: bool):
         """
         动态调整“活动段落”的文字样式（仅前景相关）。
         hex_color 例子: "#d9480f" 或 "#7c3aed"。

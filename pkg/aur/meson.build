@@ -1,4 +1,4 @@
-deps = '"python-requests" "python-pillow"'
+deps = '"python-requests"'
 build_deps = '"meson" "libadwaita" "python-gobject"'
 
 

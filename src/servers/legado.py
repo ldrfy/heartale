@@ -44,35 +44,6 @@ def data2url(url):
     return quote(url)
 
 
-def get_url_params(url: str) -> dict[str, str | list[str]]:
-    """只要参数
-
-    Args:
-        url (str): _description_
-
-    Returns:
-        dict[str, str | list[str]]: _description_
-    """
-    parsed = urlparse(url)
-    if not parsed.query:
-        return {}
-    qs = parse_qs(parsed.query)
-    return {k: v[0] if len(v) == 1 else v for k, v in qs.items()}
-
-
-def remove_query(url: str) -> str:
-    """去除参数
-
-    Args:
-        url (str): _description_
-
-    Returns:
-        str: _description_
-    """
-    parts = urlsplit(url)
-    return urlunsplit((parts.scheme, parts.netloc, parts.path, '', ''))
-
-
 class LegadoServer(Server):
     """阅读app相关的webapi"""
 
