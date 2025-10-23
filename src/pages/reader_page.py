@@ -49,6 +49,10 @@ class ReaderPage(Adw.NavigationPage):
     page_error: Adw.StatusPage = Gtk.Template.Child()
     page_loading: Adw.StatusPage = Gtk.Template.Child()
 
+    ga_f: Gtk.Adjustment = Gtk.Template.Child()
+    ga_l: Gtk.Adjustment = Gtk.Template.Child()
+    ga_p: Gtk.Adjustment = Gtk.Template.Child()
+
     def __init__(self, nav: Adw.NavigationView, ** kwargs):
         super().__init__(**kwargs)
         # 可选：确保启动即在加载页（也可直接在 .ui 里设 visible-child-name）
@@ -441,5 +445,9 @@ class ReaderPage(Adw.NavigationPage):
         """恢复默认设置
         """
         self._on_fontsize_changed(14)
-        self._on_line_space_changed(10)
-        self._on_paragraph_space_changed(20)
+        self._on_line_space_changed(8)
+        self._on_paragraph_space_changed(24)
+
+        self.ga_f.set_value(14)
+        self.ga_l.set_value(8)
+        self.ga_p.set_value(24)
