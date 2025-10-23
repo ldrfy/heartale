@@ -6,6 +6,7 @@ from sqlite3 import OperationalError
 from typing import Iterator, List, Optional
 
 from .. import PATH_CONFIG
+from ..utils import sec2str
 from .book import Book
 from .time_read import TimeRead
 
@@ -152,19 +153,32 @@ class LibraryDB:
             chap_n TEXT NOT NULL,
             way INTEGER NOT NULL DEFAULT 0,
             dt TEXT NOT NULL,              -- ISO datetime string
-            day TEXT NOT NULL,             -- YYYY-MM-DD
-            month TEXT NOT NULL,           -- YYYY-MM
-            year TEXT NOT NULL,            -- YYYY
+            day INTEGER NOT NULL,
+            week INTEGER NOT NULL,
+            month INTEGER NOT NULL,
+            year INTEGER NOT NULL,
             words INTEGER NOT NULL DEFAULT 0,
-            seconds INTEGER NOT NULL DEFAULT 0
+            seconds REAL NOT NULL DEFAULT 0
         )
         """)
+
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_tr_md5_day ON timereads(md5, day)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_tr_day ON timereads(day)")
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_tr_month ON timereads(month)")
         cur.execute("CREATE INDEX IF NOT EXISTS idx_tr_year ON timereads(year)")
+
+        # 复合索引，提高统计查询效率
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_tr_md5_year_month ON timereads(md5, year, month)")
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_tr_md5_year_week ON timereads(md5, year, week)")
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_tr_year_month ON timereads(year, month)")
+        cur.execute(
+            "CREATE INDEX IF NOT EXISTS idx_tr_year_week ON timereads(year, week)")
+
         self.conn.commit()
 
     # -------------------------
@@ -350,22 +364,32 @@ class LibraryDB:
     # TimeRead 操作
     # -------------------------
 
-    def get_trs_by_md5_way_and_day_chap_n(self, md5: str, way: int, chap_n: int, day: date) -> List[TimeRead]:
-        """找到某本书的某节，在一天中的所有 TimeRead 记录
+    def _get_trs_by_md5_way_and_day_chap_n(
+        self, md5: str, way: int, chap_n: int, day: date
+    ) -> List[TimeRead]:
+        """找到某本书的某节，在一天中的所有 TimeRead 记录（按年/月/日过滤）
 
         Args:
-            md5 (str): _description_
-            way (int): _description_
-            chap_n (int): _description_
-            day (date): _description_
+            md5 (str)
+            way (int)
+            chap_n (int)
+            day (date)
 
         Returns:
             List[TimeRead]: 旧的在前
         """
-        day_s = day.strftime("%Y-%m-%d")
+        day_int = day.day
+        month_int = day.month
+        year_int = day.year
         cur = self.conn.cursor()
-        cur.execute("SELECT * FROM timereads WHERE md5 = ? AND way = ? AND chap_n = ? AND day = ? ORDER BY dt ASC",
-                    (md5, way, chap_n, day_s))
+        cur.execute(
+            """
+            SELECT * FROM timereads
+            WHERE md5 = ? AND way = ? AND chap_n = ? AND day = ? AND month = ? AND year = ?
+            ORDER BY dt ASC
+            """,
+            (md5, way, chap_n, day_int, month_int, year_int)
+        )
         return [self._r2td(r) for r in cur.fetchall()]
 
     def save_time_read(self, tr: TimeRead) -> None:
@@ -373,7 +397,7 @@ class LibraryDB:
         保存一个 TimeRead 条目。
         同一天，同一本书的同一个章节之保存一个。
         """
-        trs_ = self.get_trs_by_md5_way_and_day_chap_n(
+        trs_ = self._get_trs_by_md5_way_and_day_chap_n(
             tr.md5, tr.way, tr.chap_n, tr.dt.date())
         if len(trs_) > 0:
             tr.id = trs_[0].id
@@ -396,18 +420,21 @@ class LibraryDB:
         Args:
             tr (TimeRead): _description_
         """
-        iso = tr.dt.isoformat(sep=" ")
-        day = tr.dt.strftime("%Y-%m-%d")
-        month = tr.dt.strftime("%Y-%m")
-        year = tr.dt.strftime("%Y")
+        tr.dt = d = datetime.now()
+        iso = d.isoformat(sep=" ")
+
+        year = d.year
+        month = d.month
+        week = int(d.strftime("%W"))
+        day = d.day
 
         cur = self.conn.cursor()
         cur.execute("""
         INSERT INTO timereads(
-            id, md5, name, chap_n, way, dt, day, month, year, words, seconds
+            id, md5, name, chap_n, way, dt, day, week, month, year, words, seconds
         )
         VALUES(
-            :id, :md5, :name, :chap_n, :way, :dt, :day, :month, :year, :words, :seconds
+            :id, :md5, :name, :chap_n, :way, :dt, :day, :week, :month, :year, :words, :seconds
         )
         ON CONFLICT(id) DO UPDATE SET
             md5=excluded.md5,
@@ -416,6 +443,7 @@ class LibraryDB:
             way=excluded.way,
             dt=excluded.dt,
             day=excluded.day,
+            week=excluded.week,
             month=excluded.month,
             year=excluded.year,
             words=excluded.words,
@@ -428,6 +456,7 @@ class LibraryDB:
             "way": tr.way,
             "dt": iso,
             "day": day,
+            "week": week,
             "month": month,
             "year": year,
             "words": tr.words,
@@ -436,67 +465,79 @@ class LibraryDB:
         tr.id = cur.lastrowid
         return tr
 
-    def get_time_reads_by_md5_and_day(self, md5: str, day: date) -> List[TimeRead]:
-        """某本书按天
-
-        Args:
-            md5 (str): _description_
-            day (date): _description_
-
-        Returns:
-            List[TimeRead]: _description_
+    def _query_time_reads(
+        self,
+        md5: Optional[str] = None,
+        day: Optional[int] = None,
+        week: Optional[int] = None,
+        year: Optional[int] = None,
+        month: Optional[int] = None
+    ) -> List[TimeRead]:
         """
-        day_s = day.strftime("%Y-%m-%d")
+        查询 TimeRead 条目，可按书和时间范围（天/月/年/周）过滤。
+        返回按 dt 升序排序。
+        """
         cur = self.conn.cursor()
-        cur.execute("SELECT * FROM timereads WHERE md5 = ? AND day = ? ORDER BY dt ASC",
-                    (md5, day_s))
+        conditions = []
+        params = []
+
+        if md5 is not None:
+            conditions.append("md5 = ?")
+            params.append(md5)
+        if day is not None:
+            conditions.append("day = ?")
+            params.append(day)
+        if week is not None:
+            conditions.append("week = ?")
+            params.append(week)
+        if month is not None:
+            conditions.append("month = ?")
+            params.append(month)
+        if year is not None:
+            conditions.append("year = ?")
+            params.append(year)
+
+        where_clause = " AND ".join(conditions) if conditions else "1"
+        sql = f"SELECT * FROM timereads WHERE {where_clause} ORDER BY dt ASC"
+        cur.execute(sql, params)
         return [self._r2td(r) for r in cur.fetchall()]
 
-    def get_time_reads_by_day(self, day: date) -> List[TimeRead]:
-        """按天
+    def get_td_day(self, md5: Optional[str] = None) -> str:
+        """今天阅读时间和字数，md5=None 表示全书"""
+        today = date.today()
+        trs = self._query_time_reads(
+            md5=md5, day=today.day, month=today.month, year=today.year)
+        total_seconds = sum(tr.seconds for tr in trs)
+        total_words = sum(tr.words for tr in trs)
+        return f"{sec2str(total_seconds)} / {total_words}字"
 
-        Args:
-            day (date): _description_
+    def get_td_week(self, md5: Optional[str] = None) -> str:
+        """本月阅读时间和字数，md5=None 表示全书"""
+        today = date.today()
+        week = int(today.strftime("%W"))
 
-        Returns:
-            List[TimeRead]: _description_
-        """
-        day_s = day.strftime("%Y-%m-%d")
-        cur = self.conn.cursor()
-        cur.execute("SELECT * FROM timereads WHERE day = ? ORDER BY dt ASC",
-                    (day_s,))
-        return [self._r2td(r) for r in cur.fetchall()]
+        trs = self._query_time_reads(
+            md5=md5, year=today.year, week=week)
+        total_seconds = sum(tr.seconds for tr in trs)
+        total_words = sum(tr.words for tr in trs)
+        return f"{sec2str(total_seconds)} / {total_words}字"
 
-    def get_time_reads_by_month(self, year: int, month: int) -> List[TimeRead]:
-        """按月
+    def get_td_month(self, md5: Optional[str] = None) -> str:
+        """本月阅读时间和字数，md5=None 表示全书"""
+        today = date.today()
+        trs = self._query_time_reads(
+            md5=md5, year=today.year, month=today.month)
+        total_seconds = sum(tr.seconds for tr in trs)
+        total_words = sum(tr.words for tr in trs)
+        return f"{sec2str(total_seconds)} / {total_words}字"
 
-        Args:
-            year (int): _description_
-            month (int): _description_
-
-        Returns:
-            List[TimeRead]: _description_
-        """
-        month_s = f"{year:04d}-{month:02d}"
-        cur = self.conn.cursor()
-        cur.execute("SELECT * FROM timereads WHERE month = ? ORDER BY dt ASC",
-                    (month_s,))
-        return [self._r2td(r) for r in cur.fetchall()]
-
-    def get_time_reads_by_year(self, year: int) -> List[TimeRead]:
-        """按年
-
-        Args:
-            year (int): _description_
-
-        Returns:
-            List[TimeRead]: _description_
-        """
-        year_s = f"{year:04d}"
-        cur = self.conn.cursor()
-        cur.execute("SELECT * FROM timereads WHERE year = ? ORDER BY dt ASC",
-                    (year_s,))
-        return [self._r2td(r) for r in cur.fetchall()]
+    def get_td_year(self, md5: Optional[str] = None) -> str:
+        """本年阅读时间和字数，md5=None 表示全书"""
+        today = date.today()
+        trs = self._query_time_reads(md5=md5, year=today.year)
+        total_seconds = sum(tr.seconds for tr in trs)
+        total_words = sum(tr.words for tr in trs)
+        return f"{sec2str(total_seconds)} / {total_words}字"
 
     def delete_tr(self, tr: TimeRead) -> None:
         """

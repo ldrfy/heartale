@@ -28,7 +28,7 @@ class Book:
     chap_all: int
     # 章节内读到哪里了
     chap_txt_pos: int
-    # 读到哪里了
+    # 读了多少字了
     txt_pos: int
     # 总字数
     txt_all: int
@@ -51,9 +51,9 @@ class Book:
         """
         pct = 0
         if self.txt_all > 0:
-            pct = int(self.txt_pos * 100 / self.txt_all)
+            pct = self.txt_pos * 100 / self.txt_all
         chap_str = f"{self.chap_name}（{self.chap_n}/{self.chap_all}）"
-        return f"{chap_str} · 进度 {pct}% （{self.txt_pos}/{self.txt_all}）"
+        return f"{chap_str} · 进度 {pct:.2f}% （{self.txt_pos}/{self.txt_all}）"
 
     def get_path(self) -> str:
         """获取书籍路径

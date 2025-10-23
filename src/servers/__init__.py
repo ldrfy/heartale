@@ -169,15 +169,18 @@ class Server:
             ValueError: 当进度保存出错时抛出异常
         """
 
+        w = len(self.bd.chap_txts[self.bd.chap_txt_n])
+        sec = time.time()-self.read_time
+        print(sec)
+
         self.book.chap_n = chap_n
         self.book.chap_name = self.get_chap_name(chap_n)
         self.book.chap_txt_pos = chap_txt_pos
         self.book.update_date = int(datetime.now().timestamp())
+        self.book.txt_pos += w
 
         td = TimeRead(md5=self.book.md5, name=self.book.name,
-                      chap_n=chap_n, way=way,
-                      words=len(self.bd.chap_txts[self.bd.chap_txt_n]),
-                      seconds=time.time()-self.read_time)
+                      chap_n=chap_n, way=way, words=w, seconds=sec)
 
         db = LibraryDB()
         db.update_book(self.book)

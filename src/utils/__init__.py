@@ -48,15 +48,61 @@ def get_file_size(path: str) -> int:
 
     if size_bytes < 1024:
         return f"{size_bytes} B"
-    elif size_bytes < 1024 * 1024:
+    if size_bytes < 1024 * 1024:
         size_kb = size_bytes / 1024
         return f"{size_kb:.2f} KB"
-    elif size_bytes < 1024 * 1024 * 1024:
+    if size_bytes < 1024 * 1024 * 1024:
         size_mb = size_bytes / (1024 * 1024)
         return f"{size_mb:.2f} MB"
-    else:
-        size_gb = size_bytes / (1024 * 1024 * 1024)
-        return f"{size_gb:.2f} GB"
+
+    size_gb = size_bytes / (1024 * 1024 * 1024)
+    return f"{size_gb:.2f} GB"
+
+
+def sec2str(sec: int) -> str:
+    """将秒转换为可读时间字符串
+
+    Args:
+        sec (int): 时间长度，单位秒
+
+    Returns:
+        str: 可读时间，如 "45s", "3'15''", "2h5'", "1d2h", "3w2d"
+    """
+    constant_minute = 60
+    constant_hour = 60 * constant_minute
+    constant_day = 24 * constant_hour
+    constant_week = 7 * constant_day
+    constant_month = 30 * constant_day
+    constant_year = 365 * constant_day
+
+    sec = int(sec)
+
+    if sec < constant_minute:
+        return f"{sec}s"
+    if sec < constant_hour:
+        minutes = sec // constant_minute
+        seconds = sec % constant_minute
+        return f"{minutes}'{seconds}''"
+    if sec < constant_day:
+        hours = sec // constant_hour
+        minutes = (sec % constant_hour) // constant_minute
+        return f"{hours}h{minutes}'"
+    if sec < constant_week:
+        days = sec // constant_day
+        hours = (sec % constant_day) // constant_hour
+        return f"{days}d{hours}h"
+    if sec < constant_month:
+        weeks = sec // constant_week
+        days = (sec % constant_week) // constant_day
+        return f"{weeks}w{days}d"
+    if sec < constant_year:
+        months = sec // constant_month
+        days = (sec % constant_month) // constant_day
+        return f"{months}m{days}d"
+
+    years = sec // constant_year
+    days = (sec % constant_year) // constant_day
+    return f"{years}y{days}d"
 
 
 def get_time(timestamp: int) -> str:

@@ -1,6 +1,7 @@
 """属性"""
 from gi.repository import Adw, Gtk
 
+from ..entity import LibraryDB
 from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book, BookObject
 from ..utils import get_file_size, get_time, open_folder
 
@@ -21,8 +22,15 @@ class HPropertiesView(Adw.Bin):
     file_modified: Adw.ActionRow = Gtk.Template.Child()
     aar_folder: Adw.ActionRow = Gtk.Template.Child()
 
+    read_time_year: Adw.ActionRow = Gtk.Template.Child()
+    read_time_month: Adw.ActionRow = Gtk.Template.Child()
+    read_time_week: Adw.ActionRow = Gtk.Template.Child()
+    read_time_day: Adw.ActionRow = Gtk.Template.Child()
+    read_time_all: Adw.ActionRow = Gtk.Template.Child()
+
     def __init__(self, **kwargs):
         self.book: Book = None
+        self.db = LibraryDB()
         super().__init__(**kwargs)
         # Template 的子控件可用 Gtk.Template.Child() 绑定
 
@@ -43,6 +51,13 @@ class HPropertiesView(Adw.Bin):
 
         self.file_created.set_subtitle(get_time(book.create_date))
         self.file_modified.set_subtitle(get_time(book.update_date))
+
+        book_md5 = self.book.md5
+
+        self.read_time_year.set_subtitle(self.db.get_td_year(book_md5))
+        self.read_time_month.set_subtitle(self.db.get_td_month(book_md5))
+        self.read_time_week.set_subtitle(self.db.get_td_week(book_md5))
+        self.read_time_day.set_subtitle(self.db.get_td_day(book_md5))
 
     def _get_file_size(self):
         if self.book.fmt == BOOK_FMT_LEGADO:

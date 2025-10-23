@@ -17,6 +17,6 @@ class TimeRead:
     chap_n: int          # 章节 ID
     way: int = TIME_READ_WAY_READ  # 类型，0-阅读，1-听书
     words: int = 0               # 阅读的字数（或页数）
-    seconds: int = 0             # 本次阅读耗时，秒
+    seconds: float = 0             # 本次阅读耗时，秒
     dt: datetime = field(default_factory=datetime.now)  # 完整时间
     id: Optional[int] = None
