@@ -55,13 +55,5 @@
         </style>
       </object>
     </child>
-    <child>
-      <object class="GtkButton">
-        <property name="icon-name">view-list-symbolic</property>
-        <property name="tooltip-text">阅读统计</property>
-        <property name="valign">center</property>
-        <signal name="clicked" handler="_on_book_statistics"/>
-      </object>
-    </child>
   </template>
 </interface>

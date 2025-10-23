@@ -17,8 +17,6 @@ class ShelfRow(Gtk.Box):
                            (GObject.TYPE_PYOBJECT,)),
         "top-request": (GObject.SignalFlags.RUN_FIRST, None,
                         (GObject.TYPE_PYOBJECT,)),
-        "statistics-request": (GObject.SignalFlags.RUN_FIRST, None,
-                               (GObject.TYPE_PYOBJECT,)),
     }
 
     lbl_title: Gtk.Label = Gtk.Template.Child()
@@ -35,14 +33,7 @@ class ShelfRow(Gtk.Box):
 
     @Gtk.Template.Callback()
     def _on_book_top(self, *_):
-        """置顶处理：发出信号，由上层接管 DB 修改 sort"""
         self.emit("top-request", self.book)
-
-    @Gtk.Template.Callback()
-    def _on_book_statistics(self, *_):
-        """置顶处理：发出信号，由上层接管 DB 修改 sort"""
-        self.emit("statistics-request", self.book)
-        self.get_root().toast_msg("阅读统计功能开发中，敬请期待！")
 
     def update(self, bobj: BookObject):
         """_summary_

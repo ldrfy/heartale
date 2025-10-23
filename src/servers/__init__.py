@@ -1,9 +1,11 @@
 '''获取文本并自动跳转的配置'''
 
+import time
 from datetime import datetime
 
 from ..entity import LibraryDB
 from ..entity.book import Book
+from ..entity.time_read import TIME_READ_WAY_READ, TimeRead
 from ..utils.text import split_text
 
 
@@ -37,6 +39,7 @@ class BookData():
         self.chap_txt = chap_content
         self.chap_txts, self.chap_txt_p2s, self.chap_txt_n = \
             split_text(chap_content, chap_txt_pos)
+        print("----", len(self.chap_txts), self.chap_txt_n)
 
     def get_chap_txt_pos(self):
         """本章节的位置，需要保存
@@ -74,6 +77,7 @@ class Server:
         self.bd: BookData = BookData()
 
         self.chap_names = []
+        self.read_time = time.time()
 
     def initialize(self, book: Book):
         """子类需要自定义异步初始化一些操作
@@ -155,7 +159,7 @@ class Server:
         self.bd.chap_txt_n = chap_txt_n
         self.book.chap_txt_pos = self.bd.chap_txt_p2s[chap_txt_n]
 
-    def save_read_progress(self, chap_n: int, chap_txt_pos: int):
+    def save_read_progress(self, chap_n: int, chap_txt_pos: int, way=TIME_READ_WAY_READ):
         """异步保存阅读进度
 
         Args:
@@ -165,13 +169,19 @@ class Server:
             ValueError: 当进度保存出错时抛出异常
         """
 
-        self.bd.chap_txt_n = chap_txt_pos
-
         self.book.chap_n = chap_n
         self.book.chap_name = self.get_chap_name(chap_n)
         self.book.chap_txt_pos = chap_txt_pos
         self.book.update_date = int(datetime.now().timestamp())
 
+        td = TimeRead(md5=self.book.md5, name=self.book.name,
+                      chap_n=chap_n, way=way,
+                      words=len(self.bd.chap_txts[self.bd.chap_txt_n]),
+                      seconds=time.time()-self.read_time)
+
         db = LibraryDB()
         db.update_book(self.book)
+        db.save_time_read(td)
         db.close()
+
+        self.read_time = time.time()

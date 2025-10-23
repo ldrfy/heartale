@@ -2,6 +2,7 @@
 
 import threading
 import time
+import traceback
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
@@ -111,10 +112,11 @@ class ReaderPage(Adw.NavigationPage):
                 GLib.idle_add(self._on_data_ready, _book,
                               priority=GLib.PRIORITY_DEFAULT)
             except Exception as e:  # pylint: disable=broad-except
-                get_logger().error("加载书籍失败：%s", e)
+                s = f"加载书籍失败：{e}\n{traceback.format_exc()}"
+                get_logger().error(s)
                 if time.time() - self.t < 0.5:
                     time.sleep(0.5 - (time.time() - self.t))
-                GLib.idle_add(update_ui, _book, e,
+                GLib.idle_add(update_ui, _book, s,
                               priority=GLib.PRIORITY_DEFAULT)
 
         threading.Thread(target=worker, args=(book,), daemon=True).start()

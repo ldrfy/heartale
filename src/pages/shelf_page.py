@@ -156,7 +156,7 @@ class ShelfPage(Adw.NavigationPage):
         else:
             book.sort = 1
 
-        db.save_book(book)
+        db.update_book(book)
 
         books_ = list(db.iter_books())
         db.close()
@@ -282,15 +282,6 @@ class ShelfPage(Adw.NavigationPage):
 
         db = LibraryDB()
         for b in books:
-            print("导入书籍：", b)
-            b_ = db.get_book_by_md5(b.md5)
-            if b_:
-                b.create_date = b_.create_date
-                b.chap_name = b_.chap_name
-                b.chap_n = b_.chap_n
-                b.chap_txt_pos = b_.chap_txt_pos
-                b.txt_pos = b_.txt_pos
-                b.sort = b_.sort
             db.save_book(b)
 
         books_ = list(db.iter_books())

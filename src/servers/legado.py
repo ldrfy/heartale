@@ -10,6 +10,7 @@ import requests
 
 from ..entity import LibraryDB
 from ..entity.book import BOOK_FMT_LEGADO, Book
+from ..entity.time_read import TIME_READ_WAY_READ
 from . import Server
 
 # 常量定义
@@ -109,15 +110,16 @@ class LegadoServer(Server):
         self.book.chap_all = self.book_data["totalChapterNum"]
         self.chap_names = self._get_chap_names()
 
+        self.bd.update_chap_txts(
+            self.get_chap_txt(self.book.chap_n),
+            self.book.chap_txt_pos
+        )
+
         self.save_read_progress(
             self.book_data[CHAP_INDEX],
             self.book_data[CHAP_POS]-1
         )
 
-        self.bd.update_chap_txts(
-            self.get_chap_txt(self.book.chap_n),
-            self.book.chap_txt_pos
-        )
         self.init = False
 
         return f"{self.book.name} {self.get_chap_name()}"
@@ -170,11 +172,17 @@ class LegadoServer(Server):
         resp = requests.get(url, timeout=10)
         return [d["title"] for d in resp.json()["data"]]
 
-    def save_read_progress(self, chap_n: int, chap_txt_pos: int):
+    def save_read_progress(self, chap_n: int, chap_txt_pos: int, way=TIME_READ_WAY_READ):
+        """_summary_
+
+        Args:
+            chap_n (int): _description_
+            chap_txt_pos (int): _description_
+        """
         if not self.init:
             # 刚开始读取进度,但是不能保存云端
             self._save_book_progress(self.book_data)
-        super().save_read_progress(chap_n, chap_txt_pos)
+        super().save_read_progress(chap_n, chap_txt_pos, way)
 
     def _save_book_progress(self, book_data: dict):
         """异步保存阅读进度

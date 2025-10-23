@@ -1,6 +1,7 @@
 """书籍实体类"""
 from dataclasses import dataclass, field
 from datetime import datetime
+from typing import Optional
 
 from gi.repository import GLib, GObject  # type: ignore
 
@@ -40,6 +41,7 @@ class Book:
         default_factory=lambda: int(datetime.now().timestamp()))
     update_date: int = field(
         default_factory=lambda: int(datetime.now().timestamp()))
+    id: Optional[int] = None
 
     def get_jd_str(self) -> float:
         """获取进度，0.0-1.0

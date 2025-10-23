@@ -22,7 +22,7 @@ class LibraryDB:
         self.conn.row_factory = sqlite3.Row
         self._init_tables()
 
-        self._ensure_columns_and_renames()  # <- 调用迁移函数
+        # self._ensure_columns_and_renames()  # <- 调用迁移函数
 
     def _ensure_columns_and_renames(self):
         """
@@ -58,7 +58,15 @@ class LibraryDB:
         for s in stmts:
             cur.execute(s)
 
+        # 常规列检查（你原先的需要列）
+        cur.execute("PRAGMA table_info(timereads)")
+        td_cols = {r["name"] for r in cur.fetchall()}
+        if "chap_n" not in td_cols:
+            cur.execute(
+                "ALTER TABLE timereads ADD COLUMN chap_n INTEGER NOT NULL DEFAULT 0")
+
         # 尝试重命名列的通用函数
+
         def rename_column_if_needed(table: str, old: str, new: str):
             cur.execute(f"PRAGMA table_info({table})")
             cols = {r["name"] for r in cur.fetchall()}
@@ -116,13 +124,15 @@ class LibraryDB:
             author TEXT NOT NULL,
             fmt INTEGER NOT NULL DEFAULT 0,
             chap_n INTEGER NOT NULL DEFAULT 0,
+            chap_name INTEGER NOT NULL DEFAULT '',
             chap_all INTEGER NOT NULL DEFAULT 0,
             chap_txt_pos INTEGER NOT NULL DEFAULT 0,
             txt_pos INTEGER NOT NULL DEFAULT 0,
             txt_all INTEGER NOT NULL DEFAULT 0,
             sort REAL NOT NULL DEFAULT 0,
             encoding TEXT,
-            update_date INTEGER NOT NULL
+            update_date INTEGER NOT NULL,
+            create_date INTEGER NOT NULL
         )
         """)
         cur.execute("""
@@ -138,6 +148,8 @@ class LibraryDB:
         CREATE TABLE IF NOT EXISTS timereads (
             id INTEGER PRIMARY KEY,
             md5 TEXT NOT NULL,
+            name TEXT NOT NULL,
+            chap_n TEXT NOT NULL,
             way INTEGER NOT NULL DEFAULT 0,
             dt TEXT NOT NULL,              -- ISO datetime string
             day TEXT NOT NULL,             -- YYYY-MM-DD
@@ -162,10 +174,25 @@ class LibraryDB:
         """
         保存 Book。若 md5 已存在则更新其字段（path/name/txt_all/encoding/update_date）。
         """
+        b_ = self.get_book_by_md5(book.md5)
+        if b_:
+            book.create_date = b_.create_date
+            book.chap_name = b_.chap_name
+            book.chap_n = b_.chap_n
+            book.chap_txt_pos = b_.chap_txt_pos
+            book.txt_pos = b_.txt_pos
+            book.sort = b_.sort
+
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_name, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, sort, update_date, create_date)
-        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_name, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :sort, :update_date, :create_date)
+        INSERT INTO books(
+            md5, path, name, author, fmt, chap_n, chap_name, chap_all, chap_txt_pos,
+            txt_all, txt_pos, encoding, sort, update_date, create_date
+        )
+        VALUES(
+            :md5, :path, :name, :author, :fmt, :chap_n, :chap_name, :chap_all, :chap_txt_pos,
+            :txt_all, :txt_pos, :encoding, :sort, :update_date, :create_date
+        )
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
@@ -203,8 +230,14 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_name, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, sort, update_date)
-        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_name, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :sort, :update_date)
+        INSERT INTO books(
+            md5, path, name, author, fmt, chap_n, chap_name, chap_all, chap_txt_pos,
+            txt_all, txt_pos, encoding, sort, update_date, create_date
+        )
+        VALUES(
+            :md5, :path, :name, :author, :fmt, :chap_n, :chap_name, :chap_all, :chap_txt_pos,
+            :txt_all, :txt_pos, :encoding, :sort, :update_date, CURRENT_TIMESTAMP
+        )
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
@@ -233,7 +266,6 @@ class LibraryDB:
             "txt_pos": book.txt_pos,
             "encoding": book.encoding,
             "sort": book.sort,
-            "create_date": book.create_date,
             "update_date": book.update_date,
         })
 
@@ -259,23 +291,7 @@ class LibraryDB:
         row = cur.fetchone()
         if not row:
             return None
-        return Book(
-            path=row["path"],
-            name=row["name"],
-            author=row["author"],
-            fmt=row["fmt"],
-            chap_n=row["chap_n"],
-            chap_name=row["chap_name"],
-            chap_all=row["chap_all"],
-            chap_txt_pos=row["chap_txt_pos"],
-            txt_all=row["txt_all"],
-            txt_pos=row["txt_pos"],
-            encoding=row["encoding"],
-            sort=row["sort"],
-            md5=row["md5"],
-            create_date=row["create_date"],
-            update_date=row["update_date"],
-        )
+        return self._r2book(row)
 
     def search_books_by_name(self, name_pattern: str, limit: int = 100) -> List[Book]:
         """
@@ -288,25 +304,7 @@ class LibraryDB:
         cur.execute("SELECT * FROM books WHERE name LIKE ? ORDER BY sort DESC, update_date DESC LIMIT ?",
                     (name_pattern, limit))
         rows = cur.fetchall()
-        return [
-            Book(
-                path=r["path"],
-                name=r["name"],
-                author=r["author"],
-                fmt=r["fmt"],
-                chap_n=r["chap_n"],
-                chap_name=r["chap_name"],
-                chap_all=r["chap_all"],
-                chap_txt_pos=r["chap_txt_pos"],
-                txt_all=r["txt_all"],
-                txt_pos=r["txt_pos"],
-                encoding=r["encoding"],
-                sort=r["sort"],
-                md5=r["md5"],
-                update_date=r["update_date"],
-                create_date=r["create_date"],
-            ) for r in rows
-        ]
+        return [self._r2book(r) for r in rows]
 
     # 用于迭代所有 books（可选）
     def iter_books(self) -> Iterator[Book]:
@@ -318,13 +316,24 @@ class LibraryDB:
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM books ORDER BY sort DESC, update_date DESC")
         for r in cur:
-            yield Book(
-                path=r["path"], name=r["name"], author=r["author"], fmt=r["fmt"],
-                chap_n=r["chap_n"], chap_name=r["chap_name"], chap_all=r["chap_all"],
-                chap_txt_pos=r["chap_txt_pos"], txt_all=r["txt_all"], txt_pos=r["txt_pos"],
-                encoding=r["encoding"], sort=r["sort"], md5=r["md5"], create_date=r["create_date"],
-                update_date=r["update_date"]
-            )
+            yield self._r2book(r)
+
+    def _r2book(self, r: sqlite3.Row) -> Book:
+        """_summary_
+
+        Args:
+            r (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
+        return Book(
+            id=r["id"], path=r["path"], name=r["name"], author=r["author"],
+            chap_n=r["chap_n"], chap_name=r["chap_name"], chap_all=r["chap_all"],
+            chap_txt_pos=r["chap_txt_pos"], txt_pos=r["txt_pos"], txt_all=r["txt_all"],
+            encoding=r["encoding"], md5=r["md5"], sort=r["sort"], fmt=r["fmt"],
+            create_date=r["create_date"], update_date=r["update_date"]
+        )
 
     def get_max_sort(self) -> float:
         """目前最大的排序
@@ -341,21 +350,81 @@ class LibraryDB:
     # TimeRead 操作
     # -------------------------
 
+    def get_trs_by_md5_way_and_day_chap_n(self, md5: str, way: int, chap_n: int, day: date) -> List[TimeRead]:
+        """找到某本书的某节，在一天中的所有 TimeRead 记录
+
+        Args:
+            md5 (str): _description_
+            way (int): _description_
+            chap_n (int): _description_
+            day (date): _description_
+
+        Returns:
+            List[TimeRead]: 旧的在前
+        """
+        day_s = day.strftime("%Y-%m-%d")
+        cur = self.conn.cursor()
+        cur.execute("SELECT * FROM timereads WHERE md5 = ? AND way = ? AND chap_n = ? AND day = ? ORDER BY dt ASC",
+                    (md5, way, chap_n, day_s))
+        return [self._r2td(r) for r in cur.fetchall()]
+
     def save_time_read(self, tr: TimeRead) -> None:
         """
         保存一个 TimeRead 条目。
-        允许同一天多条记录。若需要按 (md5, day) 唯一，可改表结构和这里逻辑。
+        同一天，同一本书的同一个章节之保存一个。
+        """
+        trs_ = self.get_trs_by_md5_way_and_day_chap_n(
+            tr.md5, tr.way, tr.chap_n, tr.dt.date())
+        if len(trs_) > 0:
+            tr.id = trs_[0].id
+            tr.dt = trs_[0].dt
+            for tr_ in trs_:
+                tr.words += tr_.words
+                tr.seconds += tr_.seconds
+
+        self.update_time_read(tr)
+
+        # 更新第一个，删除其余
+        for existing_tr in trs_[1:]:
+            self.delete_tr(existing_tr)
+
+        return tr
+
+    def update_time_read(self, tr: TimeRead) -> None:
+        """更新或保存，如果id存在更新
+
+        Args:
+            tr (TimeRead): _description_
         """
         iso = tr.dt.isoformat(sep=" ")
         day = tr.dt.strftime("%Y-%m-%d")
         month = tr.dt.strftime("%Y-%m")
         year = tr.dt.strftime("%Y")
+
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO timereads(md5, way, dt, day, month, year, words, seconds)
-        VALUES(:md5, :way, :dt, :day, :month, :year, :words, :seconds)
+        INSERT INTO timereads(
+            id, md5, name, chap_n, way, dt, day, month, year, words, seconds
+        )
+        VALUES(
+            :id, :md5, :name, :chap_n, :way, :dt, :day, :month, :year, :words, :seconds
+        )
+        ON CONFLICT(id) DO UPDATE SET
+            md5=excluded.md5,
+            name=excluded.name,
+            chap_n=excluded.chap_n,
+            way=excluded.way,
+            dt=excluded.dt,
+            day=excluded.day,
+            month=excluded.month,
+            year=excluded.year,
+            words=excluded.words,
+            seconds=excluded.seconds
         """, {
+            "id": tr.id,
             "md5": tr.md5,
+            "name": tr.name,
+            "chap_n": tr.chap_n,
             "way": tr.way,
             "dt": iso,
             "day": day,
@@ -364,6 +433,8 @@ class LibraryDB:
             "words": tr.words,
             "seconds": tr.seconds,
         })
+        tr.id = cur.lastrowid
+        return tr
 
     def get_time_reads_by_md5_and_day(self, md5: str, day: date) -> List[TimeRead]:
         """某本书按天
@@ -379,7 +450,7 @@ class LibraryDB:
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM timereads WHERE md5 = ? AND day = ? ORDER BY dt ASC",
                     (md5, day_s))
-        return [self._row_to_timeread(r) for r in cur.fetchall()]
+        return [self._r2td(r) for r in cur.fetchall()]
 
     def get_time_reads_by_day(self, day: date) -> List[TimeRead]:
         """按天
@@ -394,7 +465,7 @@ class LibraryDB:
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM timereads WHERE day = ? ORDER BY dt ASC",
                     (day_s,))
-        return [self._row_to_timeread(r) for r in cur.fetchall()]
+        return [self._r2td(r) for r in cur.fetchall()]
 
     def get_time_reads_by_month(self, year: int, month: int) -> List[TimeRead]:
         """按月
@@ -410,7 +481,7 @@ class LibraryDB:
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM timereads WHERE month = ? ORDER BY dt ASC",
                     (month_s,))
-        return [self._row_to_timeread(r) for r in cur.fetchall()]
+        return [self._r2td(r) for r in cur.fetchall()]
 
     def get_time_reads_by_year(self, year: int) -> List[TimeRead]:
         """按年
@@ -425,10 +496,25 @@ class LibraryDB:
         cur = self.conn.cursor()
         cur.execute("SELECT * FROM timereads WHERE year = ? ORDER BY dt ASC",
                     (year_s,))
-        return [self._row_to_timeread(r) for r in cur.fetchall()]
+        return [self._r2td(r) for r in cur.fetchall()]
 
-    def _row_to_timeread(self, row: sqlite3.Row) -> TimeRead:
-        # dt 存为 ISO 格式 "YYYY-MM-DD HH:MM:SS[.ffffff]" 或类似
+    def delete_tr(self, tr: TimeRead) -> None:
+        """
+        删除某个。
+        :param id: 书的 id
+        """
+        cur = self.conn.cursor()
+        cur.execute("DELETE FROM timereads WHERE id = ?", (tr.id,))
+
+    def _r2td(self, row: sqlite3.Row) -> TimeRead:
+        """_summary_
+
+        Args:
+            row (_type_): _description_
+
+        Returns:
+            TimeRead: _description_
+        """
         dt_str = row["dt"]
         try:
             dt_obj = datetime.fromisoformat(dt_str)
@@ -436,7 +522,10 @@ class LibraryDB:
             # 容错解析
             dt_obj = datetime.strptime(dt_str, "%Y-%m-%d %H:%M:%S")
         return TimeRead(
+            id=row["id"],
             md5=row["md5"],
+            name=row["name"],
+            chap_n=row["chap_n"],
             way=row["way"],
             words=row["words"],
             seconds=row["seconds"],
