@@ -34,6 +34,8 @@ class Book:
     # 类型，比如 0 txt, 1 legado, 2 epub, 3 mobi, 4 pdf, 5 djvu
     sort: float = 0.0
     fmt: int = BOOK_FMT_TXT
+    create_date: int = field(
+        default_factory=lambda: int(datetime.now().timestamp()))
     update_date: int = field(
         default_factory=lambda: int(datetime.now().timestamp()))
 
@@ -46,7 +48,7 @@ class Book:
         pct = 0
         if self.txt_all > 0:
             pct = int(self.txt_pos * 100 / self.txt_all)
-        return f"进度 {pct}% ({self.txt_pos}/{self.txt_all})"
+        return f"进度 {pct}% ({self.txt_pos}/{self.txt_all} · {self.chap_n}/{self.chap_all})"
 
     def get_path(self) -> str:
         """获取书籍路径
@@ -72,6 +74,7 @@ class BookObject(GObject.GObject):
     md5 = GObject.Property(type=str)
     sort = GObject.Property(type=float)
     fmt = GObject.Property(type=int)
+    create_date = GObject.Property(type=int)
     update_date = GObject.Property(type=int)
 
     def __init__(self, **kwargs):
@@ -102,6 +105,7 @@ class BookObject(GObject.GObject):
             md5=b.md5,
             sort=b.sort,
             fmt=b.fmt,
+            create_date=b.create_date,
             update_date=b.update_date,
         )
 
@@ -124,5 +128,6 @@ class BookObject(GObject.GObject):
             md5=self.md5,
             sort=self.sort,
             fmt=self.fmt,
+            create_date=self.create_date,
             update_date=self.update_date,
         )

@@ -6,11 +6,14 @@ from pathlib import Path
 from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk  # type: ignore
 
 from ..entity import LibraryDB
-from ..entity.book import BookObject
+from ..entity.book import Book, BookObject
 from ..servers.legado import sync_legado_books
 from ..servers.txt import path2book
 from ..utils.debug import get_logger
 from ..widgets.dialog_input import InputDialog
+# 必须导入，否则模板无法识别
+from ..widgets.properties_view import \
+    HPropertiesView  # pylint: disable=unused-import
 from ..widgets.shelf_row import ShelfRow
 from .reader_page import ReaderPage
 
@@ -36,10 +39,14 @@ class ShelfPage(Adw.NavigationPage):
     list: Gtk.ListView = Gtk.Template.Child()
     stack: Adw.ViewStack = Gtk.Template.Child()
     scroller: Gtk.ScrolledWindow = Gtk.Template.Child()
+    mlv_bookshelf: Adw.MultiLayoutView = Gtk.Template.Child()
+    hpv_book: HPropertiesView = Gtk.Template.Child()
     gb_bookshelf: Gtk.Box = Gtk.Template.Child()
     empty: Adw.StatusPage = Gtk.Template.Child()
     search_empty: Adw.StatusPage = Gtk.Template.Child()
     btn_import: Gtk.Button = Gtk.Template.Child()
+
+    properties_split_view: Adw.OverlaySplitView = Gtk.Template.Child()
 
     def __init__(self, nav: Adw.NavigationView, reader_page: ReaderPage, **kwargs):
         super().__init__(**kwargs)
@@ -95,7 +102,7 @@ class ShelfPage(Adw.NavigationPage):
             gls.append(BookObject.from_dataclass(b))
         # liststore 应为 Gio.ListStore(BookObject)
         self.list.set_model(Gtk.SingleSelection.new(gls))
-        self.stack.set_visible_child(self.scroller)
+        self.stack.set_visible_child(self.mlv_bookshelf)
 
     def _install_shortcuts(self):
         sc = Gtk.ShortcutController()
@@ -115,9 +122,11 @@ class ShelfPage(Adw.NavigationPage):
             row = ShelfRow()
             # 连接一次行内的删除信号，回调里调用页面的方法删除数据
             row.connect("delete-request", lambda _row,
-                        bobj: self._present_delete_confirm_adw(bobj))
+                        book: self._present_delete_confirm_adw(book))
             row.connect("top-request", lambda _row,
-                        bobj: self._on_shelfrow_top(bobj))
+                        book: self._on_shelfrow_top(book))
+            row.connect("info-request", lambda _row,
+                        d: self._on_shelfrow_info(d))
             li.set_child(row)
 
         def bind(_f, li: Gtk.ListItem):
@@ -129,10 +138,16 @@ class ShelfPage(Adw.NavigationPage):
 
         self.list.set_factory(factory)
 
-    def _on_shelfrow_top(self, bobj: BookObject):
-        db = LibraryDB()
+    def _on_shelfrow_info(self, d):
+        book, show = d
+        # self.mlv_bookshelf.set_property("show-properties", show)
+        self.hpv_book.set_visible(show)
+        self.properties_split_view.set_show_sidebar(show)
+        if show:
+            self.hpv_book.set_data(book)
 
-        book = bobj.to_dataclass()
+    def _on_shelfrow_top(self, book: Book):
+        db = LibraryDB()
 
         if book.sort > 0:
             # 已置顶，取消置顶
@@ -146,7 +161,7 @@ class ShelfPage(Adw.NavigationPage):
         db.close()
         self.build_bookshel(books_)
 
-    def _do_delete_row(self, bobj: BookObject):
+    def _do_delete_row(self, book: Book):
         """从 ListStore 删除对应对象，并维护选中项与空态。
 
         Args:
@@ -161,7 +176,8 @@ class ShelfPage(Adw.NavigationPage):
         # 找索引
         idx = -1
         for i in range(store.get_n_items()):
-            if store.get_item(i) is bobj:
+            md5 = getattr(store.get_item(i), 'md5', '')
+            if md5 == book.md5:
                 idx = i
                 break
         if idx < 0:
@@ -170,7 +186,7 @@ class ShelfPage(Adw.NavigationPage):
         # （可选）先同步数据库
         try:
             db = LibraryDB()
-            db.delete_book_by_md5(bobj.md5)  # 按你的接口调整
+            db.delete_book_by_md5(book.md5)  # 按你的接口调整
             db.close()
         except Exception as e:  # pylint: disable=broad-except
             get_logger().error("删除数据库记录失败：%s", e)
@@ -182,7 +198,7 @@ class ShelfPage(Adw.NavigationPage):
         if store.get_n_items() == 0:
             self.stack.set_visible_child(self.empty)
 
-    def _present_delete_confirm_adw(self, bobj):
+    def _present_delete_confirm_adw(self, book: Book):
         """删除确认
 
         Args:
@@ -192,7 +208,7 @@ class ShelfPage(Adw.NavigationPage):
             transient_for=self.get_root(),
             modal=True,
             heading="确认删除？",
-            body=f"将从书库移除《{getattr(bobj, 'name', '未命名')}》。\n此操作不可撤销。",
+            body=f"将从书库移除《{book.name}》。\n此操作不可撤销。",
         )
         dlg.add_response("cancel", "取消")
         dlg.add_response("delete", "删除")
@@ -203,7 +219,7 @@ class ShelfPage(Adw.NavigationPage):
 
         def _on_resp(_d, resp):
             if resp == "delete":
-                self._do_delete_row(bobj)
+                self._do_delete_row(book)
         dlg.connect("response", _on_resp)
         dlg.present()
 

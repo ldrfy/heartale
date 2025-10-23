@@ -3,6 +3,7 @@
   <gresource prefix="/cool/ldr/heartale">
     <file compressed="true" alias="shortcuts-dialog.ui" preprocess="xml-stripblanks">shortcuts-dialog.ui</file>
     <file preprocess="xml-stripblanks">window.ui</file>
+    <file preprocess="xml-stripblanks">properties_view.ui</file>
     <file preprocess="xml-stripblanks">reader_page.ui</file>
     <file preprocess="xml-stripblanks">shelf_page.ui</file>
     <file preprocess="xml-stripblanks">shelf_row.ui</file>

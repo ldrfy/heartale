@@ -63,5 +63,13 @@
         <signal name="clicked" handler="_on_book_statistics"/>
       </object>
     </child>
+    <child>
+      <object class="GtkToggleButton" id="btn_info">
+        <property name="icon-name">info-outline-symbolic</property>
+        <property name="tooltip-text">详细信息</property>
+        <property name="valign">center</property>
+        <signal name="toggled" handler="_on_show_info"/>
+      </object>
+    </child>
   </template>
 </interface>

@@ -2,9 +2,9 @@
 <!-- Created with Cambalache 0.96.1 -->
 <interface>
   <!-- interface-name shelf_page.ui -->
-  <requires lib="adw" version="1.4"/>
+  <requires lib="adw" version="1.7"/>
   <requires lib="gio" version="2.0"/>
-  <requires lib="gtk" version="4.12"/>
+  <requires lib="gtk" version="4.14"/>
   <requires lib="libadwaita" version="1.7"/>
   <menu id="primary_menu">
     <section>
@@ -114,21 +114,56 @@
                     </child>
                   </object>
                 </child>
+
                 <child>
-                  <object class="GtkScrolledWindow" id="scroller">
-                    <property name="child">
-                      <object class="GtkListView" id="list">
-                        <property name="single-click-activate">true</property>
-                        <signal name="activate" handler="_on_shelf_activate"/>
-                        <style>
-                          <class name="navigation-sidebar"/>
-                        </style>
-                      </object>
-                    </property>
-                    <property name="hexpand">true</property>
-                    <property name="vexpand">true</property>
-                  </object>
+                <object class="AdwMultiLayoutView" id="mlv_bookshelf">
+
+                    <child>
+                        <object class="AdwLayout">
+                            <property name="name">wide</property>
+                            <property name="content">
+                            <object class="AdwOverlaySplitView" id="properties_split_view">
+                                <property name="sidebar-position">end</property>
+                                <property name="min-sidebar-width">255</property>
+                                <property name="show-sidebar">false</property>
+                                <property name="sidebar">
+                                    <object class="AdwLayoutSlot">
+                                        <property name="id">properties</property>
+                                    </object>
+                                </property>
+                                <property name="content">
+                                    <object class="AdwLayoutSlot">
+                                        <property name="id">list</property>
+                                    </object>
+                                </property>
+                            </object>
+                            </property>
+                        </object>
+                    </child>
+
+                    <child type="list">
+                        <object class="GtkScrolledWindow" id="scroller">
+                            <property name="child">
+                            <object class="GtkListView" id="list">
+                                <property name="single-click-activate">true</property>
+                                <signal name="activate" handler="_on_shelf_activate"/>
+                                <style>
+                                <class name="navigation-sidebar"/>
+                                </style>
+                            </object>
+                            </property>
+                            <property name="hexpand">true</property>
+                            <property name="vexpand">true</property>
+                        </object>
+                    </child>
+
+                    <child type="properties">
+                        <object class="HPropertiesView" id="hpv_book" />
+                    </child>
+
+                </object>
                 </child>
+
               </object>
             </child>
           </object>

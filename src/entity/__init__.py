@@ -40,6 +40,9 @@ class LibraryDB:
 
         # 保证存在 chap_all, author 等（同你之前的逻辑）
         stmts = []
+        if "create_date" not in book_cols:
+            stmts.append(
+                "ALTER TABLE books ADD COLUMN create_date INTEGER NOT NULL DEFAULT 0")
         if "sort" not in book_cols:
             stmts.append(
                 "ALTER TABLE books ADD COLUMN sort REAL NOT NULL DEFAULT 0")
