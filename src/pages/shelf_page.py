@@ -33,8 +33,7 @@ class ShelfPage(Adw.NavigationPage):
     gl_shelf_read_time: Gtk.Label = Gtk.Template.Child()
 
     search: Gtk.SearchEntry = Gtk.Template.Child()
-    btn_search: Gtk.ToggleButton = Gtk.Template.Child()
-    rev_search: Gtk.Revealer = Gtk.Template.Child()
+    btn_show_search: Gtk.ToggleButton = Gtk.Template.Child()
     btn_sync: Gtk.Button = Gtk.Template.Child()
     spinner_sync: Gtk.Spinner = Gtk.Template.Child()
 
@@ -133,7 +132,7 @@ class ShelfPage(Adw.NavigationPage):
         sc = Gtk.ShortcutController()
         sc.add_shortcut(Gtk.Shortcut.new(
             Gtk.ShortcutTrigger.parse_string("<Control>F"),
-            Gtk.CallbackAction.new(lambda *_: (self.btn_search.set_active(True),
+            Gtk.CallbackAction.new(lambda *_: (self.btn_show_search.set_active(True),
                                                self.search.grab_focus(), True))
         ))
         self.add_controller(sc)
@@ -346,17 +345,13 @@ class ShelfPage(Adw.NavigationPage):
     @Gtk.Template.Callback()
     def _on_search_toggle(self, btn: Gtk.ToggleButton):
         if btn.get_active():
-            self.rev_search.set_reveal_child(True)
             GLib.idle_add(self.search.grab_focus)
-        else:
-            self._on_search_stop(self)
 
     @Gtk.Template.Callback()
     def _on_search_stop(self, *_):
         # Esc 或点叉关闭搜索
         self.search.set_text("")
-        self.rev_search.set_reveal_child(False)
-        self.btn_search.set_active(False)
+        self.btn_show_search.set_active(False)
         self._apply_search()  # 触发一次“显示全部”
 
     @Gtk.Template.Callback()

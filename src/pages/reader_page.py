@@ -30,16 +30,17 @@ class ReaderPage(Adw.NavigationPage):
     """
     __gtype_name__ = "ReaderPage"
 
+    btn_prev_chap: Gtk.Button = Gtk.Template.Child()
+    btn_next_chap: Gtk.Button = Gtk.Template.Child()
+
     # 这些 id 必须与 .ui 一致
     title: Adw.WindowTitle = Gtk.Template.Child()
     gtv_text: Gtk.TextView = Gtk.Template.Child()
     gsw_text: Gtk.ScrolledWindow = Gtk.Template.Child()
 
     toc: Gtk.ListView = Gtk.Template.Child()
-    gr_toc: Gtk.Revealer = Gtk.Template.Child()
     gse_toc: Gtk.SearchEntry = Gtk.Template.Child()
     btn_show_search: Gtk.ToggleButton = Gtk.Template.Child()
-    btn_toggle_sidebar: Gtk.ToggleButton = Gtk.Template.Child()
 
     stack: Adw.ViewStack = Gtk.Template.Child()
 
@@ -82,6 +83,8 @@ class ReaderPage(Adw.NavigationPage):
         self.t = time.time()
         self._search_debounce_id = 0
         self._server = None
+        self.btn_prev_chap.set_sensitive(True)
+        self.btn_next_chap.set_sensitive(True)
         self._on_set_default()
         self._on_search_toc_stop()
 
@@ -151,6 +154,8 @@ class ReaderPage(Adw.NavigationPage):
             print("已切换书籍，忽略错误显示")
             return False
 
+        self.stack.set_visible_child(self.aos_reader)
+
         self.chap_ns = range(len(self._server.chap_names))
 
         self._toc_sel = Gtk.SingleSelection.new(
@@ -158,8 +163,6 @@ class ReaderPage(Adw.NavigationPage):
         self.toc.set_model(self._toc_sel)
 
         self.set_chap_text()
-
-        self.stack.set_visible_child(self.aos_reader)
 
         def sel_chap_name():
             """选中目录
@@ -191,6 +194,9 @@ class ReaderPage(Adw.NavigationPage):
             chap_n (int): 章节编号
         """
 
+        self.btn_prev_chap.set_sensitive(False)
+        self.btn_next_chap.set_sensitive(False)
+
         self.spinner_sync.start()
 
         def _ui_update(chap_name):
@@ -202,6 +208,9 @@ class ReaderPage(Adw.NavigationPage):
             self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
             self.spinner_sync.stop()
+
+            self.btn_prev_chap.set_sensitive(True)
+            self.btn_next_chap.set_sensitive(True)
 
         def worker(chap_n):
             if chap_n > 0:
@@ -323,11 +332,6 @@ class ReaderPage(Adw.NavigationPage):
         self.set_data(self._server.book)  # 重试加载当前书
 
     @Gtk.Template.Callback()
-    def _on_toggle_sidebar(self, *_args):
-        self.aos_reader.set_show_sidebar(
-            not self.btn_toggle_sidebar.get_active())
-
-    @Gtk.Template.Callback()
     def _on_next_chap(self, *_args):
         self._server.book.chap_n += 1
         self._server.book.chap_txt_pos = 0
@@ -405,7 +409,6 @@ class ReaderPage(Adw.NavigationPage):
     @Gtk.Template.Callback()
     def _on_search_toc_stop(self, *_) -> None:
         self.gse_toc.set_text("")
-        self.gr_toc.set_reveal_child(False)
         self.btn_show_search.set_active(False)
 
         if not self._server:
@@ -437,9 +440,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_show_search_toc(self, btn: Gtk.ToggleButton) -> None:
-        active = btn.get_active()
-        self.gr_toc.set_reveal_child(active)
-        if active:
+        if btn.get_active():
             GLib.idle_add(self.gse_toc.grab_focus)
 
     @Gtk.Template.Callback()

@@ -37,7 +37,8 @@
             <property name="spacing">6</property>
             <child>
               <object class="GtkRevealer" id="rev_search">
-                <property name="reveal-child">false</property>
+                <property name="reveal-child" bind-source="btn_show_search" bind-property="active" bind-flags="bidirectional|sync-create" />
+
                 <child>
                   <object class="GtkSearchEntry" id="search">
                     <property name="margin-end">36</property>
@@ -192,7 +193,7 @@
               </object>
             </property>
             <child type="start">
-              <object class="GtkToggleButton" id="btn_search">
+              <object class="GtkToggleButton" id="btn_show_search">
                 <property name="icon-name">system-search-symbolic</property>
                 <property name="tooltip-text">搜索</property>
                 <signal name="toggled" handler="_on_search_toggle"/>

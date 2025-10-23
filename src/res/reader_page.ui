@@ -95,7 +95,7 @@
                         <property name="orientation">horizontal</property>
                         <property name="spacing">64</property>
                         <child>
-                          <object class="GtkButton" id="btn_clear_search">
+                          <object class="GtkButton" id="btn_prev_chap">
                             <property name="margin-bottom">8</property>
                             <property name="margin-top">8</property>
                             <signal name="clicked" handler="_on_last_chap"/>
@@ -108,7 +108,7 @@
                           </object>
                         </child>
                         <child>
-                          <object class="GtkButton">
+                          <object class="GtkButton" id="btn_next_chap">
                             <property name="margin-bottom">8</property>
                             <property name="margin-top">8</property>
                             <signal name="clicked" handler="_on_next_chap"/>
@@ -128,7 +128,7 @@
                   </object>
                 </property>
                 <property name="hexpand">true</property>
-                <property name="show-sidebar">true</property>
+                <property name="show-sidebar" bind-source="btn_toggle_sidebar" bind-property="active" bind-flags="bidirectional|sync-create" />
 
                 <property name="sidebar">
                 <object class="GtkBox" id="gb_toc">
@@ -137,15 +137,16 @@
                     <property name="hexpand">true</property>
                     <child>
                     <object class="GtkRevealer" id="gr_toc">
-                        <property name="reveal-child">false</property>
+                        <property name="reveal-child" bind-source="btn_show_search" bind-property="active" bind-flags="bidirectional|sync-create" />
                         <child>
                         <object class="GtkSearchEntry" id="gse_toc">
+                            <property name="margin-top">5</property>
+                            <property name="margin-bottom">5</property>
                             <property name="margin-end">36</property>
                             <property name="margin-start">36</property>
                             <property name="placeholder-text">搜索目录…</property>
                             <property name="width-chars">20</property>
                             <signal name="search-changed" handler="_on_search_toc_changed"/>
-                            <!-- 按 Esc 或点叉触发 -->
                             <signal name="stop-search" handler="_on_search_toc_stop"/>
                         </object>
                         </child>
@@ -193,22 +194,24 @@
                 </child>
                 </object>
             </property>
-            <child type="start">
-            <object class="GtkToggleButton" id="btn_show_search">
-                <property name="icon-name">system-search-symbolic</property>
-                <property name="tooltip-text">搜索</property>
-                <property name="active">false</property>
-                <signal name="clicked" handler="_on_show_search_toc"/>
-              </object>
-            </child>
 
             <child type="start">
               <object class="GtkToggleButton" id="btn_toggle_sidebar">
                 <property name="icon-name">sidebar-show-symbolic</property>
                 <property name="tooltip-text">显示/隐藏目录</property>
-                <signal name="clicked" handler="_on_toggle_sidebar"/>
               </object>
             </child>
+
+            <child type="start">
+            <object class="GtkToggleButton" id="btn_show_search">
+                <property name="visible" bind-source="btn_toggle_sidebar" bind-property="active" bind-flags="bidirectional|sync-create" />
+                <property name="icon-name">system-search-symbolic</property>
+                <property name="tooltip-text">搜索</property>
+                <signal name="clicked" handler="_on_show_search_toc"/>
+
+              </object>
+            </child>
+
             <child type="start">
               <object class="GtkSpinner" id="spinner_sync">
                 <property name="margin-end">8</property>
