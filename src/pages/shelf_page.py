@@ -101,7 +101,7 @@ class ShelfPage(Adw.NavigationPage):
         self.books = books
 
         gls: Gio.ListStore = Gio.ListStore.new(BookObject)
-        for b in books:
+        for b in self.books:
             gls.append(BookObject.from_dataclass(b))
         # liststore 应为 Gio.ListStore(BookObject)
         selection_model = Gtk.SingleSelection.new(gls)
@@ -109,6 +109,7 @@ class ShelfPage(Adw.NavigationPage):
         self.stack.set_visible_child(self.mlv_bookshelf)
         selection_model.connect("selection-changed",
                                 self._on_selection_changed)
+        self.hpv_book.set_data(self.books[0])
 
     def _install_shortcuts(self):
         sc = Gtk.ShortcutController()
@@ -143,7 +144,8 @@ class ShelfPage(Adw.NavigationPage):
         self.list.set_factory(factory)
 
     def _on_selection_changed(self, model: Gtk.SelectionModel, *_args):
-        self.hpv_book.set_data(self.books[model.get_selected()])
+        book = self.books[model.get_selected()]
+        self.hpv_book.set_data(book)
 
     def _on_shelfrow_top(self, book: Book):
         db = LibraryDB()
@@ -255,7 +257,7 @@ class ShelfPage(Adw.NavigationPage):
         paths = []
         for f in files:
             paths.append(f.get_path())
-        books = []
+        books: list[Book] = []
         s_error = ""
         for path in paths:
             try:
@@ -266,14 +268,6 @@ class ShelfPage(Adw.NavigationPage):
                 continue
             books.append(book)
 
-        if len(books) > 0:
-            db = LibraryDB()
-            for b in books:
-                db.save_book(b)
-            books_ = list(db.iter_books())
-            db.close()
-            self.build_bookshel(books_)
-
         if s_error:
             edlg = Adw.MessageDialog.new(self.get_root(),
                                          "导入部分失败", s_error)
@@ -282,6 +276,26 @@ class ShelfPage(Adw.NavigationPage):
             edlg.set_close_response("ok")
             edlg.present()
             return
+        
+        if len(books) == 0:
+            return
+
+        db = LibraryDB()
+        for b in books:
+            print("导入书籍：", b)
+            b_ = db.get_book_by_md5(b.md5)
+            if b_:
+                b.create_date = b_.create_date
+                b.chap_name = b_.chap_name
+                b.chap_n = b_.chap_n
+                b.chap_txt_pos = b_.chap_txt_pos
+                b.txt_pos = b_.txt_pos
+                b.sort = b_.sort
+            db.save_book(b)
+
+        books_ = list(db.iter_books())
+        db.close()
+        self.build_bookshel(books_)
 
         self.get_root().toast_msg("书籍导入完成")
 
@@ -322,10 +336,11 @@ class ShelfPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_search_toggle(self, btn: Gtk.ToggleButton):
-        active = btn.get_active()
-        self.rev_search.set_reveal_child(active)
-        if active:
+        if btn.get_active():
+            self.rev_search.set_reveal_child(True)
             GLib.idle_add(self.search.grab_focus)
+        else:
+            self._on_search_stop(self)
 
     @Gtk.Template.Callback()
     def _on_search_stop(self, *_):

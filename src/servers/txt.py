@@ -200,4 +200,5 @@ def path2book(src: str, cfg_dir: Path = PATH_CONFIG_BOOKS) -> Book:
     dest = cfg_dir / src_path.name
     shutil.copy(src_path, dest)
     md5 = cal_md5(dest)
-    return Book(str(dest), dest.stem, "", 0, chap_all, 0, 0, txt_all, enc, md5)
+    return Book(str(dest), dest.stem, "", 0, chap_names[0],
+                chap_all, 0, 0, txt_all, enc, md5)

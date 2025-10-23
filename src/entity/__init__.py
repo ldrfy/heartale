@@ -40,6 +40,9 @@ class LibraryDB:
 
         # 保证存在 chap_all, author 等（同你之前的逻辑）
         stmts = []
+        if "chap_name" not in book_cols:
+            stmts.append(
+                "ALTER TABLE books ADD COLUMN chap_name TEXT NOT NULL DEFAULT ''")
         if "create_date" not in book_cols:
             stmts.append(
                 "ALTER TABLE books ADD COLUMN create_date INTEGER NOT NULL DEFAULT 0")
@@ -161,18 +164,21 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, sort, update_date)
-        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :sort, :update_date)
+        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_name, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, sort, update_date, create_date)
+        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_name, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :sort, :update_date, :create_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
             author=excluded.author,
+            chap_n=excluded.chap_n,
+            chap_name=excluded.chap_name,
             chap_all=excluded.chap_all,
             txt_all=excluded.txt_all,
             encoding=excluded.encoding,
             sort=excluded.sort,
             fmt=excluded.fmt,
-            update_date=excluded.update_date
+            update_date=excluded.update_date,
+            create_date=excluded.create_date
         """, {
             "md5": book.md5,
             "path": book.path,
@@ -180,6 +186,7 @@ class LibraryDB:
             "author": book.author,
             "fmt": book.fmt,
             "chap_n": book.chap_n,
+            "chap_name": book.chap_name,
             "chap_all": book.chap_all,
             "chap_txt_pos": book.chap_txt_pos,
             "txt_all": book.txt_all,
@@ -187,6 +194,7 @@ class LibraryDB:
             "encoding": book.encoding,
             "sort": book.sort,
             "update_date": book.update_date,
+            "create_date": book.create_date,
         })
 
     def update_book(self, book: Book) -> None:
@@ -195,14 +203,15 @@ class LibraryDB:
         """
         cur = self.conn.cursor()
         cur.execute("""
-        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, sort, update_date)
-        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :sort, :update_date)
+        INSERT INTO books(md5, path, name, author, fmt, chap_n, chap_name, chap_all, chap_txt_pos, txt_all, txt_pos, encoding, sort, update_date)
+        VALUES(:md5, :path, :name, :author, :fmt, :chap_n, :chap_name, :chap_all, :chap_txt_pos, :txt_all, :txt_pos, :encoding, :sort, :update_date)
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
             name=excluded.name,
             author=excluded.author,
             fmt=excluded.fmt,
             chap_n=excluded.chap_n,
+            chap_name=excluded.chap_name,
             chap_all=excluded.chap_all,
             chap_txt_pos=excluded.chap_txt_pos,
             txt_all=excluded.txt_all,
@@ -217,12 +226,14 @@ class LibraryDB:
             "author": book.author,
             "fmt": book.fmt,
             "chap_n": book.chap_n,
+            "chap_name": book.chap_name,
             "chap_all": book.chap_all,
             "chap_txt_pos": book.chap_txt_pos,
             "txt_all": book.txt_all,
             "txt_pos": book.txt_pos,
             "encoding": book.encoding,
             "sort": book.sort,
+            "create_date": book.create_date,
             "update_date": book.update_date,
         })
 
@@ -254,6 +265,7 @@ class LibraryDB:
             author=row["author"],
             fmt=row["fmt"],
             chap_n=row["chap_n"],
+            chap_name=row["chap_name"],
             chap_all=row["chap_all"],
             chap_txt_pos=row["chap_txt_pos"],
             txt_all=row["txt_all"],
@@ -261,7 +273,8 @@ class LibraryDB:
             encoding=row["encoding"],
             sort=row["sort"],
             md5=row["md5"],
-            update_date=row["update_date"]
+            create_date=row["create_date"],
+            update_date=row["update_date"],
         )
 
     def search_books_by_name(self, name_pattern: str, limit: int = 100) -> List[Book]:
@@ -282,6 +295,7 @@ class LibraryDB:
                 author=r["author"],
                 fmt=r["fmt"],
                 chap_n=r["chap_n"],
+                chap_name=r["chap_name"],
                 chap_all=r["chap_all"],
                 chap_txt_pos=r["chap_txt_pos"],
                 txt_all=r["txt_all"],
@@ -289,7 +303,8 @@ class LibraryDB:
                 encoding=r["encoding"],
                 sort=r["sort"],
                 md5=r["md5"],
-                update_date=r["update_date"]
+                update_date=r["update_date"],
+                create_date=r["create_date"],
             ) for r in rows
         ]
 
@@ -305,9 +320,10 @@ class LibraryDB:
         for r in cur:
             yield Book(
                 path=r["path"], name=r["name"], author=r["author"], fmt=r["fmt"],
-                chap_n=r["chap_n"], chap_all=r["chap_all"], chap_txt_pos=r["chap_txt_pos"],
-                txt_all=r["txt_all"], txt_pos=r["txt_pos"], encoding=r["encoding"],
-                sort=r["sort"], md5=r["md5"], update_date=r["update_date"]
+                chap_n=r["chap_n"], chap_name=r["chap_name"], chap_all=r["chap_all"],
+                chap_txt_pos=r["chap_txt_pos"], txt_all=r["txt_all"], txt_pos=r["txt_pos"],
+                encoding=r["encoding"], sort=r["sort"], md5=r["md5"], create_date=r["create_date"],
+                update_date=r["update_date"]
             )
 
     def get_max_sort(self) -> float:
@@ -315,7 +331,7 @@ class LibraryDB:
 
         Returns:
             float: _description_
-        """    
+        """
         cur = self.conn.cursor()
         cur.execute("SELECT MAX(sort) as max_sort FROM books")
         row = cur.fetchone()

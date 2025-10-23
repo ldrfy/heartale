@@ -107,12 +107,13 @@ class LegadoServer(Server):
         self.book.name = self.book_data["name"]
         self.book.author = self.book_data["author"]
         self.book.chap_all = self.book_data["totalChapterNum"]
+        self.chap_names = self._get_chap_names()
+
         self.save_read_progress(
             self.book_data[CHAP_INDEX],
             self.book_data[CHAP_POS]-1
         )
 
-        self.chap_names = self._get_chap_names()
         self.bd.update_chap_txts(
             self.get_chap_txt(self.book.chap_n),
             self.book.chap_txt_pos
@@ -272,9 +273,11 @@ def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
             author = b["author"]
             s_error += f"同步 Legado 书籍：{name} 作者：{author}\n"
 
-            md5 = hashlib.md5(f"legado-{name}-{author}".encode("utf-8")).hexdigest()
+            md5 = hashlib.md5(f"legado-{name}-{author}"
+                              .encode("utf-8")).hexdigest()
             book = Book(url_base, name, author, b["durChapterIndex"],
-                        b["totalChapterNum"], b["durChapterPos"], 0,
+                        b["durChapterTitle"], b["totalChapterNum"],
+                        b["durChapterPos"], 0,
                         get_txt_all(b), "utf-8", md5)
             book.fmt = BOOK_FMT_LEGADO
             db.save_book(book)

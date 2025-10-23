@@ -168,6 +168,7 @@ class Server:
         self.bd.chap_txt_n = chap_txt_pos
 
         self.book.chap_n = chap_n
+        self.book.chap_name = self.get_chap_name(chap_n)
         self.book.chap_txt_pos = chap_txt_pos
         self.book.update_date = int(datetime.now().timestamp())
 
