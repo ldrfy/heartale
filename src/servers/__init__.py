@@ -39,7 +39,6 @@ class BookData():
         self.chap_txt = chap_content
         self.chap_txts, self.chap_txt_p2s, self.chap_txt_n = \
             split_text(chap_content, chap_txt_pos)
-        print("----", len(self.chap_txts), self.chap_txt_n)
 
     def get_chap_txt_pos(self):
         """本章节的位置，需要保存

@@ -262,8 +262,6 @@ class ReaderPage(Adw.NavigationPage):
         self.toc.set_factory(factory)
 
         def on_activate(_listview, position):
-            print("激活", position)
-            # position 是被激活项的索引
             self._on_toc_chapter_activated(int(position))
 
         self.toc.connect("activate", on_activate)

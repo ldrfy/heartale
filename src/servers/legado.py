@@ -108,6 +108,9 @@ class LegadoServer(Server):
         self.book.name = self.book_data["name"]
         self.book.author = self.book_data["author"]
         self.book.chap_all = self.book_data["totalChapterNum"]
+        self.book.chap_n = self.book_data[CHAP_INDEX]
+        self.book.chap_txt_pos = self.book_data[CHAP_POS]-1
+
         self.chap_names = self._get_chap_names()
 
         self.bd.update_chap_txts(
@@ -116,8 +119,8 @@ class LegadoServer(Server):
         )
 
         self.save_read_progress(
-            self.book_data[CHAP_INDEX],
-            self.book_data[CHAP_POS]-1
+            self.book.chap_n,
+            self.book.chap_txt_pos
         )
 
         self.init = False
