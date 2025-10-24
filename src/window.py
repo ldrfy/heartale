@@ -36,6 +36,7 @@ class HeartaleWindow(Adw.ApplicationWindow):
 
         if isinstance(page, ShelfPage):
             self._shelf_page.reload_bookshel()
+            self._reader_page.clear_data()
 
     def toast_msg(self, toast_msg):
         """在 main.py 中的通知

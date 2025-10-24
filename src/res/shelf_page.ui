@@ -118,32 +118,14 @@
                 </child>
 
                 <child>
-                <object class="AdwMultiLayoutView" id="mlv_bookshelf">
-
-                    <child>
-                        <object class="AdwLayout">
-                            <property name="name">wide</property>
-                            <property name="content">
-                            <object class="AdwOverlaySplitView" id="properties_split_view">
-                                <property name="sidebar-position">end</property>
-                                <property name="min-sidebar-width">255</property>
-                                <property name="show-sidebar" bind-source="properties_button" bind-property="active" bind-flags="bidirectional|sync-create" />
-                                <property name="sidebar">
-                                    <object class="AdwLayoutSlot">
-                                        <property name="id">properties</property>
-                                    </object>
-                                </property>
-                                <property name="content">
-                                    <object class="AdwLayoutSlot">
-                                        <property name="id">list</property>
-                                    </object>
-                                </property>
-                            </object>
-                            </property>
-                        </object>
-                    </child>
-
-                    <child type="list">
+                <object class="AdwOverlaySplitView" id="aos_shelf">
+                    <property name="sidebar-position">end</property>
+                    <property name="min-sidebar-width">255</property>
+                    <property name="show-sidebar" bind-source="properties_button" bind-property="active" bind-flags="bidirectional|sync-create" />
+                    <property name="sidebar">
+                        <object class="HPropertiesView" id="hpv_book" />
+                    </property>
+                    <property name="content">
                         <object class="GtkScrolledWindow" id="scroller">
                             <property name="child">
                             <object class="GtkListView" id="list">
@@ -157,12 +139,7 @@
                             <property name="hexpand">true</property>
                             <property name="vexpand">true</property>
                         </object>
-                    </child>
-
-                    <child type="properties">
-                        <object class="HPropertiesView" id="hpv_book" />
-                    </child>
-
+                    </property>
                 </object>
                 </child>
 

@@ -57,8 +57,6 @@ class ReaderPage(Adw.NavigationPage):
 
     def __init__(self, nav: Adw.NavigationView, ** kwargs):
         super().__init__(**kwargs)
-        # 可选：确保启动即在加载页（也可直接在 .ui 里设 visible-child-name）
-        # self.set_state(self.PAGE_LOADING)
 
         self._nav = nav
         self.t = 0
@@ -75,6 +73,15 @@ class ReaderPage(Adw.NavigationPage):
         self.ptc.set_on_paragraph_click(self._on_click_paragraph)
         self.ptc.set_on_visible_paragraph_changed(self._set_read_jd)
 
+    def clear_data(self):
+        """清理数据
+        """
+        self._server = None
+        self._toc_sel = None
+        self.chap_ns = []
+        self.ptc.clear()
+        self.stack.set_visible_child(self.page_loading)
+
     def set_data(self, book: Book):
         """在子线程读取与解析章节，主线程更新 UI。
 
@@ -83,7 +90,7 @@ class ReaderPage(Adw.NavigationPage):
         """
         self.t = time.time()
         self._search_debounce_id = 0
-        self._server = None
+
         self.btn_prev_chap.set_sensitive(True)
         self.btn_next_chap.set_sensitive(True)
         self._on_set_default()
@@ -92,7 +99,7 @@ class ReaderPage(Adw.NavigationPage):
         self.title.set_title(book.name or "")
         self.title.set_subtitle(book.get_jd_str())
 
-        self.stack.set_visible_child(self.page_loading)
+        self.clear_data()
 
         def update_ui(_b: Book, err: Exception):
             """仅在主线程运行：统一错误处理。"""
@@ -411,7 +418,6 @@ class ReaderPage(Adw.NavigationPage):
         self._apply_search()
 
     def _apply_search(self, kw_=""):
-        print(f"搜索章节：{kw_}")
 
         def update_ui():
             self.toc.set_model(self._toc_sel)

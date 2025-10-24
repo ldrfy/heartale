@@ -5,8 +5,6 @@ import re
 import shutil
 from pathlib import Path
 
-from charset_normalizer import from_path
-
 from .. import PATH_CONFIG_BOOKS
 from ..entity.book import Book
 from ..utils.debug import get_logger
@@ -168,8 +166,7 @@ def detect_encoding(path: Path, sample_size: int = 65536) -> str:
             get_logger().error("尝试用 %s 解码失败: %s", enc, e)
 
             continue
-    result = from_path(path).best()
-    return result.encoding
+    return "utf-8"
     # raise ValueError(f"Unable to recognize file encoding: {path}")
 
 

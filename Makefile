@@ -2,8 +2,7 @@ TO_LANG=zh_CN
 VERSION=0.1.0
 NAME=heartale
 APP_ID=cool.ldr.${NAME}
-DESTDIR = "/"
-PREFIX = "${PWD}/test/"
+PREFIX = "/usr/"
 BASE_URL = https://github.com/ldrfy/${NAME}/releases/download/auto
 
 update-pot:
@@ -26,12 +25,11 @@ build:
 	meson test -C build
 	# meson dist -C build --allow-dirty
 
-test:build
-	DESTDIR=${DESTDIR} meson install -C build
-
-
-install: test
-	$(MAKE) test PREFIX="${HOME}/.local/"
+install: build
+	$(MAKE) build PREFIX=${HOME}/.local/
+# 	安装位置与PREFIX不一致时使用DESTDIR
+# 	DESTDIR=${HOME}/.local/ meson install -C build
+	meson install -C build
 	${NAME}
 
 uninstall:
@@ -98,7 +96,7 @@ pkg_flatpak: clear build build_zip pkg_flatpak_
 PATH_DEB = build/pkg/deb/
 
 pkg_deb_:
-	$(MAKE) test PREFIX="${PWD}/${PATH_DEB}/usr"
+	DESTDIR=../${PATH_DEB} meson install -C build
 
 	cd "${PWD}/${PATH_DEB}/../" && \
 	dpkg -b deb ./deb/${NAME}-${VERSION}-x86_64.deb
@@ -127,7 +125,8 @@ pkg_rpm_:
 pkg_rpm: clear build build_zip pkg_rpm_
 
 
-pkg_all: clear build build_zip pkg_flatpak_ pkg_aur_
+pkg_all: clear build build_zip pkg_aur_ pkg_deb_ pkg_rpm_ pkg_flatpak_
+	cp dist/* ${HOME}/data/my/vmware/files
 
 
 

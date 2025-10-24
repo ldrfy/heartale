@@ -40,14 +40,14 @@ class ShelfPage(Adw.NavigationPage):
     list: Gtk.ListView = Gtk.Template.Child()
     stack: Adw.ViewStack = Gtk.Template.Child()
     scroller: Gtk.ScrolledWindow = Gtk.Template.Child()
-    mlv_bookshelf: Adw.MultiLayoutView = Gtk.Template.Child()
+
     hpv_book: HPropertiesView = Gtk.Template.Child()
     gb_bookshelf: Gtk.Box = Gtk.Template.Child()
     empty: Adw.StatusPage = Gtk.Template.Child()
     search_empty: Adw.StatusPage = Gtk.Template.Child()
     btn_import: Gtk.Button = Gtk.Template.Child()
 
-    properties_split_view: Adw.OverlaySplitView = Gtk.Template.Child()
+    aos_shelf: Adw.OverlaySplitView = Gtk.Template.Child()
 
     def __init__(self, nav: Adw.NavigationView, reader_page: ReaderPage, **kwargs):
         super().__init__(**kwargs)
@@ -123,7 +123,7 @@ class ShelfPage(Adw.NavigationPage):
         # liststore 应为 Gio.ListStore(BookObject)
         selection_model = Gtk.SingleSelection.new(gls)
         self.list.set_model(selection_model)
-        self.stack.set_visible_child(self.mlv_bookshelf)
+        self.stack.set_visible_child(self.aos_shelf)
         selection_model.connect("selection-changed",
                                 self._on_selection_changed)
         self.hpv_book.set_data(self.books[0])
