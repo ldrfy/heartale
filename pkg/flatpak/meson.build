@@ -1,6 +1,6 @@
 configure_file(
-  input: 'cool.ldr.lfy.yaml',
-  output: 'cool.ldr.lfy.yaml',
+  input: 'cool.ldr.heartale.yaml',
+  output: 'cool.ldr.heartale.yaml',
   configuration: conf_pkg,
   install: false,
 )
