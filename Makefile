@@ -14,6 +14,12 @@ update-pot:
 			--add-comments=TRANSLATORS \
 			--files-from=./po/POTFILES
 
+po-init:
+	msginit -i ./po/${NAME}.pot -o ./po/${TO_LANG}.po
+
+update-po:
+	msgmerge -U ./po/${TO_LANG}.po ./po/${NAME}.pot
+
 clear:
 	rm -rf build test
 	mkdir -p dist
@@ -30,24 +36,14 @@ install: build
 # 	安装位置与PREFIX不一致时使用DESTDIR
 # 	DESTDIR=${HOME}/.local/ meson install -C build
 	meson install -C build
-	${NAME}
+	${HOME}/.local/bin/${NAME}
 
 uninstall:
-	rm -rf ${HOME}/.local/share/${NAME}
-	rm -rf ${HOME}/.local/share/applications/${APP_ID}.desktop
-	rm -rf ${HOME}/.local/share/dbus-1/services/${APP_ID}.service
-	rm -rf ${HOME}/.local/share/metainfo/${APP_ID}.metainfo.xml
-	rm -rf ${HOME}/.local/share/icons/hicolor/scalable/apps/${APP_ID}.svg
-	rm -rf ${HOME}/.local/share/icons/hicolor/symbolic/apps/${APP_ID}-symbolic.svg
-	rm -rf ${HOME}/.local/share/metainfo/${APP_ID}.metainfo.xml
-	rm -rf ${HOME}/.local/share/glib-2.0/schemas/${APP_ID}.gschema.xml
-	rm -rf ${HOME}/.local/share/glib-2.0/schemas/gschemas.compiled
-	rm -rf ${HOME}/.local/lib/${NAME}
-	rm -rf ${HOME}/.local/bin/${NAME}
-	rm -rf /tmp/v${VERSION}.zip
-	rm -rf /tmp/${NAME}-${VERSION}
+	cd build && ninja uninstall
 
-PATH_ZIP = test/zip/${NAME}-${VERSION}/
+
+FILE_NAME_ZIP = ${NAME}-${VERSION}
+PATH_ZIP = test/zip/${FILE_NAME_ZIP}/
 build_zip:
 	mkdir -p ${PATH_ZIP}
 	cp -r data ${PATH_ZIP}
@@ -57,11 +53,11 @@ build_zip:
 	cp -r meson.build ${PATH_ZIP}
 	cp -r COPYING ${PATH_ZIP}
 	cd ${PATH_ZIP}/../ && \
-	zip -r ${NAME}-${VERSION}.zip ${NAME}-${VERSION}
+	zip -r ${FILE_NAME_ZIP}.zip ${NAME}-${VERSION}
 
 PATH_AUR = build/pkg/aur/
 pkg_aur_:
-	cp ${PATH_ZIP}/../${NAME}-${VERSION}.zip ${PATH_AUR}
+	cp ${PATH_ZIP}/../${FILE_NAME_ZIP}.zip ${PATH_AUR}
 
 	cd build/pkg/aur/ && \
 	makepkg -sf
@@ -76,14 +72,13 @@ pkg_aur: clear build build_zip pkg_aur_
 PATH_FLATPAK = build/pkg/flatpak/
 pkg_flatpak_:
 	mkdir -p ${PATH_FLATPAK}
-	cp pkg/flatpak/* ${PATH_FLATPAK}
-	cp ${PATH_ZIP}/../${NAME}-${VERSION}.zip ${PATH_FLATPAK}
+	cp ${PATH_ZIP}/../${FILE_NAME_ZIP}.zip ${PATH_FLATPAK}
 
 	cd ${PATH_FLATPAK} && \
-	unzip ${NAME}-${VERSION}.zip && \
+	unzip ${FILE_NAME_ZIP}.zip && \
 	mv ${NAME}-${VERSION} ${NAME} && \
-	flatpak-builder --repo=repo build-dir cool.ldr.heartale.yaml && \
-	flatpak build-bundle repo cool.ldr.heartale.flatpak cool.ldr.heartale
+	flatpak-builder --repo=repo build-dir ${APP_ID}.yaml && \
+	flatpak build-bundle repo ${APP_ID}.flatpak ${APP_ID}
 
 	cp ${PATH_FLATPAK}/${APP_ID}.flatpak dist/${APP_ID}-${VERSION}.flatpak
 
@@ -110,7 +105,7 @@ PATH_RPM = build/pkg/rpm/
 pkg_rpm_:
 
 	mkdir -p ${PWD}/${PATH_RPM}/SOURCES/${NAME}-${VERSION} && \
-	cp ${PATH_ZIP}/../${NAME}-${VERSION}.zip ${PATH_RPM}/SOURCES/
+	cp ${PATH_ZIP}/../${FILE_NAME_ZIP}.zip ${PATH_RPM}/SOURCES/
 
 	rpmbuild -bb ${PWD}/${PATH_RPM}/SPECS/${NAME}.spec \
 		--define "_topdir ${PWD}/${PATH_RPM}/"
@@ -126,7 +121,7 @@ pkg_rpm: clear build build_zip pkg_rpm_
 
 
 pkg_all: clear build build_zip pkg_aur_ pkg_deb_ pkg_rpm_ pkg_flatpak_
-	cp dist/* ${HOME}/data/my/vmware/files
+	#cp dist/* ${HOME}/data/my/vmware/files
 
 
 

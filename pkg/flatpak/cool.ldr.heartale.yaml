@@ -1,8 +1,8 @@
-id: cool.ldr.heartale
+id: @APP_ID@
 runtime: org.gnome.Platform
 runtime-version: "49"
 sdk: org.gnome.Sdk
-command: heartale
+command: @APP_NAME@
 
 finish-args:
   - --share=network
@@ -21,15 +21,16 @@ cleanup:
   - /share/pkgconfig
   - "*.la"
   - "*.a"
+  - "*.pyc"
 
 modules:
   - "python3-requests.yaml"
-  - name: heartale
+  - name: @APP_NAME@
     builddir: true
     buildsystem: meson
     sources:
       - type: dir
-        path: ./heartale/
+        path: ./@APP_NAME@/
     config-opts:
       - --libdir=lib
 

@@ -6,7 +6,7 @@ Release: 1
 Summary: @APP_DES@
 Summary(zh_CN): 看小说、听小说
 License:  GPLv3+
-URL:      https://github.com/ldrfy/%{Name}
+URL:      @PACKAGE_URL@
 Source0:  %{Name}-%{version}.zip
 %global debug_package %{nil}
 Requires: @DEPS@
