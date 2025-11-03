@@ -60,6 +60,8 @@ class ParagraphTagController:
         self._font_pt = 14
         self._apply_font_size(self._font_pt)
 
+        self.paragraph_spacing = 0
+
     # ---------- 公共 API ----------
     def set_on_paragraph_click(self, callback):
         """
@@ -223,6 +225,8 @@ class ParagraphTagController:
         self._reapply_layout_tag()
         self._queue_emit_visible_idx()
 
+        self.paragraph_spacing = a+b
+
     def set_active_style(self, hex_color: str, bold: bool, underline: bool):
         """
         动态调整“活动段落”的文字样式（仅前景相关）。
@@ -356,7 +360,7 @@ class ParagraphTagController:
 
         # 在可视区域顶部向下偏移 2px，避开段间空白
         probe_x = rect.x + rect.width // 3
-        probe_y = rect.y + 2
+        probe_y = rect.y + self.paragraph_spacing
 
         # 兼容两种返回风格：有的绑定返回 (ok, iter)，有的直接抛异常
         it = None

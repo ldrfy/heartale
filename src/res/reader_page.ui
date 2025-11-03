@@ -108,6 +108,12 @@
                           </object>
                         </child>
                         <child>
+                          <object class="GtkLabel" id="glb_chap_txt_n">
+                            <property name="ellipsize">end</property>
+                            <property name="xalign">0.0</property>
+                          </object>
+                        </child>
+                        <child>
                           <object class="GtkButton" id="btn_next_chap">
                             <property name="margin-bottom">8</property>
                             <property name="margin-top">8</property>

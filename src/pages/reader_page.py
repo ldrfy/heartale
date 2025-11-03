@@ -55,6 +55,8 @@ class ReaderPage(Adw.NavigationPage):
     ga_l: Gtk.Adjustment = Gtk.Template.Child()
     ga_p: Gtk.Adjustment = Gtk.Template.Child()
 
+    glb_chap_txt_n: Gtk.Label = Gtk.Template.Child()
+
     def __init__(self, nav: Adw.NavigationView, ** kwargs):
         super().__init__(**kwargs)
 
@@ -210,6 +212,8 @@ class ReaderPage(Adw.NavigationPage):
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
             self.spinner_sync.stop()
 
+            self.glb_chap_txt_n.set_text(f"{self._server.bd.chap_txt_n+1}/{len(self._server.bd.chap_txts)}")
+
             self.btn_prev_chap.set_sensitive(True)
             self.btn_next_chap.set_sensitive(True)
 
@@ -293,22 +297,24 @@ class ReaderPage(Adw.NavigationPage):
             start_off (int): 段落起始偏移
             end_off (int): 段落结束偏移
         """
-        self._set_read_jd(idx)
+        self._set_read_jd(idx, False)
+
         self.ptc.highlight_paragraph(idx)
 
-    def _set_read_jd(self, idx):
+    def _set_read_jd(self, idx, add=True):
         """阅读进度
 
         Args:
             idx (_type_): _description_
         """
 
-        if self._server.bd.chap_txt_n > idx:
+        if self._server.bd.chap_txt_n > idx and add:
             # 自动滚动到上次位置，会在几秒内一直回调这个
             # 但是这会导致往回看不保存进度
             return
 
         def worker():
+            self.glb_chap_txt_n.set_text(f"{idx+1}/{len(self._server.bd.chap_txts)}")
             self._server.set_chap_txt_n(idx)
             self._server.save_read_progress(self._server.get_chap_n(),
                                             self._server.get_chap_txt_pos())
@@ -334,6 +340,9 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_next_chap(self, *_args):
+        if self._server.book.chap_n + 1 >= len(self._server.chap_names):
+            self.get_root().toast_msg("这是当前的最后一章哦！")
+            return
         self._server.book.chap_n += 1
         self._server.book.chap_txt_pos = 0
         self._server.bd.chap_txt_n = 0
@@ -342,6 +351,9 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_last_chap(self, *_args):
+        if self._server.book.chap_n - 1 <= 0:
+            self.get_root().toast_msg("这已经是第一章了哦！")
+            return
         self._server.book.chap_n -= 1
         self._server.book.chap_txt_pos = 0
         self._server.bd.chap_txt_n = 0
