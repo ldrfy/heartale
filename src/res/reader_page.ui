@@ -7,7 +7,7 @@
   <requires lib="libadwaita" version="1.4"/>
   <template class="ReaderPage" parent="AdwNavigationPage">
     <property name="tag">reader</property>
-    <property name="title">阅读</property>
+    <property name="title" translatable="yes">Reading</property>
     <child>
       <object class="AdwToolbarView">
         <property name="content">
@@ -16,9 +16,9 @@
             <property name="vexpand">true</property>
             <child>
               <object class="AdwStatusPage" id="page_loading">
-                <property name="description">正在解析书籍与目录…</property>
+                <property name="description" translatable="yes">Parsing book and chapters…</property>
                 <property name="icon-name">content-loading-symbolic</property>
-                <property name="title">正在加载</property>
+                <property name="title" translatable="yes">Loading</property>
                 <child>
                   <object class="GtkBox">
                     <property name="halign">center</property>
@@ -34,7 +34,7 @@
                     </child>
                     <child>
                       <object class="GtkButton" id="btn_cancel">
-                        <property name="label">取消</property>
+                        <property name="label" translatable="yes">Cancel</property>
                         <signal name="clicked" handler="_on_cancel_load_book"/>
                       </object>
                     </child>
@@ -44,9 +44,9 @@
             </child>
             <child>
               <object class="AdwStatusPage" id="page_error">
-                <property name="description">无法打开本书或目录，请重试或返回。</property>
+                <property name="description" translatable="yes">Unable to open this book or its table of contents. Please try again or go back.</property>
                 <property name="icon-name">dialog-error-symbolic</property>
-                <property name="title">加载失败</property>
+                <property name="title" translatable="yes">Load failed</property>
                 <child>
                   <object class="GtkBox">
                     <property name="halign">center</property>
@@ -54,13 +54,13 @@
                     <property name="spacing">12</property>
                     <child>
                       <object class="GtkButton" id="btn_retry">
-                        <property name="label">重试</property>
+                        <property name="label" translatable="yes">Retry</property>
                         <signal name="clicked" handler="_on_retry_load"/>
                       </object>
                     </child>
                     <child>
                       <object class="GtkButton">
-                        <property name="label">返回书架</property>
+                        <property name="label" translatable="yes">Return to bookshelf</property>
                         <signal name="clicked" handler="_on_cancel_load_book"/>
                       </object>
                     </child>
@@ -150,7 +150,7 @@
                             <property name="margin-bottom">5</property>
                             <property name="margin-end">36</property>
                             <property name="margin-start">36</property>
-                            <property name="placeholder-text">搜索目录…</property>
+                            <property name="placeholder-text" translatable="yes">Search chapters…</property>
                             <property name="width-chars">20</property>
                             <signal name="search-changed" handler="_on_search_toc_changed"/>
                             <signal name="stop-search" handler="_on_search_toc_stop"/>
@@ -194,8 +194,8 @@
                 <signal name="clicked" handler="_on_click_title"/>
                 <child>
                     <object class="AdwWindowTitle" id="title">
-                    <property name="title">书名</property>
-                    <property name="subtitle">章节标题</property>
+                    <property name="title" translatable="yes">Book title</property>
+                    <property name="subtitle" translatable="yes">Chapter title</property>
                     </object>
                 </child>
                 </object>
@@ -204,7 +204,7 @@
             <child type="start">
               <object class="GtkToggleButton" id="btn_toggle_sidebar">
                 <property name="icon-name">sidebar-show-symbolic</property>
-                <property name="tooltip-text">显示/隐藏目录</property>
+                <property name="tooltip-text" translatable="yes">Show or hide table of contents</property>
               </object>
             </child>
 
@@ -212,7 +212,7 @@
             <object class="GtkToggleButton" id="btn_show_search">
                 <property name="visible" bind-source="btn_toggle_sidebar" bind-property="active" bind-flags="bidirectional|sync-create" />
                 <property name="icon-name">system-search-symbolic</property>
-                <property name="tooltip-text">搜索</property>
+                <property name="tooltip-text" translatable="yes">Search</property>
                 <signal name="clicked" handler="_on_show_search_toc"/>
 
               </object>
@@ -240,7 +240,7 @@
 
                         <child>
                         <object class="GtkButton">
-                            <property name="label" translatable="yes">恢复默认</property>
+                            <property name="label" translatable="yes">Reset to defaults</property>
                             <signal name="clicked" handler="_on_set_default"/>
                         </object>
                         </child>
@@ -250,7 +250,7 @@
                             <signal name="output" handler="_on_fontsize_changed"/>
                             <property name="icon-name">format-text-bold-symbolic</property>
                             <property name="subtitle" translatable="yes">Font Size</property>
-                            <property name="title">字体大小</property>
+                            <property name="title" translatable="yes">Font size</property>
                             <property name="adjustment">
                                 <object class="GtkAdjustment" id="ga_f">
                                 <property name="lower">0</property>
@@ -270,7 +270,7 @@
                             <signal name="output" handler="_on_line_space_changed"/>
                             <property name="icon-name">format-text-italic-symbolic</property>
                             <property name="subtitle" translatable="yes">Line Space</property>
-                            <property name="title">行间距</property>
+                            <property name="title" translatable="yes">Line spacing</property>
                             <property name="adjustment">
                                 <object class="GtkAdjustment" id="ga_l">
                                 <property name="lower">0</property>
@@ -289,7 +289,7 @@
                             <signal name="output" handler="_on_paragraph_space_changed"/>
                             <property name="icon-name">format-text-strikethrough-symbolic</property>
                             <property name="subtitle" translatable="yes">Paragraph Space</property>
-                            <property name="title">段间距</property>
+                            <property name="title" translatable="yes">Paragraph spacing</property>
                             <property name="adjustment">
                                 <object class="GtkAdjustment" id="ga_p">
                                 <property name="lower">0</property>
@@ -312,7 +312,7 @@
             <child type="end">
               <object class="GtkButton">
                 <property name="icon-name">media-playback-start-symbolic</property>
-                <property name="tooltip-text">朗读</property>
+                <property name="tooltip-text" translatable="yes">Read aloud</property>
                 <signal name="clicked" handler="_on_read_aloud"/>
               </object>
             </child>

@@ -5,6 +5,8 @@ import re
 import shutil
 from pathlib import Path
 
+from gettext import gettext as _
+
 from .. import PATH_CONFIG_BOOKS
 from ..entity.book import Book
 from ..utils.debug import get_logger
@@ -69,7 +71,7 @@ class TxtServer(Server):
 
     def _get_chap_names(self):
         if not os.path.isfile(self.book.path):
-            raise FileNotFoundError(f"文件不存在: {self.book.get_path()}")
+            raise FileNotFoundError(_("File not found: {path}").format(path=self.book.get_path()))
 
         with open(self.book.path, "r", encoding=self.book.encoding, errors="ignore") as f:
             text = f.read()
@@ -155,7 +157,7 @@ def detect_encoding(path: Path, sample_size: int = 65536) -> str:
     Returns:
         str: _description_
     """
-    print(f"探测文件编码: {path}")
+    print(f"Detected file encoding: {path}")
     encodings = ["gbk", "gb2312", "utf-8-sig", "utf-8"]
     raw = path.open("rb").read(sample_size)
     for enc in encodings:

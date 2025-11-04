@@ -1,4 +1,4 @@
-"""主窗口"""
+"""Main application window."""
 
 from gi.repository import Adw, Gtk  # type: ignore
 
@@ -8,11 +8,7 @@ from .pages.shelf_page import ShelfPage
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/window.ui")
 class HeartaleWindow(Adw.ApplicationWindow):
-    """主窗口
-
-    Args:
-        Adw (_type_): _description_
-    """
+    """Main application window class."""
     __gtype_name__ = "HeartaleWindow"
 
     nav: Adw.NavigationView = Gtk.Template.Child()
@@ -28,8 +24,7 @@ class HeartaleWindow(Adw.ApplicationWindow):
 
     @Gtk.Template.Callback()
     def on_visible_page_changed(self, *_):
-        """加载书架数据
-        """
+        """Load bookshelf data when the visible page changes."""
         page = self.nav.get_visible_page()
         if not page:
             return
@@ -39,12 +34,8 @@ class HeartaleWindow(Adw.ApplicationWindow):
             self._reader_page.clear_data()
 
     def toast_msg(self, toast_msg):
-        """在 main.py 中的通知
-
-        Args:
-            toast_msg (str): _description_
-        """
-        # 放置初始化时，不断调用误以为选择
+        """Show a toast in the main window."""
+        # Work around repeated calls during initialisation
         toast = Adw.Toast.new("")
         toast.set_timeout(2)
         toast.dismiss()

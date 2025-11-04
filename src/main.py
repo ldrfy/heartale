@@ -83,12 +83,11 @@ class HeartaleApplication(Adw.Application):
         if shortcuts:
             self.set_accels_for_action(f"app.{name}", shortcuts)
 
-    def update_app(self, update_msg, title="发现新版本"):
-        """显示更新信息
+    def update_app(self, update_msg, title=None):
+        """Display update information to the user."""
 
-        Args:
-            update_msg (_type_): _description_
-        """
+        if title is None:
+            title = _("New version available")
 
         dlg = Adw.MessageDialog(
             transient_for=self.win,
@@ -96,8 +95,8 @@ class HeartaleApplication(Adw.Application):
             heading=title,
             body=update_msg,
         )
-        dlg.add_response("cancel", "取消")
-        dlg.add_response("ok", "去更新")
+        dlg.add_response("cancel", _("Cancel"))
+        dlg.add_response("ok", _("Update"))
         dlg.set_default_response("ok")
         dlg.set_close_response("cancel")
 
@@ -108,17 +107,15 @@ class HeartaleApplication(Adw.Application):
         dlg.present()
 
     def find_update(self, widget_no_auto=None, _w=None):
-        """查找更新
-        """
+        """Check whether a new application version is available."""
 
         def fu():
-            """更新子线程
-            """
+            """Worker thread that checks for updates."""
             update_msg = check_update(self.version)
             if update_msg is not None:
                 GLib.idle_add(self.update_app, update_msg)
             elif widget_no_auto:
-                # 手动更新
+                # Manual update request
                 s = _("There is no new version.\
                       \nThe current version is {}.\
                       \nYou can go to {} to view the beta version.") \
