@@ -15,8 +15,8 @@ from .window import HeartaleWindow
 class HeartaleApplication(Adw.Application):
     """The main application singleton class."""
 
-    def __init__(self, version):
-        super().__init__(application_id='cool.ldr.heartale',
+    def __init__(self, version, app_id):
+        super().__init__(application_id=app_id,
                          flags=Gio.ApplicationFlags.DEFAULT_FLAGS,
                          resource_base_path='/cool/ldr/heartale')
         self.version = version
@@ -125,8 +125,8 @@ class HeartaleApplication(Adw.Application):
         threading.Thread(target=fu, daemon=True).start()
 
 
-def main(version):
+def main(version, app_id):
     """The application's entry point."""
-    app = HeartaleApplication(version)
+    app = HeartaleApplication(version, app_id)
     print(version)
     return app.run(sys.argv)

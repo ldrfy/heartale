@@ -8,6 +8,7 @@ conf.set('PYTHON', python.find_installation('python3').full_path())
 conf.set('VERSION', meson.project_version())
 conf.set('localedir', get_option('prefix') / get_option('localedir'))
 conf.set('pkgdatadir', pkgdatadir)
+conf.set('APP_ID', APP_ID)
 
 configure_file(
     input: 'heartale.in',

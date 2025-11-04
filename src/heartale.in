@@ -28,12 +28,14 @@ import gettext
 VERSION = '@VERSION@'
 pkgdatadir = '@pkgdatadir@'
 localedir = '@localedir@'
+APP_ID = '@APP_ID@'
 
 sys.path.insert(1, pkgdatadir)
 signal.signal(signal.SIGINT, signal.SIG_DFL)
-locale.bindtextdomain('heartale', localedir)
-locale.textdomain('heartale')
-gettext.install('heartale', localedir)
+
+locale.bindtextdomain(APP_ID, localedir)
+locale.textdomain(APP_ID)
+gettext.install(APP_ID, localedir)
 
 if __name__ == '__main__':
     import gi
@@ -47,4 +49,4 @@ if __name__ == '__main__':
     resource._register()
 
     from heartale import main
-    sys.exit(main.main(VERSION))
+    sys.exit(main.main(VERSION, APP_ID))
