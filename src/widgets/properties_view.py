@@ -56,7 +56,7 @@ class HPropertiesView(Adw.Bin):
                 db.get_td_day(book_md5),
                 db.get_td_all(book_md5),
 
-                _("{count} characters").format(count=book.txt_all),
+                _("{count} words").format(count=book.txt_all),
                 self._get_fmt(),
                 self._get_file_size(),
 
@@ -95,10 +95,10 @@ class HPropertiesView(Adw.Bin):
 
     def _get_fmt(self):
         if self.book.fmt == BOOK_FMT_LEGADO:
-            return _("Legado format")
+            return "Legado"
 
         if self.book.fmt == BOOK_FMT_TXT:
-            return _("Plain text format (encoding {encoding})").format(encoding=self.book.encoding)
+            return _("Plain text (encoding {encoding})").format(encoding=self.book.encoding)
 
         return _("Unknown format")
 

@@ -27,8 +27,8 @@ class ParagraphTagController:
         # 点击着色 tag（仅前景色，可外部改样式）
         self._active_tag = self.buf.create_tag(
             "active_para",
-            foreground="#d9480f",                  # 默认橙色前景
-            weight=Pango.Weight.BOLD               # 默认加粗，可通过 set_active_style 调整
+            foreground="#d9480f",  # 默认橙色前景
+            weight=Pango.Weight.BOLD  # 默认加粗，可通过 set_active_style 调整
             # 也可用：foreground-rgba=Gdk.RGBA(0.85, 0.28, 0.06, 1.0)
         )
         self._active_idx = None
@@ -225,7 +225,7 @@ class ParagraphTagController:
         self._reapply_layout_tag()
         self._queue_emit_visible_idx()
 
-        self.paragraph_spacing = a+b
+        self.paragraph_spacing = a + b
 
     def set_active_style(self, hex_color: str, bold: bool, underline: bool):
         """
@@ -256,7 +256,7 @@ class ParagraphTagController:
         end_off = self.buf.get_end_iter().get_offset()
 
         tag = self.buf.get_tag_table().lookup(self.get_paragraph_tag_name(i)) \
-            or self.buf.create_tag(self.get_paragraph_tag_name(i))
+              or self.buf.create_tag(self.get_paragraph_tag_name(i))
         self.buf.apply_tag(
             tag,
             self.buf.get_iter_at_offset(start_off),
@@ -303,6 +303,7 @@ class ParagraphTagController:
         兼容 set_text/insert 后立即滚动可能无效的问题。
         用 idle 回调与 scroll_to_iter 组合保证可靠滚动。
         """
+
         def do_scroll():
             self.view.scroll_to_iter(
                 it,
@@ -314,6 +315,7 @@ class ParagraphTagController:
             # 触发一次“可视段”刷新
             self._queue_emit_visible_idx()
             return False
+
         GLib.idle_add(do_scroll)
 
     def _apply_font_size(self, pt: int):

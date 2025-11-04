@@ -103,6 +103,7 @@ class HeartaleApplication(Adw.Application):
         def _on_resp(_d, resp):
             if resp == "ok":
                 open_url(PACKAGE_URL)
+
         dlg.connect("response", _on_resp)
         dlg.present()
 
@@ -116,9 +117,9 @@ class HeartaleApplication(Adw.Application):
                 GLib.idle_add(self.update_app, update_msg)
             elif widget_no_auto:
                 # Manual update request
-                s = _("There is no new version.\
-                      \nThe current version is {}.\
-                      \nYou can go to {} to view the beta version.") \
+                s = _("There is no new version."
+                      "\nThe current version is {version}."
+                      "\nYou can go to {url} to view the beta version.") \
                     .format(self.version, PACKAGE_URL)
                 GLib.idle_add(self.update_app, s, _("No new version found"))
 

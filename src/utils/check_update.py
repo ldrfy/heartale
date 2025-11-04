@@ -8,11 +8,6 @@ import requests
 from . import PACKAGE_URL
 from .debug import get_logger
 
-MSG_UPDATE_ERROR = "Please update. There is a problem with the current version configuration.\n\n"
-MSG_UPDATE_ERROR += PACKAGE_URL
-
-
-
 
 def get_by_url(url, bz=""):
     """通过url获取更新信息
@@ -27,19 +22,22 @@ def get_by_url(url, bz=""):
 
     try:
         request = requests.get(url, timeout=10)
+
         if request.status_code == 200:
             get_logger().info("%s update msg ok", bz)
             data = request.json()
             if "version" in data:
                 return data
 
-        return MSG_UPDATE_ERROR
+        return _("Please update. There is a problem with the current version configuration.\n\n{}").format(PACKAGE_URL)
     except requests.exceptions.ConnectTimeout as e:
         print(e)
         get_logger().error(e)
     except requests.exceptions.ProxyError as e:
+        print(e)
         get_logger().error(e)
     except Exception as e:  # pylint: disable=W0718
+        print(e)
         get_logger().error(e)
 
     return None
@@ -103,17 +101,18 @@ def main(version_now):
     """
     try:
         data = get_by_github()
-        if not isinstance(data, dict):
-            data = get_by_gitee()
+        # if not isinstance(data, dict):
+        #     data = get_by_gitee()
 
         if not isinstance(data, dict):
             return data
 
         v = data["version"]
         if compare_versions(v, version_now):
-            return _('New version: {version}\n\nplease upgrade it:\n{url}\n\n{update_msg}')\
+            return _('New version: {version}\n\nplease upgrade it:\n{url}\n\n{update_msg}') \
                 .format(version=v, url=data["url"], update_msg=data["msg"])
         return None
     except Exception as e:  # pylint: disable=W0718
+        print(e)
         get_logger().error(e)
-        return MSG_UPDATE_ERROR
+        return _("Please update. There is a problem with the current version configuration.\n\n{}").format(PACKAGE_URL)

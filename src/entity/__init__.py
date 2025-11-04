@@ -14,6 +14,12 @@ from .book import Book
 from .time_read import TimeRead
 
 
+def _data2str(trs: list[TimeRead]):
+    total_seconds = int(sum(tr.seconds for tr in trs))
+    total_words = sum(tr.words for tr in trs)
+    return f"{sec2str(total_seconds)}/{total_words}w"
+
+
 class LibraryDB:
     """_summary_
     """
@@ -187,18 +193,18 @@ class LibraryDB:
     # -------------------------
     # Book 操作
     # -------------------------
-    def save_book(self, book: Book) -> None:
+    def save_book(self, b: Book) -> None:
         """
         保存 Book。若 md5 已存在则更新其字段（path/name/txt_all/encoding/update_date）。
         """
-        b_ = self.get_book_by_md5(book.md5)
+        b_ = self.get_book_by_md5(b.md5)
         if b_:
-            book.create_date = b_.create_date
-            book.chap_name = b_.chap_name
-            book.chap_n = b_.chap_n
-            book.chap_txt_pos = b_.chap_txt_pos
-            book.txt_pos = b_.txt_pos
-            book.sort = b_.sort
+            b.create_date = b_.create_date
+            b.chap_name = b_.chap_name
+            b.chap_n = b_.chap_n
+            b.chap_txt_pos = b_.chap_txt_pos
+            b.txt_pos = b_.txt_pos
+            b.sort = b_.sort
 
         cur = self.conn.cursor()
         cur.execute("""
@@ -224,24 +230,24 @@ class LibraryDB:
             update_date=excluded.update_date,
             create_date=excluded.create_date
         """, {
-            "md5": book.md5,
-            "path": book.path,
-            "name": book.name,
-            "author": book.author,
-            "fmt": book.fmt,
-            "chap_n": book.chap_n,
-            "chap_name": book.chap_name,
-            "chap_all": book.chap_all,
-            "chap_txt_pos": book.chap_txt_pos,
-            "txt_all": book.txt_all,
-            "txt_pos": book.txt_pos,
-            "encoding": book.encoding,
-            "sort": book.sort,
-            "update_date": book.update_date,
-            "create_date": book.create_date,
+            "md5": b.md5,
+            "path": b.path,
+            "name": b.name,
+            "author": b.author,
+            "fmt": b.fmt,
+            "chap_n": b.chap_n,
+            "chap_name": b.chap_name,
+            "chap_all": b.chap_all,
+            "chap_txt_pos": b.chap_txt_pos,
+            "txt_all": b.txt_all,
+            "txt_pos": b.txt_pos,
+            "encoding": b.encoding,
+            "sort": b.sort,
+            "update_date": b.update_date,
+            "create_date": b.create_date,
         })
 
-    def update_book(self, book: Book) -> None:
+    def update_book(self, b: Book) -> None:
         """
         保存 Book。若 md5 已存在则更新其字段（path/name/txt_all/encoding/update_date）。
         """
@@ -270,20 +276,20 @@ class LibraryDB:
             sort=excluded.sort,
             update_date=excluded.update_date
         """, {
-            "md5": book.md5,
-            "path": book.path,
-            "name": book.name,
-            "author": book.author,
-            "fmt": book.fmt,
-            "chap_n": book.chap_n,
-            "chap_name": book.chap_name,
-            "chap_all": book.chap_all,
-            "chap_txt_pos": book.chap_txt_pos,
-            "txt_all": book.txt_all,
-            "txt_pos": book.txt_pos,
-            "encoding": book.encoding,
-            "sort": book.sort,
-            "update_date": book.update_date,
+            "md5": b.md5,
+            "path": b.path,
+            "name": b.name,
+            "author": b.author,
+            "fmt": b.fmt,
+            "chap_n": b.chap_n,
+            "chap_name": b.chap_name,
+            "chap_all": b.chap_all,
+            "chap_txt_pos": b.chap_txt_pos,
+            "txt_all": b.txt_all,
+            "txt_pos": b.txt_pos,
+            "encoding": b.encoding,
+            "sort": b.sort,
+            "update_date": b.update_date,
         })
 
     def delete_book_by_md5(self, md5: str) -> None:
@@ -395,7 +401,7 @@ class LibraryDB:
         )
         return [self._r2td(r) for r in cur.fetchall()]
 
-    def save_time_read(self, tr: TimeRead) -> None:
+    def save_time_read(self, tr: TimeRead) -> TimeRead:
         """
         保存一个 TimeRead 条目。
         同一天，同一本书的同一个章节之保存一个。
@@ -417,7 +423,7 @@ class LibraryDB:
 
         return tr
 
-    def update_time_read(self, tr: TimeRead) -> None:
+    def update_time_read(self, tr: TimeRead) -> TimeRead:
         """更新或保存，如果id存在更新
 
         Args:
@@ -505,25 +511,17 @@ class LibraryDB:
         cur.execute(sql, params)
         return [self._r2td(r) for r in cur.fetchall()]
 
-    def _data2str(self, trs: list[TimeRead]):
-        total_seconds = sum(tr.seconds for tr in trs)
-        total_words = sum(tr.words for tr in trs)
-        return _("{duration} / {words} words").format(
-            duration=sec2str(total_seconds),
-            words=total_words,
-        )
-
     def get_td_day(self, md5: Optional[str] = None) -> str:
         """今天阅读时间和字数，md5=None 表示全书"""
         today = date.today()
         trs = self._query_time_reads(md5=md5, day=today.day,
                                      month=today.month, year=today.year)
 
-        return self._data2str(trs)
+        return _data2str(trs)
 
     def get_td_all(self, md5: Optional[str] = None) -> str:
         """某书所有的时间和字数，md5=None 表示全书"""
-        return self._data2str(self._query_time_reads(md5=md5))
+        return _data2str(self._query_time_reads(md5=md5))
 
     def get_td_week(self, md5: Optional[str] = None) -> str:
         """本月阅读时间和字数，md5=None 表示全书"""
@@ -532,25 +530,25 @@ class LibraryDB:
 
         trs = self._query_time_reads(md5=md5, year=today.year,
                                      week=week)
-        return self._data2str(trs)
+        return _data2str(trs)
 
     def get_td_month(self, md5: Optional[str] = None) -> str:
         """本月阅读时间和字数，md5=None 表示全书"""
         today = date.today()
         trs = self._query_time_reads(md5=md5, year=today.year,
                                      month=today.month)
-        return self._data2str(trs)
+        return _data2str(trs)
 
     def get_td_year(self, md5: Optional[str] = None) -> str:
         """本年阅读时间和字数，md5=None 表示全书"""
         today = date.today()
         trs = self._query_time_reads(md5=md5, year=today.year)
-        return self._data2str(trs)
+        return _data2str(trs)
 
     def delete_tr(self, tr: TimeRead) -> None:
         """
         删除某个。
-        :param id: 书的 id
+        :param tr: 数据
         """
         cur = self.conn.cursor()
         cur.execute("DELETE FROM timereads WHERE id = ?", (tr.id,))

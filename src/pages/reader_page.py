@@ -49,7 +49,7 @@ class ReaderPage(Adw.NavigationPage):
 
     glb_chap_txt_n: Gtk.Label = Gtk.Template.Child()
 
-    def __init__(self, nav: Adw.NavigationView, ** kwargs):
+    def __init__(self, nav: Adw.NavigationView, **kwargs):
         super().__init__(**kwargs)
 
         self._nav = nav
@@ -186,7 +186,6 @@ class ReaderPage(Adw.NavigationPage):
         self.spinner_sync.start()
 
         def _ui_update(chap_name):
-
             self.title.set_subtitle(
                 f"{chap_name} ({self._server.book.chap_n}/{self._server.book.chap_all})")
 
@@ -195,7 +194,7 @@ class ReaderPage(Adw.NavigationPage):
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
             self.spinner_sync.stop()
 
-            self.glb_chap_txt_n.set_text(f"{self._server.bd.chap_txt_n+1}/{len(self._server.bd.chap_txts)}")
+            self.glb_chap_txt_n.set_text(f"{self._server.bd.chap_txt_n + 1}/{len(self._server.bd.chap_txts)}")
 
             self.btn_prev_chap.set_sensitive(True)
             self.btn_next_chap.set_sensitive(True)
@@ -296,10 +295,11 @@ class ReaderPage(Adw.NavigationPage):
             return
 
         def worker():
-            self.glb_chap_txt_n.set_text(f"{idx+1}/{len(self._server.bd.chap_txts)}")
+            self.glb_chap_txt_n.set_text(f"{idx + 1}/{len(self._server.bd.chap_txts)}")
             self._server.set_chap_txt_n(idx)
             self._server.save_read_progress(self._server.get_chap_n(),
                                             self._server.get_chap_txt_pos())
+
         threading.Thread(target=worker, daemon=True).start()
 
     @Gtk.Template.Callback()

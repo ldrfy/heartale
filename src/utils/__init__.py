@@ -30,7 +30,7 @@ def open_folder(folder_path: str):
     Gio.AppInfo.launch_default_for_uri(uri, None)
 
 
-def get_file_size(path: str) -> int:
+def get_file_size(path: str) -> str:
     """获取文件大小，单位字节
 
     Args:

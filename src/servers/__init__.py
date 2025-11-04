@@ -101,7 +101,6 @@ class Server:
     def next(self):
         """子类需要自定义接下来要阅读的文本，并保存本地阅读进度等信息
         """
-        print("next")
         return _("Each call should refresh the text and save reading information.")
 
     def get_chap_txt(self, chap_n=-1):
@@ -171,7 +170,7 @@ class Server:
         """
 
         w = len(self.bd.chap_txts[self.bd.chap_txt_n])
-        sec = time.time()-self.read_time
+        sec = time.time() - self.read_time
 
         self.book.chap_n = chap_n
         self.book.chap_name = self.get_chap_name(chap_n)

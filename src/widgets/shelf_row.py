@@ -54,8 +54,8 @@ class ShelfRow(Gtk.Box):
         if book.sort > 0:
             context.add_class("top")
             self.btn_top.set_icon_name("go-bottom-symbolic")
-            self.btn_top.set_tooltip_text(_("Unpin this book"))
+            self.btn_top.set_tooltip_text(_("Top this book"))
         else:
             context.remove_class("top")
             self.btn_top.set_icon_name("go-top-symbolic")
-            self.btn_top.set_tooltip_text(_("Pin this book"))
+            self.btn_top.set_tooltip_text(_("Cancel topping this book"))

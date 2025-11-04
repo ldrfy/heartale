@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.lfy\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2025-11-04 20:45+0800\n"
+"POT-Creation-Date: 2025-11-04 23:35+0800\n"
 "PO-Revision-Date: 2025-11-04 20:15+0800\n"
 "Last-Translator:  <yuhldr@qq.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -140,7 +140,7 @@ msgstr "章节标题"
 msgid "Show or hide table of contents"
 msgstr "显示或隐藏目录"
 
-#: src/res/reader_page.ui:215 src/res/shelf_page.ui:175
+#: src/res/reader_page.ui:215 src/res/shelf_page.ui:176
 msgid "Search"
 msgstr "搜索"
 
@@ -192,7 +192,7 @@ msgstr "键盘快捷键(_K)"
 msgid "_About Heartale"
 msgstr "关于兰阅(_A)"
 
-#: src/res/shelf_page.ui:31 src/res/shelf_page.ui:169
+#: src/res/shelf_page.ui:31 src/res/shelf_page.ui:170
 msgid "Bookshelf"
 msgstr "书架"
 
@@ -225,27 +225,23 @@ msgstr "暂无书籍。点击下方按钮或拖拽文件到此开始阅读。"
 msgid "Welcome to Heartale"
 msgstr "欢迎使用兰阅"
 
-#: src/res/shelf_page.ui:151
-msgid "Hello, World!"
-msgstr "你好，世界！"
-
-#: src/res/shelf_page.ui:168
+#: src/res/shelf_page.ui:169
 msgid "Select a book to start reading"
 msgstr "选择一本书开始阅读"
 
-#: src/res/shelf_page.ui:182
+#: src/res/shelf_page.ui:183
 msgid "Image Properties"
 msgstr "图片属性"
 
-#: src/res/shelf_page.ui:190
+#: src/res/shelf_page.ui:191
 msgid "Main Menu"
 msgstr "主菜单"
 
-#: src/res/shelf_page.ui:196
+#: src/res/shelf_page.ui:197
 msgid "Import local books"
 msgstr "导入本地书籍"
 
-#: src/res/shelf_page.ui:206
+#: src/res/shelf_page.ui:207
 msgid "Sync Legado books"
 msgstr "同步 Legado 书籍"
 
@@ -253,7 +249,7 @@ msgstr "同步 Legado 书籍"
 msgid "Delete this book"
 msgstr "删除此书"
 
-#: src/res/shelf_row.ui:50 src/widgets/shelf_row.py:61
+#: src/res/shelf_row.ui:50
 msgid "Pin this book"
 msgstr "固定此书"
 
@@ -274,3 +270,247 @@ msgstr "退出"
 #: src/res/window.ui:11
 msgid "Heartale"
 msgstr "兰阅"
+
+#: src/entity/book.py:58
+#, python-brace-format
+msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
+msgstr "{chapter} · 进度 {percent:.2f}% ({position}/{total})"
+
+#: src/pages/reader_page.py:100
+#, python-brace-format
+msgid ""
+"Unable to open this book or its table of contents.\n"
+"{title}: {path}\n"
+"\n"
+"Try again or go back:\n"
+"{error}"
+msgstr ""
+"无法打开此书或其目录。\n"
+"{title}: {path}\n"
+"\n"
+"请重试或返回：{error}"
+
+#: src/pages/reader_page.py:270
+#, python-brace-format
+msgid "Failed to switch chapter: {error}"
+msgstr "切换章节失败：{error}"
+
+#: src/pages/reader_page.py:326
+msgid "You have reached the last chapter."
+msgstr "你已经在最后一章啦"
+
+#: src/pages/reader_page.py:337
+msgid "You are already at the first chapter."
+msgstr "你已经在第一章啦"
+
+#: src/pages/shelf_page.py:89
+#, python-brace-format
+msgid ""
+"Today: {today} · This week: {week} · This month: {month} · This year: {year}"
+msgstr "今天: {today} · 本周: {week} · 当月: {month} · 今年: {year}"
+
+#: src/pages/shelf_page.py:215
+msgid "Delete book?"
+msgstr "删除此书？"
+
+#: src/pages/shelf_page.py:216
+#, python-brace-format
+msgid ""
+"Remove “{book}” from the library.\n"
+"This action cannot be undone."
+msgstr ""
+"从数据库中删除 “{book}”.\n"
+"该行为无法撤销！"
+
+#: src/pages/shelf_page.py:221
+msgid "Delete"
+msgstr "删除"
+
+#: src/pages/shelf_page.py:237
+#, fuzzy
+msgid "Select books to import"
+msgstr "选择一本书开始阅读"
+
+#: src/pages/shelf_page.py:239
+msgid "Documents and e-books"
+msgstr "文档和电子书"
+
+#: src/pages/shelf_page.py:251
+msgid "Could not open the selected files"
+msgstr "无法打开选中的文件"
+
+#: src/pages/shelf_page.py:276
+msgid "Import partially failed"
+msgstr "部分导入失败"
+
+#: src/pages/shelf_page.py:277 src/pages/shelf_page.py:359
+#: src/widgets/dialog_input.py:22
+msgid "OK"
+msgstr "确定"
+
+#: src/pages/shelf_page.py:294
+msgid "Books imported successfully"
+msgstr "书籍导入成功"
+
+#: src/pages/shelf_page.py:354
+msgid "Legado books synced successfully"
+msgstr "Legado书籍同步成功"
+
+#: src/pages/shelf_page.py:358
+msgid "Legado sync partially failed"
+msgstr "Legado 同步失败"
+
+#: src/pages/shelf_page.py:378
+msgid "Enter the internal address shown after enabling Legado “Web Service”."
+msgstr "输入启用Legado“Web服务”后显示的内部地址。"
+
+#: src/pages/shelf_page.py:390
+msgid "Legado book sync"
+msgstr "同步 Legado 书籍"
+
+#: src/pages/shelf_page.py:392
+#, python-brace-format
+msgid ""
+"1. Only the first five books in the app will be synced.\n"
+"2. In Legado, open “Web Service” from the My page.\n"
+"3. Enter the internal address shown there, e.g.\n"
+"{example}"
+msgstr ""
+"1.只会同步应用程序中的前五本书。\n"
+"2。在Legado中，从“我的”页面打开“Web服务”。\n"
+"3。输入此处显示的内部地址，例如：{example}"
+
+#: src/servers/__init__.py:104
+msgid "Each call should refresh the text and save reading information."
+msgstr "每次调用都应刷新文本并保存阅读信息。"
+
+#: src/servers/legado.py:77
+msgid "Failed to fetch Legado book information."
+msgstr "无法获取Legado图书信息。"
+
+#: src/servers/legado.py:191
+#, python-brace-format
+msgid ""
+"Failed to save reading progress!\n"
+"{error}"
+msgstr ""
+"保存阅读进度失败！\n"
+"{error}"
+
+#: src/servers/legado.py:205
+#, python-brace-format
+msgid ""
+"The website you entered is most likely incorrect. The current URL is: {}"
+msgstr "您输入的网站很可能不正确。当前URL为：{}"
+
+#: src/servers/legado.py:244
+#, python-brace-format
+msgid ""
+"Failed to fetch Legado book\n\n"
+"{error}"
+msgstr ""
+"无法获取Legado图书\n\n"
+"{error}"
+
+#: src/servers/legado.py:255
+#, python-brace-format
+msgid "Synced Legado book: {name} Author: {author}\n"
+msgstr "已同步Legado图书：{name} 作者：{author}\n"
+
+#: src/servers/legado.py:268
+#, python-brace-format
+msgid "Parsing error: {error}\n"
+msgstr "解析错误：{error}\n"
+
+#: src/servers/txt.py:74
+#, python-brace-format
+msgid "File not found: {path}"
+msgstr "找不到文件：{path}"
+
+#: src/utils/check_update.py:32 src/utils/check_update.py:118
+#, python-brace-format
+msgid ""
+"Please update. There is a problem with the current version configuration.\n"
+"\n"
+"{}"
+msgstr ""
+"请更新. 当前版本配置有问题.\n"
+"\n"
+"{}"
+
+#: src/utils/check_update.py:112
+#, python-brace-format
+msgid ""
+"New version: {version}\n"
+"\n"
+"please upgrade it:\n"
+"{url}\n"
+"\n"
+"{update_msg}"
+msgstr ""
+"新版本：{version}\n"
+"\n"
+"请升级它：{url}\n"
+"\n"
+"{update_msg}"
+
+#: src/widgets/dialog_input.py:10
+msgid "Enter text"
+msgstr "输入文本"
+
+#: src/widgets/properties_view.py:59
+#, python-brace-format
+msgid "{count} words"
+msgstr "{count} 字"
+
+#: src/widgets/properties_view.py:93
+msgid "Unknown size"
+msgstr "未知大小"
+
+#: src/widgets/properties_view.py:101
+#, python-brace-format
+msgid "Plain text (encoding {encoding})"
+msgstr "文本（编码格式 {encoding}）"
+
+#: src/widgets/properties_view.py:103
+msgid "Unknown format"
+msgstr "未知格式"
+
+#: src/widgets/shelf_row.py:41
+msgid "(Untitled)"
+msgstr "（无标题）"
+
+#: src/widgets/shelf_row.py:57
+msgid "Top this book"
+msgstr "置顶此书"
+
+#: src/widgets/shelf_row.py:61
+msgid "Cancel topping this book"
+msgstr "取消置顶此书"
+
+#: src/main.py:59
+msgid "translator-credits"
+msgstr "yuhldr<yuhldr@qq.com>"
+
+#: src/main.py:90
+msgid "New version available"
+msgstr "新版本可用"
+
+#: src/main.py:99
+msgid "Update"
+msgstr "更新"
+
+#: src/main.py:120
+#, python-brace-format
+msgid ""
+"There is no new version.\n"
+"The current version is {version}.\n"
+"You can go to {url} to view the beta version."
+msgstr ""
+"没有新版本.\n"
+"当前版本是 {version}.\n"
+"你可以去 {url} 查看测试版."
+
+#: src/main.py:124
+msgid "No new version found"
+msgstr "没有新版本被找到"

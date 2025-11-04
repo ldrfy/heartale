@@ -221,7 +221,11 @@ def get_txt_all(b):
     if not word_count:
         return 0
     if "K" in word_count:
-        return int(word_count.replace("K", "")) * 1000
+        return int(float(word_count.replace("K", "")) * 1000)
+    if "w" in word_count:
+        return int(float(word_count.replace("W", "")) * 10000)
+    if "万字" in word_count:
+        return int(float(word_count.replace("万字", "")) * 10000)
     return int(word_count)
 
 
@@ -241,7 +245,7 @@ def sync_legado_books(book_n=5, url_base="http://10.8.0.6:1122") -> dict:
         lbs = get_book_shelf(url_base)
     except Exception as e:  # pylint: disable=broad-except
         sync = False
-        s_error += _("Failed to fetch Legado book: {error}\n").format(error=e)
+        s_error += _("Failed to fetch Legado book\n\n{error}").format(error=e)
         print(e)
         return sync, s_error
 

@@ -81,7 +81,6 @@ class TxtServer(Server):
 VOLUME_PATTERN = r'^第([一二三四五六七八九十\d]+)卷\s*(.*)'  # 匹配卷号
 CHAPTER_PATTERN = r'^第([一二三四五六七八九十百千\d]+)章\s*(.*)'  # 匹配章号
 
-
 VOLUME_PATTERN2 = r'第([一二三四五六七八九十\d]+)卷\s*(.*)'  # 匹配卷号
 CHAPTER_PATTERN2 = r'第([一二三四五六七八九十百千\d]+)章\s*(.*)'  # 匹配章号
 

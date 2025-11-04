@@ -31,7 +31,7 @@ build:
 	meson test -C build
 	# meson dist -C build --allow-dirty
 
-install: build
+install: clear build
 	$(MAKE) build PREFIX=${HOME}/.local/
 # 	安装位置与PREFIX不一致时使用DESTDIR
 # 	DESTDIR=${HOME}/.local/ meson install -C build

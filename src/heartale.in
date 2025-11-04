@@ -33,9 +33,19 @@ APP_ID = '@APP_ID@'
 sys.path.insert(1, pkgdatadir)
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
-locale.bindtextdomain(APP_ID, localedir)
-locale.textdomain(APP_ID)
-gettext.install(APP_ID, localedir)
+
+try:
+    locale.bindtextdomain(APP_ID, localedir)
+    locale.textdomain(APP_ID)
+except AttributeError as e:
+    print(f"Some gettext/locale translations will not work. Error:\n{e}")
+
+try:
+    gettext.bindtextdomain(APP_ID, localedir)
+    gettext.textdomain(APP_ID)
+except AttributeError as e:
+    print(f"Some gettext translations will not work. Error:\n{e}")
+
 
 if __name__ == '__main__':
     import gi

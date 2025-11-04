@@ -22,14 +22,7 @@ class InputDialog(Adw.MessageDialog):
         self.add_response("ok", _("OK"))
         self.set_default_response("ok")
         self.set_close_response("cancel")
-    
+
     def set_input_text(self, text: str):
         """Pre-fill the entry widget with text."""
         self.entry.set_text(text)
-
-
-# win = Adw.ApplicationWindow()
-# dlg = InputDialog(win)
-# dlg.connect("response", lambda d, r: print(
-#     "输入结果:", d.entry.get_text() if r == "ok" else None))
-# dlg.present()

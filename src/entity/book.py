@@ -50,7 +50,7 @@ class Book:
         pct = 0
         if self.txt_all > 0:
             pct = self.txt_pos * 100 / self.txt_all
-        chap_str = _("{chapter} ({current}/{total})").format(
+        chap_str = "{chapter} ({current}/{total})".format(
             chapter=self.chap_name,
             current=self.chap_n,
             total=self.chap_all,

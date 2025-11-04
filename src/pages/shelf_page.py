@@ -85,9 +85,9 @@ class ShelfPage(Adw.NavigationPage):
         def worker():
             db = LibraryDB()
             books = list(db.iter_books())
-            s = _(
-                "Today: {today} · This week: {week} · This month: {month} · This year: {year}"
-            ).format(
+
+            s = _("Today: {today} · This week: {week} · This month: {month} · This year: {year}") \
+                .format(
                 today=db.get_td_day(),
                 week=db.get_td_week(),
                 month=db.get_td_month(),
@@ -144,9 +144,9 @@ class ShelfPage(Adw.NavigationPage):
             row = ShelfRow()
             # 连接一次行内的删除信号，回调里调用页面的方法删除数据
             row.connect("delete-request", lambda _row,
-                        book: self._present_delete_confirm_adw(book))
+                                                 book: self._present_delete_confirm_adw(book))
             row.connect("top-request", lambda _row,
-                        book: self._on_shelfrow_top(book))
+                                              book: self._on_shelfrow_top(book))
             li.set_child(row)
 
         def bind(_f, li: Gtk.ListItem):
@@ -227,6 +227,7 @@ class ShelfPage(Adw.NavigationPage):
         def _on_resp(_d, resp):
             if resp == "delete":
                 self._do_delete_row(book)
+
         dlg.connect("response", _on_resp)
         dlg.present()
 
@@ -320,7 +321,6 @@ class ShelfPage(Adw.NavigationPage):
             GLib.source_remove(self._search_debounce_id)
         self._search_debounce_id = GLib.timeout_add(200, self._apply_search,
                                                     entry.get_text().strip())
-        print(self._search_debounce_id)
 
     @Gtk.Template.Callback()
     def _on_clear_search(self, *_):
