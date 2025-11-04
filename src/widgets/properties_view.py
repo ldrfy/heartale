@@ -1,6 +1,8 @@
 """属性"""
 import threading
 
+from gettext import gettext as _
+
 from gi.repository import Adw, GLib, Gtk
 
 from ..entity import LibraryDB
@@ -37,11 +39,7 @@ class HPropertiesView(Adw.Bin):
         # Template 的子控件可用 Gtk.Template.Child() 绑定
 
     def set_data(self, book: Book):
-        """_summary_
-
-        Args:
-            book_obj (_type_): _description_
-        """
+        """Populate the view with information about ``book``."""
         self.book = book
 
         def worker():
@@ -58,7 +56,7 @@ class HPropertiesView(Adw.Bin):
                 db.get_td_day(book_md5),
                 db.get_td_all(book_md5),
 
-                f"{book.txt_all} 字",
+                _("{count} characters").format(count=book.txt_all),
                 self._get_fmt(),
                 self._get_file_size(),
 
@@ -92,17 +90,17 @@ class HPropertiesView(Adw.Bin):
 
     def _get_file_size(self):
         if self.book.fmt == BOOK_FMT_LEGADO:
-            return "未知大小"
+            return _("Unknown size")
         return get_file_size(self.book.path)
 
     def _get_fmt(self):
         if self.book.fmt == BOOK_FMT_LEGADO:
-            return "Legado 格式"
+            return _("Legado format")
 
         if self.book.fmt == BOOK_FMT_TXT:
-            return "纯文本格式" + f"（编码 {self.book.encoding}）"
+            return _("Plain text format (encoding {encoding})").format(encoding=self.book.encoding)
 
-        return "未知格式"
+        return _("Unknown format")
 
     @Gtk.Template.Callback()
     def _on_open_file(self, *_):

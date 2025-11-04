@@ -1,9 +1,11 @@
-"""阅读页面"""
+"""Reader page."""
 
 import copy
 import threading
 import time
 import traceback
+
+from gettext import gettext as _
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
@@ -18,23 +20,13 @@ from ..widgets.pg_tag_view import ParagraphTagController
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/reader_page.ui")
 class ReaderPage(Adw.NavigationPage):
-    """阅读
-
-    Args:
-        Adw (_type_): _description_
-
-    Returns:
-        _type_: _description_
-
-    Yields:
-        _type_: _description_
-    """
+    """Navigation page that displays the reader view."""
     __gtype_name__ = "ReaderPage"
 
     btn_prev_chap: Gtk.Button = Gtk.Template.Child()
     btn_next_chap: Gtk.Button = Gtk.Template.Child()
 
-    # 这些 id 必须与 .ui 一致
+    # These IDs must match the ones defined in the .ui files
     title: Adw.WindowTitle = Gtk.Template.Child()
     gtv_text: Gtk.TextView = Gtk.Template.Child()
     gsw_text: Gtk.ScrolledWindow = Gtk.Template.Child()
@@ -76,8 +68,7 @@ class ReaderPage(Adw.NavigationPage):
         self.ptc.set_on_visible_paragraph_changed(self._set_read_jd)
 
     def clear_data(self):
-        """清理数据
-        """
+        """Reset cached server data and show the loading page."""
         self._server = None
         self._toc_sel = None
         self.chap_ns = []
@@ -85,11 +76,7 @@ class ReaderPage(Adw.NavigationPage):
         self.stack.set_visible_child(self.page_loading)
 
     def set_data(self, book: Book):
-        """在子线程读取与解析章节，主线程更新 UI。
-
-        Args:
-            book (Book): _description_
-        """
+        """Load ``book`` data in a worker thread and update the UI."""
         self.t = time.time()
         self._search_debounce_id = 0
 
@@ -104,13 +91,17 @@ class ReaderPage(Adw.NavigationPage):
         self.clear_data()
 
         def update_ui(_b: Book, err: Exception):
-            """仅在主线程运行：统一错误处理。"""
+            """Handle worker errors on the main thread."""
             if _b.md5 != self._server.book.md5:
-                print("已切换书籍，忽略错误显示")
+                get_logger().info("Book switched, ignoring error display")
                 return False
-            self.show_error("无法打开本书"
-                            f"\n{_b.name}: {_b.get_path()}"
-                            f"\n\n请重试或返回：\n{err}")
+            self.show_error(
+                _(
+                    "Unable to open this book or its table of contents."
+                    "\n{title}: {path}"
+                    "\n\nTry again or go back:\n{error}"
+                ).format(title=_b.name, path=_b.get_path(), error=err)
+            )
             return False
 
         def worker(_book: Book):
@@ -128,7 +119,7 @@ class ReaderPage(Adw.NavigationPage):
                 GLib.idle_add(self._on_data_ready, _book,
                               priority=GLib.PRIORITY_DEFAULT)
             except Exception as e:  # pylint: disable=broad-except
-                s = f"加载书籍失败：{e}\n{traceback.format_exc()}"
+                s = f"Failed to load book: {e}\n{traceback.format_exc()}"
                 get_logger().error(s)
                 if time.time() - self.t < 0.5:
                     time.sleep(0.5 - (time.time() - self.t))
@@ -144,14 +135,10 @@ class ReaderPage(Adw.NavigationPage):
         if fmt == BOOK_FMT_TXT:
             return TxtServer()
 
-        raise ValueError(f"不支持的书籍类型 {fmt}")
+        raise ValueError(f"Unsupported book format {fmt}")
 
     def _locate_toc(self, chap_n: int):
-        """定位到某个章节
-
-        Args:
-            chap_n (int): _description_
-        """
+        """Select the chapter ``chap_n`` in the table of contents."""
         if not self._toc_sel:
             return
         self._toc_sel.set_selected(chap_n)
@@ -159,11 +146,10 @@ class ReaderPage(Adw.NavigationPage):
                            Gtk.ScrollInfo())
 
     def _on_data_ready(self, _b: Book):
-        """仅在主线程运行：绑定目录与正文。"""
+        """Bind the table of contents and chapter text on the main thread."""
 
         if _b.md5 != self._server.book.md5:
-            # 已切换书籍，忽略
-            print("已切换书籍，忽略错误显示")
+            get_logger().info("Book switched, ignoring error display")
             return False
 
         self.stack.set_visible_child(self.aos_reader)
@@ -173,28 +159,25 @@ class ReaderPage(Adw.NavigationPage):
         self.set_chap_text()
 
         def sel_chap_name():
-            """选中目录
-            """
+            """Select the current chapter in the table of contents."""
             self._locate_toc(self._server.get_chap_n())
 
         GLib.timeout_add(500, sel_chap_name)
 
         return False
 
-    def show_error(self, des="无法打开本书或目录，请重试或返回。"):
-        """显示错误
-
-        Args:
-            message (str, optional): _description_. Defaults to "无法打开本书或目录，请重试或返回。".
-        """
+    def show_error(self, des=None):
+        """Show the error page with ``des`` as the description."""
+        if des is None:
+            des = _("Unable to open this book or its table of contents. Please try again or go back.")
         self.stack.set_visible_child(self.page_error)
         self.page_error.set_description(des)
 
     def set_chap_text(self, _chap_n=-1):
-        """设置文本
+        """Update the reader with chapter ``_chap_n``."""
 
         Args:
-            chap_n (int): 章节编号
+            chap_n (int): Chapter index
         """
 
         self.btn_prev_chap.set_sensitive(False)
@@ -219,7 +202,7 @@ class ReaderPage(Adw.NavigationPage):
 
         def worker(chap_n):
             if chap_n > 0:
-                # 初始加载不能动
+                # Skip updates during the initial load
                 self._server.save_read_progress(chap_n, 0)
 
             chap_name = self._server.get_chap_name(chap_n)
@@ -234,13 +217,13 @@ class ReaderPage(Adw.NavigationPage):
         threading.Thread(target=worker, args=(_chap_n,), daemon=True).start()
 
     def get_current_text(self, selection_only: bool = True) -> str:
-        """当前的文本
+        """Return the current text selection or the entire chapter."""
 
         Args:
-            selection_only (bool, optional): _description_. Defaults to True.
+            selection_only (bool, optional): Whether to prefer the selection. Defaults to True.
 
         Returns:
-            str: _description_
+            str: Extracted text
         """
         buf = self.gtv_text.get_buffer()
         if selection_only and buf.get_has_selection():
@@ -251,8 +234,7 @@ class ReaderPage(Adw.NavigationPage):
         return buf.get_text(start, end, False)
 
     def _build_factory(self):
-        """初始化模型，仅一次
-        """
+        """Initialise the list factory once."""
         factory = Gtk.SignalListItemFactory()
 
         def setup(_f, li):
@@ -280,37 +262,37 @@ class ReaderPage(Adw.NavigationPage):
         self.toc.connect("activate", on_activate)
 
     def _on_toc_chapter_activated(self, i: int):
-        """用户点击目录中的第 idx 章。"""
+        """Handle a chapter activation from the table of contents."""
         try:
             self.set_chap_text(self.chap_ns[i])
-            # 更新标题副标题（可选）
+            # Optionally update the title/subtitle
         except Exception as e:  # pylint: disable=broad-except
-            get_logger().error("切换章节失败：%s", e)
-            self.show_error(f"切换章节失败：{e}")
+            get_logger().error("Failed to switch chapter: %s", e)
+            self.show_error(_("Failed to switch chapter: {error}").format(error=e))
 
     def _on_click_paragraph(self, idx: int, *_args):
-        """用户点击了段落
+        """Handle a paragraph click inside the reader."""
 
         Args:
-            idx (int): 段落索引
-            tag_name (str): 段落标签名
-            start_off (int): 段落起始偏移
-            end_off (int): 段落结束偏移
+            idx (int): Paragraph index
+            tag_name (str): Paragraph tag name
+            start_off (int): Paragraph start offset
+            end_off (int): Paragraph end offset
         """
         self._set_read_jd(idx, False)
 
         self.ptc.highlight_paragraph(idx)
 
     def _set_read_jd(self, idx, add=True):
-        """阅读进度
+        """Update reading progress with the current paragraph index."""
 
         Args:
-            idx (_type_): _description_
+            idx (_type_): Paragraph index
         """
 
         if self._server.bd.chap_txt_n > idx and add:
-            # 自动滚动到上次位置，会在几秒内一直回调这个
-            # 但是这会导致往回看不保存进度
+            # Auto-scrolling to the previous position keeps firing for a few seconds
+            # This prevents saving progress when the user scrolls backwards
             return
 
         def worker():
@@ -325,23 +307,23 @@ class ReaderPage(Adw.NavigationPage):
         text = self.get_current_text(selection_only=True)
         if not text:
             text = self.get_current_text(selection_only=False)
-        # 这里先打印，后续可替换为实际 TTS
-        print("[TTS] 朗读内容：")
-        # 为避免控制台刷屏，演示时截断
+        # Print for now; can be replaced with real TTS later
+        print("[TTS] Reading content:")
+        # Truncate to avoid flooding the console
         print(text[:400])
 
     @Gtk.Template.Callback()
     def _on_cancel_load_book(self, *_args):
-        self._nav.pop()  # 返回书架页
+        self._nav.pop()  # Return to the bookshelf page
 
     @Gtk.Template.Callback()
     def _on_retry_load(self, *_args):
-        self.set_data(self._server.book)  # 重试加载当前书
+        self.set_data(self._server.book)  # Retry loading the current book
 
     @Gtk.Template.Callback()
     def _on_next_chap(self, *_args):
         if self._server.book.chap_n + 1 >= len(self._server.chap_names):
-            self.get_root().toast_msg("这是当前的最后一章哦！")
+            self.get_root().toast_msg(_("You have reached the last chapter."))
             return
         self._server.book.chap_n += 1
         self._server.book.chap_txt_pos = 0
@@ -352,7 +334,7 @@ class ReaderPage(Adw.NavigationPage):
     @Gtk.Template.Callback()
     def _on_last_chap(self, *_args):
         if self._server.book.chap_n - 1 <= 0:
-            self.get_root().toast_msg("这已经是第一章了哦！")
+            self.get_root().toast_msg(_("You are already at the first chapter."))
             return
         self._server.book.chap_n -= 1
         self._server.book.chap_txt_pos = 0
@@ -362,11 +344,11 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_fontsize_changed(self, b) -> None:
-        """字体
+        """Adjust font size."""
 
         Args:
-            spin (Adw.SpinRow): _description_
-            value (_type_): _description_
+            spin (Adw.SpinRow): Spin row
+            value (_type_): New value
         """
         if isinstance(b, Adw.SpinRow):
             v = b.get_value()
@@ -376,11 +358,11 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_paragraph_space_changed(self, b) -> None:
-        """字体
+        """Adjust paragraph spacing."""
 
         Args:
-            spin (Adw.SpinRow): _description_
-            value (_type_): _description_
+            spin (Adw.SpinRow): Spin row
+            value (_type_): New value
         """
         if isinstance(b, Adw.SpinRow):
             v = b.get_value()
@@ -390,11 +372,11 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_line_space_changed(self, b) -> None:
-        """字体
+        """Adjust line spacing."""
 
         Args:
-            spin (Adw.SpinRow): _description_
-            value (_type_): _description_
+            spin (Adw.SpinRow): Spin row
+            value (_type_): New value
         """
         if isinstance(b, Adw.SpinRow):
             v = b.get_value()
@@ -404,11 +386,11 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_click_title(self, *_args) -> None:
-        """字体
+        """Scroll the table of contents to the current chapter."""
 
         Args:
-            spin (Adw.SpinRow): _description_
-            value (_type_): _description_
+            spin (Adw.SpinRow): Spin row
+            value (_type_): New value
         """
         self._locate_toc(self._server.get_chap_n())
 
@@ -466,8 +448,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_set_default(self, *_args) -> None:
-        """恢复默认设置
-        """
+        """Restore default reader settings."""
         self._on_fontsize_changed(14)
         self._on_line_space_changed(8)
         self._on_paragraph_space_changed(24)

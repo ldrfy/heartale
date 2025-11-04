@@ -1,7 +1,9 @@
-'''获取文本并自动跳转的配置'''
+"""Utilities for loading text and navigating chapters."""
 
 import time
 from datetime import datetime
+
+from gettext import gettext as _
 
 from ..entity import LibraryDB
 from ..entity.book import Book
@@ -100,7 +102,7 @@ class Server:
         """子类需要自定义接下来要阅读的文本，并保存本地阅读进度等信息
         """
         print("next")
-        return "每次调用请自动刷新文本，并保存阅读信息"
+        return _("Each call should refresh the text and save reading information.")
 
     def get_chap_txt(self, chap_n=-1):
         """子类需要自定义获取章节文本

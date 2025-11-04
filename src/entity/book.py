@@ -3,6 +3,8 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
+from gettext import gettext as _
+
 from gi.repository import GLib, GObject  # type: ignore
 
 BOOK_FMT_TXT = 0
@@ -44,23 +46,24 @@ class Book:
     id: Optional[int] = None
 
     def get_jd_str(self) -> float:
-        """获取进度，0.0-1.0
-
-        Returns:
-            float: 进度
-        """
+        """Return a formatted progress string."""
         pct = 0
         if self.txt_all > 0:
             pct = self.txt_pos * 100 / self.txt_all
-        chap_str = f"{self.chap_name}（{self.chap_n}/{self.chap_all}）"
-        return f"{chap_str} · 进度 {pct:.2f}% （{self.txt_pos}/{self.txt_all}）"
+        chap_str = _("{chapter} ({current}/{total})").format(
+            chapter=self.chap_name,
+            current=self.chap_n,
+            total=self.chap_all,
+        )
+        return _("{chapter} · Progress {percent:.2f}% ({position}/{total})").format(
+            chapter=chap_str,
+            percent=pct,
+            position=self.txt_pos,
+            total=self.txt_all,
+        )
 
     def get_path(self) -> str:
-        """获取书籍路径
-
-        Returns:
-            str: 书籍路径
-        """
+        """Return the book path with the home directory shortened."""
         path_home = GLib.get_home_dir()
         return self.path.replace(path_home, '~')
 

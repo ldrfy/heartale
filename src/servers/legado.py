@@ -74,7 +74,7 @@ class LegadoServer(Server):
                 self.book_data = b
                 break
         if not self.book_data:
-            raise ValueError("Legado 书籍信息获取失败！")
+            raise ValueError(_("Failed to fetch Legado book information."))
 
         self.book.name = self.book_data["name"]
         self.book.author = self.book_data["author"]
@@ -188,7 +188,7 @@ class LegadoServer(Server):
         resp_json = resp.json()
 
         if not resp_json["isSuccess"]:
-            raise ValueError(f'进度保存错误！\n{resp_json["errorMsg"]}')
+            raise ValueError(_("Failed to save reading progress!\n{error}").format(error=resp_json["errorMsg"]))
 
 
 def get_book_shelf(url):
@@ -241,7 +241,7 @@ def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
         lbs = get_book_shelf(url_base)
     except Exception as e:  # pylint: disable=broad-except
         sync = False
-        s_error += f"Legado 书籍获取失败，错误：{e}\n"
+        s_error += _("Failed to fetch Legado book: {error}\n").format(error=e)
         print(e)
         return sync, s_error
 
@@ -252,7 +252,7 @@ def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
         try:
             name = b["name"]
             author = b["author"]
-            s_error += f"同步 Legado 书籍：{name} 作者：{author}\n"
+            s_error += _("Synced Legado book: {name} Author: {author}\n").format(name=name, author=author)
 
             md5 = hashlib.md5(f"legado-{name}-{author}"
                               .encode("utf-8")).hexdigest()
@@ -265,7 +265,7 @@ def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
 
         except Exception as e:  # pylint: disable=broad-except
             sync = False
-            s_error += f"解析错误：{e}\n"
+            s_error += _("Parsing error: {error}\n").format(error=e)
 
     db.close()
     return sync, s_error

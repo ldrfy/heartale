@@ -39,7 +39,7 @@
     <child>
       <object class="GtkButton" id="btn_del">
         <property name="icon-name">user-trash-symbolic</property>
-        <property name="tooltip-text">删除此书</property>
+        <property name="tooltip-text" translatable="yes">Delete this book</property>
         <property name="valign">center</property>
         <signal name="clicked" handler="_on_book_del"/>
       </object>
@@ -47,7 +47,7 @@
     <child>
       <object class="GtkButton" id="btn_top">
         <property name="icon-name">go-top-symbolic</property>
-        <property name="tooltip-text">置顶此书</property>
+        <property name="tooltip-text" translatable="yes">Pin this book</property>
         <property name="valign">center</property>
         <signal name="clicked" handler="_on_book_top"/>
         <style>

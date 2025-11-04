@@ -1,7 +1,9 @@
-"""书架页面"""
+"""Bookshelf page."""
 
 import threading
 from pathlib import Path
+
+from gettext import gettext as _
 
 from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk  # type: ignore
 
@@ -20,14 +22,7 @@ from .reader_page import ReaderPage
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/shelf_page.ui")
 class ShelfPage(Adw.NavigationPage):
-    """书架
-
-    Args:
-        Adw (_type_): _description_
-
-    Returns:
-        _type_: _description_
-    """
+    """Bookshelf navigation page."""
     __gtype_name__ = "ShelfPage"
 
     gl_shelf_read_time: Gtk.Label = Gtk.Template.Child()
@@ -82,8 +77,7 @@ class ShelfPage(Adw.NavigationPage):
         return True
 
     def reload_bookshel(self):
-        """重新加载书架数据
-        """
+        """Reload the bookshelf list and reading statistics."""
 
         self.spinner_sync.start()
         self.spinner_sync.set_visible(True)
@@ -91,8 +85,14 @@ class ShelfPage(Adw.NavigationPage):
         def worker():
             db = LibraryDB()
             books = list(db.iter_books())
-            s = f"今天：{db.get_td_day()} · 本周：{db.get_td_week()}"
-            s += f" · 本月：{db.get_td_month()} · 今年{db.get_td_year()}"
+            s = _(
+                "Today: {today} · This week: {week} · This month: {month} · This year: {year}"
+            ).format(
+                today=db.get_td_day(),
+                week=db.get_td_week(),
+                month=db.get_td_month(),
+                year=db.get_td_year(),
+            )
             db.close()
             GLib.idle_add(update_ui, books, s,
                           priority=GLib.PRIORITY_DEFAULT)
@@ -106,8 +106,7 @@ class ShelfPage(Adw.NavigationPage):
         threading.Thread(target=worker, daemon=True).start()
 
     def build_bookshel(self, books, is_search=False):
-        """构建书架
-        """
+        """Populate the list view with ``books``."""
         if len(books) == 0:
             if is_search:
                 self.stack.set_visible_child(self.search_empty)  # 空列表但非空态
@@ -138,8 +137,7 @@ class ShelfPage(Adw.NavigationPage):
         self.add_controller(sc)
 
     def _build_factory(self):
-        """初始化模型，仅一次
-        """
+        """Initialise the list factory once."""
         factory = Gtk.SignalListItemFactory()
 
         def setup(_f, li: Gtk.ListItem):
@@ -180,14 +178,7 @@ class ShelfPage(Adw.NavigationPage):
         self.build_bookshel(books_)
 
     def _do_delete_row(self, book: Book):
-        """从 ListStore 删除对应对象，并维护选中项与空态。
-
-        Args:
-            bobj (BookObject): _description_
-
-        Returns:
-            _type_: _description_
-        """
+        """Remove ``book`` from the list store and manage selection state."""
         sel: Gtk.SingleSelection = self.list.get_model()
         store: Gio.ListStore = sel.get_model()
 
@@ -199,7 +190,7 @@ class ShelfPage(Adw.NavigationPage):
                 idx = i
                 break
         if idx < 0:
-            return  # 不在模型中
+            return  # Book is not in the model
 
         # （可选）先同步数据库
         try:
@@ -207,7 +198,7 @@ class ShelfPage(Adw.NavigationPage):
             db.delete_book_by_md5(book.md5)  # 按你的接口调整
             db.close()
         except Exception as e:  # pylint: disable=broad-except
-            get_logger().error("删除数据库记录失败：%s", e)
+            get_logger().error("Failed to delete database record: %s", e)
 
         # 真正从模型移除
         store.remove(idx)
@@ -217,19 +208,17 @@ class ShelfPage(Adw.NavigationPage):
             self.stack.set_visible_child(self.empty)
 
     def _present_delete_confirm_adw(self, book: Book):
-        """删除确认
-
-        Args:
-            bobj (_type_): _description_
-        """
+        """Show a confirmation dialog before deleting ``book``."""
         dlg = Adw.MessageDialog(
             transient_for=self.get_root(),
             modal=True,
-            heading="确认删除？",
-            body=f"将从书库移除《{book.name}》。\n此操作不可撤销。",
+            heading=_("Delete book?"),
+            body=_('Remove “{book}” from the library.\nThis action cannot be undone.').format(
+                book=book.name
+            ),
         )
-        dlg.add_response("cancel", "取消")
-        dlg.add_response("delete", "删除")
+        dlg.add_response("cancel", _("Cancel"))
+        dlg.add_response("delete", _("Delete"))
         dlg.set_default_response("cancel")
         dlg.set_close_response("cancel")
         dlg.set_response_appearance(
@@ -244,9 +233,9 @@ class ShelfPage(Adw.NavigationPage):
     @Gtk.Template.Callback()
     def _on_import_book(self, *_args):
         dlg = Gtk.FileDialog.new()
-        dlg.set_title("选择要导入的书籍")
+        dlg.set_title(_("Select books to import"))
         ff = Gtk.FileFilter()
-        ff.set_name("文档与电子书")
+        ff.set_name(_("Documents and e-books"))
         for suf in ("pdf", "epub", "djvu", "txt", "md", "mobi", "azw3"):
             ff.add_suffix(suf)
         dlg.set_default_filter(ff)
@@ -256,9 +245,9 @@ class ShelfPage(Adw.NavigationPage):
             try:
                 files = d.open_multiple_finish(res)
             except GLib.Error as e:
-                get_logger().error("文件获取失败：%s", e)
+                get_logger().error("Failed to access files: %s", e)
                 s_error += f"{e}\n"
-                self.get_root().toast_msg("文件获取失败")
+                self.get_root().toast_msg(_("Could not open the selected files"))
                 return
 
             self._add_book(files)
@@ -266,11 +255,7 @@ class ShelfPage(Adw.NavigationPage):
         dlg.open_multiple(self.get_root(), None, _done)
 
     def _add_book(self, files):
-        """根据路径保存书籍并刷新
-
-        Args:
-            paths (_type_): _description_
-        """
+        """Import the provided ``files`` and refresh the bookshelf."""
         paths = []
         for f in files:
             paths.append(f.get_path())
@@ -280,15 +265,15 @@ class ShelfPage(Adw.NavigationPage):
             try:
                 book = path2book(path)
             except (FileNotFoundError, ValueError) as e:
-                get_logger().error("书籍导入失败：%s", e)
+                get_logger().error("Failed to import book: %s", e)
                 s_error += f"{Path(path).name}: {e}\n"
                 continue
             books.append(book)
 
         if s_error:
             edlg = Adw.MessageDialog.new(self.get_root(),
-                                         "导入部分失败", s_error)
-            edlg.add_response("ok", "确定")
+                                         _("Import partially failed"), s_error)
+            edlg.add_response("ok", _("OK"))
             edlg.set_default_response("ok")
             edlg.set_close_response("ok")
             edlg.present()
@@ -305,7 +290,7 @@ class ShelfPage(Adw.NavigationPage):
         db.close()
         self.build_bookshel(books_)
 
-        self.get_root().toast_msg("书籍导入完成")
+        self.get_root().toast_msg(_("Books imported successfully"))
 
     def _apply_search(self, *_args):
         self._search_debounce_id = 0
@@ -358,8 +343,7 @@ class ShelfPage(Adw.NavigationPage):
     def _on_import_book_legado(self, *_):
 
         def update_ui(sync_ok, s_error):
-            """更新
-            """
+            """Update the UI after a sync operation."""
             self.reload_bookshel()
 
             self.btn_sync.set_visible(True)
@@ -367,18 +351,18 @@ class ShelfPage(Adw.NavigationPage):
             self.spinner_sync.set_visible(False)
 
             if sync_ok:
-                self.get_root().toast_msg("Legado书籍同步完成")
+                self.get_root().toast_msg(_("Legado books synced successfully"))
                 return
 
             edlg = Adw.MessageDialog.new(self.get_root(),
-                                         "Legado书籍同步部分失败", s_error)
-            edlg.add_response("ok", "确定")
+                                         _("Legado sync partially failed"), s_error)
+            edlg.add_response("ok", _("OK"))
             edlg.set_default_response("ok")
             edlg.set_close_response("ok")
             edlg.present()
 
         def worker(url):
-            # 耗时操作放线程
+            # Run blocking work in a thread
             sync_ok, s_error = sync_legado_books(url_base=url)
             self.url_legado_sync = url
             GLib.idle_add(update_ui, sync_ok, s_error,
@@ -390,7 +374,9 @@ class ShelfPage(Adw.NavigationPage):
             url = d.entry.get_text().strip()
 
             if url == "" or not url.startswith("http"):
-                self.get_root().toast_msg("请输入Legado“web服务”打开以后的内网地址")
+                self.get_root().toast_msg(
+                    _("Enter the internal address shown after enabling Legado “Web Service”.")
+                )
                 return
 
             self.btn_sync.set_visible(False)
@@ -399,10 +385,15 @@ class ShelfPage(Adw.NavigationPage):
             threading.Thread(target=worker, args=(url,),
                              daemon=True).start()
 
-        dlg = InputDialog(self.get_root(), title="Legado书籍同步",
-                          subtitle="1. 只同步软件中前5本"
-                          "\n2. 在Legado中 “我的” 页面打开 “web服务”"
-                          "\n3.请输入打开以后看到的内网地址，如：\nhttp://192.168.1.2:1122")
+        dlg = InputDialog(
+            self.get_root(),
+            title=_("Legado book sync"),
+            subtitle=_(
+                "1. Only the first five books in the app will be synced."
+                "\n2. In Legado, open “Web Service” from the My page."
+                "\n3. Enter the internal address shown there, e.g.\n{example}"
+            ).format(example="http://192.168.1.2:1122"),
+        )
         dlg.set_input_text(self.url_legado_sync)
         dlg.connect("response", runner)
         dlg.present()

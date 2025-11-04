@@ -1,4 +1,7 @@
-"""书架中每一行的组件"""
+"""Shelf row component."""
+
+from gettext import gettext as _
+
 from gi.repository import GLib, GObject, Gtk  # type: ignore
 
 from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book, BookObject
@@ -6,11 +9,7 @@ from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book, BookObject
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/shelf_row.ui")
 class ShelfRow(Gtk.Box):
-    """_summary_
-
-    Args:
-        Gtk (_type_): _description_
-    """
+    """List row that displays a single book entry."""
     __gtype_name__ = "ShelfRow"
     __gsignals__ = {
         "delete-request": (GObject.SignalFlags.RUN_FIRST, None,
@@ -21,7 +20,7 @@ class ShelfRow(Gtk.Box):
 
     lbl_title: Gtk.Label = Gtk.Template.Child()
     lbl_sub: Gtk.Label = Gtk.Template.Child()
-    btn_top: Gtk.Button = Gtk.Template.Child()  # 新增按钮
+    btn_top: Gtk.Button = Gtk.Template.Child()  # Toggle pin button
 
     def __init__(self, **kw):
         super().__init__(**kw)
@@ -36,14 +35,10 @@ class ShelfRow(Gtk.Box):
         self.emit("top-request", self.book)
 
     def update(self, bobj: BookObject):
-        """_summary_
-
-        Args:
-            bobj (_type_): _description_
-        """
+        """Refresh the row with data from ``bobj``."""
         book: Book = bobj.to_dataclass()
         self.book = book
-        name = book.name or "(未命名)"
+        name = book.name or _("(Untitled)")
 
         if book.fmt == BOOK_FMT_LEGADO:
             name += " [Legado]"
@@ -57,10 +52,10 @@ class ShelfRow(Gtk.Box):
         context = self.btn_top.get_style_context()
 
         if book.sort > 0:
-            context.add_class("top")  # 添加选中样式
-            self.btn_top.set_icon_name("go-bottom-symbolic")  # 不可点击
-            self.btn_top.set_tooltip_text("取消置顶")  # 不可点击
+            context.add_class("top")
+            self.btn_top.set_icon_name("go-bottom-symbolic")
+            self.btn_top.set_tooltip_text(_("Unpin this book"))
         else:
-            context.remove_class("top")  # 移除选中样式
-            self.btn_top.set_icon_name("go-top-symbolic")  # 不可点击
-            self.btn_top.set_tooltip_text("置顶此书")  # 不可点击
+            context.remove_class("top")
+            self.btn_top.set_icon_name("go-top-symbolic")
+            self.btn_top.set_tooltip_text(_("Pin this book"))

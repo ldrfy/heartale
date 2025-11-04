@@ -8,7 +8,7 @@
   <template class="HeartaleWindow" parent="AdwApplicationWindow">
     <property name="default-height">700</property>
     <property name="default-width">1024</property>
-    <property name="title">简阅</property>
+    <property name="title" translatable="yes">Heartale</property>
     <child>
       <object class="AdwToastOverlay" id="toasts">
         <property name="child">

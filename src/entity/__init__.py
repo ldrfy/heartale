@@ -1,9 +1,12 @@
-"""数据"""
+"""Database helpers for the application."""
+
 import sqlite3
 from datetime import date, datetime
 from pathlib import Path
 from sqlite3 import OperationalError
 from typing import Iterator, List, Optional
+
+from gettext import gettext as _
 
 from .. import PATH_CONFIG
 from ..utils import sec2str
@@ -505,7 +508,10 @@ class LibraryDB:
     def _data2str(self, trs: list[TimeRead]):
         total_seconds = sum(tr.seconds for tr in trs)
         total_words = sum(tr.words for tr in trs)
-        return f"{sec2str(total_seconds)} / {total_words}字"
+        return _("{duration} / {words} words").format(
+            duration=sec2str(total_seconds),
+            words=total_words,
+        )
 
     def get_td_day(self, md5: Optional[str] = None) -> str:
         """今天阅读时间和字数，md5=None 表示全书"""
