@@ -1,14 +1,14 @@
 # SOME DESCRIPTIVE TITLE.
 # Copyright (C) YEAR yuhldr
-# This file is distributed under the same license as the cool.ldr.lfy package.
+# This file is distributed under the same license as the cool.ldr.heartale package.
 # FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
 #
 #, fuzzy
 msgid ""
 msgstr ""
-"Project-Id-Version: cool.ldr.lfy\n"
+"Project-Id-Version: cool.ldr.heartale\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2025-10-13 17:30+0800\n"
+"POT-Creation-Date: 2025-11-04 20:45+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -25,58 +25,471 @@ msgstr ""
 msgid "GTK;"
 msgstr ""
 
-#: src/res/page_bookshelf.ui:33
-msgid "书架"
+#: src/res/properties_view.ui:20
+msgid "Folder"
 msgstr ""
 
-#: src/res/page_empty.ui:21
-msgid "Books"
+#: src/res/properties_view.ui:30
+msgid "Open Containing Folder"
 msgstr ""
 
-#: src/res/page_empty.ui:29
-msgid "书架空"
+#: src/res/properties_view.ui:43
+msgid "URI"
 msgstr ""
 
-#: src/res/page_reader.ui:44
-msgid "书籍"
+#: src/res/properties_view.ui:57
+msgid "Reading Time"
 msgstr ""
 
-#: src/res/window.ui:13
+#: src/res/properties_view.ui:60
+msgid "Today"
+msgstr ""
+
+#: src/res/properties_view.ui:70
+msgid "This Week"
+msgstr ""
+
+#: src/res/properties_view.ui:80
+msgid "This Month"
+msgstr ""
+
+#: src/res/properties_view.ui:90
+msgid "This Year"
+msgstr ""
+
+#: src/res/properties_view.ui:100
+msgid "All"
+msgstr ""
+
+#: src/res/properties_view.ui:113
+msgid "Details"
+msgstr ""
+
+#: src/res/properties_view.ui:117
+msgid "txt number"
+msgstr ""
+
+#: src/res/properties_view.ui:128
+msgid "Format"
+msgstr ""
+
+#: src/res/properties_view.ui:138
+msgid "File Size"
+msgstr ""
+
+#: src/res/properties_view.ui:151
+msgid "Date"
+msgstr ""
+
+#: src/res/properties_view.ui:154
+msgid "File Created"
+msgstr ""
+
+#: src/res/properties_view.ui:164
+msgid "File Modified"
+msgstr ""
+
+#: src/res/reader_page.ui:10
+msgid "Reading"
+msgstr ""
+
+#: src/res/reader_page.ui:19
+msgid "Parsing book and chapters…"
+msgstr ""
+
+#: src/res/reader_page.ui:21
+msgid "Loading"
+msgstr ""
+
+#: src/res/reader_page.ui:37 src/pages/shelf_page.py:220
+#: src/widgets/dialog_input.py:21 src/main.py:98
+msgid "Cancel"
+msgstr ""
+
+#: src/res/reader_page.ui:47 src/pages/reader_page.py:172
+msgid ""
+"Unable to open this book or its table of contents. Please try again or go "
+"back."
+msgstr ""
+
+#: src/res/reader_page.ui:49
+msgid "Load failed"
+msgstr ""
+
+#: src/res/reader_page.ui:57
+msgid "Retry"
+msgstr ""
+
+#: src/res/reader_page.ui:63
+msgid "Return to bookshelf"
+msgstr ""
+
+#: src/res/reader_page.ui:153
+msgid "Search chapters…"
+msgstr ""
+
+#: src/res/reader_page.ui:197
+msgid "Book title"
+msgstr ""
+
+#: src/res/reader_page.ui:198
+msgid "Chapter title"
+msgstr ""
+
+#: src/res/reader_page.ui:207
+msgid "Show or hide table of contents"
+msgstr ""
+
+#: src/res/reader_page.ui:215 src/res/shelf_page.ui:175
+msgid "Search"
+msgstr ""
+
+#: src/res/reader_page.ui:243
+msgid "Reset to defaults"
+msgstr ""
+
+#: src/res/reader_page.ui:252
+msgid "Font Size"
+msgstr ""
+
+#: src/res/reader_page.ui:253
+msgid "Font size"
+msgstr ""
+
+#: src/res/reader_page.ui:272
+msgid "Line Space"
+msgstr ""
+
+#: src/res/reader_page.ui:273
+msgid "Line spacing"
+msgstr ""
+
+#: src/res/reader_page.ui:291
+msgid "Paragraph Space"
+msgstr ""
+
+#: src/res/reader_page.ui:292
+msgid "Paragraph spacing"
+msgstr ""
+
+#: src/res/reader_page.ui:315
+msgid "Read aloud"
+msgstr ""
+
+#: src/res/shelf_page.ui:13
+msgid "Check for updates"
+msgstr ""
+
+#: src/res/shelf_page.ui:17
 msgid "_Preferences"
 msgstr ""
 
-#: src/res/window.ui:17
+#: src/res/shelf_page.ui:21
 msgid "_Keyboard Shortcuts"
 msgstr ""
 
-#: src/res/window.ui:21
+#: src/res/shelf_page.ui:25
 msgid "_About Heartale"
 msgstr ""
 
-#: src/res/window.ui:39
-msgid "Back"
+#: src/res/shelf_page.ui:31 src/res/shelf_page.ui:169
+msgid "Bookshelf"
 msgstr ""
 
-#: src/res/window.ui:47
-msgid "Import Books"
+#: src/res/shelf_page.ui:46
+msgid "Search titles…"
 msgstr ""
 
-#: src/res/window.ui:55
-msgid "Delete Selected"
+#: src/res/shelf_page.ui:60
+msgid "Try another keyword or clear the search to try again."
 msgstr ""
 
-#: src/res/window.ui:64
-msgid "Play"
+#: src/res/shelf_page.ui:62
+msgid "No matching books"
 msgstr ""
 
-#: src/res/window.ui:75
+#: src/res/shelf_page.ui:74
+msgid "Clear search"
+msgstr ""
+
+#: src/res/shelf_page.ui:88 src/res/shelf_page.ui:109
+msgid "Import books"
+msgstr ""
+
+#: src/res/shelf_page.ui:99
+msgid ""
+"No books yet. Click the button below or drag files here to start reading."
+msgstr ""
+
+#: src/res/shelf_page.ui:101
+msgid "Welcome to Heartale"
+msgstr ""
+
+#: src/res/shelf_page.ui:151
+msgid "Hello, World!"
+msgstr ""
+
+#: src/res/shelf_page.ui:168
+msgid "Select a book to start reading"
+msgstr ""
+
+#: src/res/shelf_page.ui:182
+msgid "Image Properties"
+msgstr ""
+
+#: src/res/shelf_page.ui:190
 msgid "Main Menu"
 msgstr ""
 
-#: src/res/window.ui:84
+#: src/res/shelf_page.ui:196
+msgid "Import local books"
+msgstr ""
+
+#: src/res/shelf_page.ui:206
+msgid "Sync Legado books"
+msgstr ""
+
+#: src/res/shelf_row.ui:42
+msgid "Delete this book"
+msgstr ""
+
+#: src/res/shelf_row.ui:50 src/widgets/shelf_row.py:61
+msgid "Pin this book"
+msgstr ""
+
+#: src/res/shortcuts-dialog.ui:6
+msgid "Shortcuts"
+msgstr ""
+
+#: src/res/shortcuts-dialog.ui:9
+msgctxt "shortcut window"
+msgid "Show Shortcuts"
+msgstr ""
+
+#: src/res/shortcuts-dialog.ui:15
+msgctxt "shortcut window"
+msgid "Quit"
+msgstr ""
+
+#: src/res/window.ui:11
 msgid "Heartale"
 msgstr ""
 
-#: src/main.py:64
+#: src/entity/book.py:53
+#, python-brace-format
+msgid "{chapter} ({current}/{total})"
+msgstr ""
+
+#: src/entity/book.py:58
+#, python-brace-format
+msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
+msgstr ""
+
+#: src/entity/__init__.py:511
+#, python-brace-format
+msgid "{duration} / {words} words"
+msgstr ""
+
+#: src/pages/reader_page.py:100
+#, python-brace-format
+msgid ""
+"Unable to open this book or its table of contents.\n"
+"{title}: {path}\n"
+"\n"
+"Try again or go back:\n"
+"{error}"
+msgstr ""
+
+#: src/pages/reader_page.py:271
+#, python-brace-format
+msgid "Failed to switch chapter: {error}"
+msgstr ""
+
+#: src/pages/reader_page.py:326
+msgid "You have reached the last chapter."
+msgstr ""
+
+#: src/pages/reader_page.py:337
+msgid "You are already at the first chapter."
+msgstr ""
+
+#: src/pages/shelf_page.py:89
+#, python-brace-format
+msgid ""
+"Today: {today} · This week: {week} · This month: {month} · This year: {year}"
+msgstr ""
+
+#: src/pages/shelf_page.py:215
+msgid "Delete book?"
+msgstr ""
+
+#: src/pages/shelf_page.py:216
+#, python-brace-format
+msgid ""
+"Remove “{book}” from the library.\n"
+"This action cannot be undone."
+msgstr ""
+
+#: src/pages/shelf_page.py:221
+msgid "Delete"
+msgstr ""
+
+#: src/pages/shelf_page.py:236
+msgid "Select books to import"
+msgstr ""
+
+#: src/pages/shelf_page.py:238
+msgid "Documents and e-books"
+msgstr ""
+
+#: src/pages/shelf_page.py:250
+msgid "Could not open the selected files"
+msgstr ""
+
+#: src/pages/shelf_page.py:275
+msgid "Import partially failed"
+msgstr ""
+
+#: src/pages/shelf_page.py:276 src/pages/shelf_page.py:359
+#: src/widgets/dialog_input.py:22
+msgid "OK"
+msgstr ""
+
+#: src/pages/shelf_page.py:293
+msgid "Books imported successfully"
+msgstr ""
+
+#: src/pages/shelf_page.py:354
+msgid "Legado books synced successfully"
+msgstr ""
+
+#: src/pages/shelf_page.py:358
+msgid "Legado sync partially failed"
+msgstr ""
+
+#: src/pages/shelf_page.py:378
+msgid "Enter the internal address shown after enabling Legado “Web Service”."
+msgstr ""
+
+#: src/pages/shelf_page.py:390
+msgid "Legado book sync"
+msgstr ""
+
+#: src/pages/shelf_page.py:392
+#, python-brace-format
+msgid ""
+"1. Only the first five books in the app will be synced.\n"
+"2. In Legado, open “Web Service” from the My page.\n"
+"3. Enter the internal address shown there, e.g.\n"
+"{example}"
+msgstr ""
+
+#: src/servers/__init__.py:105
+msgid "Each call should refresh the text and save reading information."
+msgstr ""
+
+#: src/servers/legado.py:77
+msgid "Failed to fetch Legado book information."
+msgstr ""
+
+#: src/servers/legado.py:191
+#, python-brace-format
+msgid ""
+"Failed to save reading progress!\n"
+"{error}"
+msgstr ""
+
+#: src/servers/legado.py:205
+#, python-brace-format
+msgid ""
+"The website you entered is most likely incorrect. The current URL is: {}"
+msgstr ""
+
+#: src/servers/legado.py:244
+#, python-brace-format
+msgid "Failed to fetch Legado book: {error}\n"
+msgstr ""
+
+#: src/servers/legado.py:255
+#, python-brace-format
+msgid "Synced Legado book: {name} Author: {author}\n"
+msgstr ""
+
+#: src/servers/legado.py:268
+#, python-brace-format
+msgid "Parsing error: {error}\n"
+msgstr ""
+
+#: src/servers/txt.py:74
+#, python-brace-format
+msgid "File not found: {path}"
+msgstr ""
+
+#: src/utils/check_update.py:114
+#, python-brace-format
+msgid ""
+"New version: {version}\n"
+"\n"
+"please upgrade it:\n"
+"{url}\n"
+"\n"
+"{update_msg}"
+msgstr ""
+
+#: src/widgets/dialog_input.py:10
+msgid "Enter text"
+msgstr ""
+
+#: src/widgets/properties_view.py:59
+#, python-brace-format
+msgid "{count} characters"
+msgstr ""
+
+#: src/widgets/properties_view.py:93
+msgid "Unknown size"
+msgstr ""
+
+#: src/widgets/properties_view.py:98
+msgid "Legado format"
+msgstr ""
+
+#: src/widgets/properties_view.py:101
+#, python-brace-format
+msgid "Plain text format (encoding {encoding})"
+msgstr ""
+
+#: src/widgets/properties_view.py:103
+msgid "Unknown format"
+msgstr ""
+
+#: src/widgets/shelf_row.py:41
+msgid "(Untitled)"
+msgstr ""
+
+#: src/widgets/shelf_row.py:57
+msgid "Unpin this book"
+msgstr ""
+
+#: src/main.py:59
 msgid "translator-credits"
+msgstr ""
+
+#: src/main.py:90
+msgid "New version available"
+msgstr ""
+
+#: src/main.py:99
+msgid "Update"
+msgstr ""
+
+#: src/main.py:119
+#, python-brace-format
+msgid ""
+"There is no new version.                      \n"
+"The current version is {}.                      \n"
+"You can go to {} to view the beta version."
+msgstr ""
+
+#: src/main.py:123
+msgid "No new version found"
 msgstr ""

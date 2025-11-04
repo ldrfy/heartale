@@ -1,7 +1,6 @@
 """获取阅读时间的基础类"""
 from dataclasses import dataclass, field
 from datetime import datetime
-from gettext import gettext as _
 from typing import Optional
 
 TIME_READ_WAY_READ = 0    # 阅读

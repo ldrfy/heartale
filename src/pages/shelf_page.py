@@ -340,7 +340,7 @@ class ShelfPage(Adw.NavigationPage):
         self._apply_search()  # 触发一次“显示全部”
 
     @Gtk.Template.Callback()
-    def _on_import_book_legado(self, *_):
+    def _on_import_book_legado(self, *args):
 
         def update_ui(sync_ok, s_error):
             """Update the UI after a sync operation."""

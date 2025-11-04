@@ -45,7 +45,7 @@ class Book:
         default_factory=lambda: int(datetime.now().timestamp()))
     id: Optional[int] = None
 
-    def get_jd_str(self) -> float:
+    def get_jd_str(self) -> str:
         """Return a formatted progress string."""
         pct = 0
         if self.txt_all > 0:

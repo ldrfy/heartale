@@ -5,7 +5,7 @@ def split_text(text_all, dcp=0):
     """重新划分段落，防止太短
 
     Args:
-        text_all (dict): 书json
+        text_all (str): 书json
         dcp (int, optional): 分段转音频，第几段. Defaults to 0.
 
     Returns:

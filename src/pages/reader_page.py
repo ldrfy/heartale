@@ -174,7 +174,7 @@ class ReaderPage(Adw.NavigationPage):
         self.page_error.set_description(des)
 
     def set_chap_text(self, _chap_n=-1):
-        """Update the reader with chapter ``_chap_n``."""
+        """Update the reader with chapter ``_chap_n``.
 
         Args:
             chap_n (int): Chapter index
@@ -217,7 +217,7 @@ class ReaderPage(Adw.NavigationPage):
         threading.Thread(target=worker, args=(_chap_n,), daemon=True).start()
 
     def get_current_text(self, selection_only: bool = True) -> str:
-        """Return the current text selection or the entire chapter."""
+        """Return the current text selection or the entire chapter.
 
         Args:
             selection_only (bool, optional): Whether to prefer the selection. Defaults to True.
@@ -271,7 +271,7 @@ class ReaderPage(Adw.NavigationPage):
             self.show_error(_("Failed to switch chapter: {error}").format(error=e))
 
     def _on_click_paragraph(self, idx: int, *_args):
-        """Handle a paragraph click inside the reader."""
+        """Handle a paragraph click inside the reader.
 
         Args:
             idx (int): Paragraph index
@@ -284,7 +284,7 @@ class ReaderPage(Adw.NavigationPage):
         self.ptc.highlight_paragraph(idx)
 
     def _set_read_jd(self, idx, add=True):
-        """Update reading progress with the current paragraph index."""
+        """Update reading progress with the current paragraph index.
 
         Args:
             idx (_type_): Paragraph index
@@ -344,7 +344,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_fontsize_changed(self, b) -> None:
-        """Adjust font size."""
+        """Adjust font size.
 
         Args:
             spin (Adw.SpinRow): Spin row
@@ -358,7 +358,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_paragraph_space_changed(self, b) -> None:
-        """Adjust paragraph spacing."""
+        """Adjust paragraph spacing.
 
         Args:
             spin (Adw.SpinRow): Spin row
@@ -372,7 +372,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_line_space_changed(self, b) -> None:
-        """Adjust line spacing."""
+        """Adjust line spacing.
 
         Args:
             spin (Adw.SpinRow): Spin row
@@ -386,7 +386,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_click_title(self, *_args) -> None:
-        """Scroll the table of contents to the current chapter."""
+        """Scroll the table of contents to the current chapter.
 
         Args:
             spin (Adw.SpinRow): Spin row

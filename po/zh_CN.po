@@ -1,0 +1,276 @@
+# Chinese translations for cool.ldr.lfy package
+# cool.ldr.lfy 软件包的简体中文翻译.
+# Copyright (C) 2025 yuhldr
+# This file is distributed under the same license as the cool.ldr.lfy package.
+#  <yuhldr@qq.com>, 2025.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: cool.ldr.lfy\n"
+"Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
+"POT-Creation-Date: 2025-11-04 20:45+0800\n"
+"PO-Revision-Date: 2025-11-04 20:15+0800\n"
+"Last-Translator:  <yuhldr@qq.com>\n"
+"Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
+"Language: zh_CN\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: data/cool.ldr.heartale.desktop.in:2
+msgid "heartale"
+msgstr "兰阅"
+
+#: data/cool.ldr.heartale.desktop.in:8
+msgid "GTK;"
+msgstr ""
+
+#: src/res/properties_view.ui:20
+msgid "Folder"
+msgstr "文件夹"
+
+#: src/res/properties_view.ui:30
+msgid "Open Containing Folder"
+msgstr "打开所在文件夹"
+
+#: src/res/properties_view.ui:43
+msgid "URI"
+msgstr "链接"
+
+#: src/res/properties_view.ui:57
+msgid "Reading Time"
+msgstr "阅读时间"
+
+#: src/res/properties_view.ui:60
+msgid "Today"
+msgstr "今天"
+
+#: src/res/properties_view.ui:70
+msgid "This Week"
+msgstr "本周"
+
+#: src/res/properties_view.ui:80
+msgid "This Month"
+msgstr "本月"
+
+#: src/res/properties_view.ui:90
+msgid "This Year"
+msgstr "今年"
+
+#: src/res/properties_view.ui:100
+msgid "All"
+msgstr "全部"
+
+#: src/res/properties_view.ui:113
+msgid "Details"
+msgstr "详细信息"
+
+#: src/res/properties_view.ui:117
+msgid "txt number"
+msgstr "章节数"
+
+#: src/res/properties_view.ui:128
+msgid "Format"
+msgstr "格式"
+
+#: src/res/properties_view.ui:138
+msgid "File Size"
+msgstr "文件大小"
+
+#: src/res/properties_view.ui:151
+msgid "Date"
+msgstr "日期"
+
+#: src/res/properties_view.ui:154
+msgid "File Created"
+msgstr "创建时间"
+
+#: src/res/properties_view.ui:164
+msgid "File Modified"
+msgstr "修改时间"
+
+#: src/res/reader_page.ui:10
+msgid "Reading"
+msgstr "正在阅读"
+
+#: src/res/reader_page.ui:19
+msgid "Parsing book and chapters…"
+msgstr "正在解析书籍与章节…"
+
+#: src/res/reader_page.ui:21
+msgid "Loading"
+msgstr "加载中"
+
+#: src/res/reader_page.ui:37 src/pages/shelf_page.py:220
+#: src/widgets/dialog_input.py:21 src/main.py:98
+msgid "Cancel"
+msgstr "取消"
+
+#: src/res/reader_page.ui:47 src/pages/reader_page.py:172
+msgid ""
+"Unable to open this book or its table of contents. Please try again or go "
+"back."
+msgstr "无法打开此书或其目录，请重试或返回。"
+
+#: src/res/reader_page.ui:49
+msgid "Load failed"
+msgstr "加载失败"
+
+#: src/res/reader_page.ui:57
+msgid "Retry"
+msgstr "重试"
+
+#: src/res/reader_page.ui:63
+msgid "Return to bookshelf"
+msgstr "返回书架"
+
+#: src/res/reader_page.ui:153
+msgid "Search chapters…"
+msgstr "搜索章节…"
+
+#: src/res/reader_page.ui:197
+msgid "Book title"
+msgstr "书名"
+
+#: src/res/reader_page.ui:198
+msgid "Chapter title"
+msgstr "章节标题"
+
+#: src/res/reader_page.ui:207
+msgid "Show or hide table of contents"
+msgstr "显示或隐藏目录"
+
+#: src/res/reader_page.ui:215 src/res/shelf_page.ui:175
+msgid "Search"
+msgstr "搜索"
+
+#: src/res/reader_page.ui:243
+msgid "Reset to defaults"
+msgstr "恢复默认"
+
+#: src/res/reader_page.ui:252
+msgid "Font Size"
+msgstr "字体大小"
+
+#: src/res/reader_page.ui:253
+msgid "Font size"
+msgstr "字体大小"
+
+#: src/res/reader_page.ui:272
+msgid "Line Space"
+msgstr "行距"
+
+#: src/res/reader_page.ui:273
+msgid "Line spacing"
+msgstr "行间距"
+
+#: src/res/reader_page.ui:291
+msgid "Paragraph Space"
+msgstr "段距"
+
+#: src/res/reader_page.ui:292
+msgid "Paragraph spacing"
+msgstr "段落间距"
+
+#: src/res/reader_page.ui:315
+msgid "Read aloud"
+msgstr "朗读"
+
+#: src/res/shelf_page.ui:13
+msgid "Check for updates"
+msgstr "检查更新"
+
+#: src/res/shelf_page.ui:17
+msgid "_Preferences"
+msgstr "首选项(_P)"
+
+#: src/res/shelf_page.ui:21
+msgid "_Keyboard Shortcuts"
+msgstr "键盘快捷键(_K)"
+
+#: src/res/shelf_page.ui:25
+msgid "_About Heartale"
+msgstr "关于兰阅(_A)"
+
+#: src/res/shelf_page.ui:31 src/res/shelf_page.ui:169
+msgid "Bookshelf"
+msgstr "书架"
+
+#: src/res/shelf_page.ui:46
+msgid "Search titles…"
+msgstr "搜索书名…"
+
+#: src/res/shelf_page.ui:60
+msgid "Try another keyword or clear the search to try again."
+msgstr "尝试其他关键字或清除搜索后重试。"
+
+#: src/res/shelf_page.ui:62
+msgid "No matching books"
+msgstr "未找到匹配书籍"
+
+#: src/res/shelf_page.ui:74
+msgid "Clear search"
+msgstr "清除搜索"
+
+#: src/res/shelf_page.ui:88 src/res/shelf_page.ui:109
+msgid "Import books"
+msgstr "导入书籍"
+
+#: src/res/shelf_page.ui:99
+msgid ""
+"No books yet. Click the button below or drag files here to start reading."
+msgstr "暂无书籍。点击下方按钮或拖拽文件到此开始阅读。"
+
+#: src/res/shelf_page.ui:101
+msgid "Welcome to Heartale"
+msgstr "欢迎使用兰阅"
+
+#: src/res/shelf_page.ui:151
+msgid "Hello, World!"
+msgstr "你好，世界！"
+
+#: src/res/shelf_page.ui:168
+msgid "Select a book to start reading"
+msgstr "选择一本书开始阅读"
+
+#: src/res/shelf_page.ui:182
+msgid "Image Properties"
+msgstr "图片属性"
+
+#: src/res/shelf_page.ui:190
+msgid "Main Menu"
+msgstr "主菜单"
+
+#: src/res/shelf_page.ui:196
+msgid "Import local books"
+msgstr "导入本地书籍"
+
+#: src/res/shelf_page.ui:206
+msgid "Sync Legado books"
+msgstr "同步 Legado 书籍"
+
+#: src/res/shelf_row.ui:42
+msgid "Delete this book"
+msgstr "删除此书"
+
+#: src/res/shelf_row.ui:50 src/widgets/shelf_row.py:61
+msgid "Pin this book"
+msgstr "固定此书"
+
+#: src/res/shortcuts-dialog.ui:6
+msgid "Shortcuts"
+msgstr "快捷键"
+
+#: src/res/shortcuts-dialog.ui:9
+msgctxt "shortcut window"
+msgid "Show Shortcuts"
+msgstr "显示快捷键"
+
+#: src/res/shortcuts-dialog.ui:15
+msgctxt "shortcut window"
+msgid "Quit"
+msgstr "退出"
+
+#: src/res/window.ui:11
+msgid "Heartale"
+msgstr "兰阅"

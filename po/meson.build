@@ -1,1 +1,1 @@
-i18n.gettext('heartale', preset: 'glib')
+i18n.gettext(APP_ID, preset: 'glib')

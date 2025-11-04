@@ -3,7 +3,7 @@ import threading
 
 from gettext import gettext as _
 
-from gi.repository import Adw, GLib, Gtk
+from gi.repository import Adw, GLib, Gtk  # type: ignore
 
 from ..entity import LibraryDB
 from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book

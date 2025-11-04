@@ -189,7 +189,6 @@ def path2book(src: str, cfg_dir: Path = PATH_CONFIG_BOOKS) -> Book:
         raise ValueError(f"Unsupported file type: {src_path.suffix}")
     enc = detect_encoding(src_path)
 
-    chap_all = 0
     with open(src, "r", encoding=enc, errors="ignore") as file:
         f_txt = file.read()
     txt_all = len(f_txt)

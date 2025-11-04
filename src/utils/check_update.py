@@ -111,7 +111,8 @@ def main(version_now):
 
         v = data["version"]
         if compare_versions(v, version_now):
-            return f'New version: {v}\n\nplease upgrade it:\n{data["url"]}\n\n{data["msg"]}'
+            return _('New version: {version}\n\nplease upgrade it:\n{url}\n\n{update_msg}')\
+                .format(version=v, url=data["url"], update_msg=data["msg"])
         return None
     except Exception as e:  # pylint: disable=W0718
         get_logger().error(e)

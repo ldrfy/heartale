@@ -4,14 +4,14 @@ import hashlib
 import json
 import time
 from gettext import gettext as _
-from urllib.parse import parse_qs, quote, urlparse, urlsplit, urlunsplit
+from urllib.parse import quote
 
 import requests
 
+from . import Server
 from ..entity import LibraryDB
 from ..entity.book import BOOK_FMT_LEGADO, Book
 from ..entity.time_read import TIME_READ_WAY_READ
-from . import Server
 
 # 常量定义
 CHAP_POS = "durChapterPos"
@@ -202,7 +202,7 @@ def get_book_shelf(url):
     """
     resp = requests.get(f"{url}/getBookshelf", timeout=10)
     if resp.status_code != 200:
-        raise ValueError(_("大概率输入的网址错误，当前网址为：{}").format(url))
+        raise ValueError(_("The website you entered is most likely incorrect. The current URL is: {}").format(url))
     return resp.json()["data"]
 
 
@@ -210,7 +210,7 @@ def get_txt_all(b):
     """_summary_
 
     Args:
-        word_count (_type_): _description_
+        b (dict): _description_
 
     Returns:
         _type_: _description_
@@ -225,12 +225,12 @@ def get_txt_all(b):
     return int(word_count)
 
 
-def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
+def sync_legado_books(book_n=5, url_base="http://10.8.0.6:1122") -> dict:
     """导入Legado书籍信息，网络请求
 
     Args:
         book_n (int): 第几本书
-        base_url (str): Legado基础URL
+        url_base (str): Legado基础URL
 
     Returns:
         dict: 书籍信息
@@ -246,8 +246,8 @@ def sync_legado_books(book_ns=5, url_base="http://10.8.0.6:1122") -> dict:
         return sync, s_error
 
     db = LibraryDB()
-    book_ns = min(book_ns, len(lbs))
-    for i, b in enumerate(lbs[:book_ns]):
+    book_n = min(book_n, len(lbs))
+    for i, b in enumerate(lbs[:book_n]):
         s_error += f"\n----- {i} -----\n"
         try:
             name = b["name"]
