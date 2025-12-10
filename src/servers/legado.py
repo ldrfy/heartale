@@ -8,10 +8,10 @@ from urllib.parse import quote
 
 import requests
 
-from . import Server
 from ..entity import LibraryDB
 from ..entity.book import BOOK_FMT_LEGADO, Book
 from ..entity.time_read import TIME_READ_WAY_READ
+from . import Server
 
 # 常量定义
 CHAP_POS = "durChapterPos"
@@ -188,7 +188,8 @@ class LegadoServer(Server):
         resp_json = resp.json()
 
         if not resp_json["isSuccess"]:
-            raise ValueError(_("Failed to save reading progress!\n{error}").format(error=resp_json["errorMsg"]))
+            raise ValueError(_("Failed to save reading progress!\n{error}").format(
+                error=resp_json["errorMsg"]))
 
 
 def get_book_shelf(url):
@@ -202,7 +203,8 @@ def get_book_shelf(url):
     """
     resp = requests.get(f"{url}/getBookshelf", timeout=10)
     if resp.status_code != 200:
-        raise ValueError(_("The website you entered is most likely incorrect. The current URL is: {}").format(url))
+        raise ValueError(
+            _("The website you entered is most likely incorrect. The current URL is: {}").format(url))
     return resp.json()["data"]
 
 
@@ -220,12 +222,15 @@ def get_txt_all(b):
     word_count = b["wordCount"]
     if not word_count:
         return 0
-    if "K" in word_count:
-        return int(float(word_count.replace("K", "")) * 1000)
-    if "w" in word_count:
-        return int(float(word_count.replace("W", "")) * 10000)
-    if "万字" in word_count:
-        return int(float(word_count.replace("万字", "")) * 10000)
+
+    word_count = word_count.lower().strip()
+
+    keys = ["k", "w", "万字"]
+    ns = [1000, 10000, 10000]
+
+    for key, n in zip(keys, ns):
+        if key in word_count:
+            return int(float(word_count.replace(key, "")) * n)
     return int(word_count)
 
 
@@ -256,7 +261,8 @@ def sync_legado_books(book_n=5, url_base="http://10.8.0.6:1122") -> dict:
         try:
             name = b["name"]
             author = b["author"]
-            s_error += _("Synced Legado book: {name} Author: {author}\n").format(name=name, author=author)
+            s_error += _("Synced Legado book: {name} Author: {author}\n").format(
+                name=name, author=author)
 
             md5 = hashlib.md5(f"legado-{name}-{author}"
                               .encode("utf-8")).hexdigest()
