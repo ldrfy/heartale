@@ -178,9 +178,8 @@ class ParagraphTagController:
         rng = self.get_paragraph_range(idx)
         if not rng:
             return
-        self.buf.remove_tag(
-            self._active_tag, self.buf.get_start_iter(), self.buf.get_end_iter()
-        )
+        self.buf.remove_tag(self._active_tag, self.buf.get_start_iter(),
+                            self.buf.get_end_iter())
         s_off, e_off = rng
         self.buf.apply_tag(
             self._active_tag,
@@ -191,6 +190,23 @@ class ParagraphTagController:
         if ensure_visible:
             self.scroll_to_paragraph(idx)
 
+    def get_highlight_text(self) -> str:
+        """
+        返回当前被高亮（活动）的段落文本。
+        若无活动段或索引越界，返回空字符串。
+        """
+        if self._active_idx is None:
+            return ""
+
+        rng = self.get_paragraph_range(self._active_idx)
+        if not rng:
+            return ""
+
+        s_off, e_off = rng
+        start_it = self.buf.get_iter_at_offset(s_off)
+        end_it = self.buf.get_iter_at_offset(e_off)
+        # include_hidden_chars=True 以确保取到所有字符（根据需要可改为 False）
+        return self.buf.get_text(start_it, end_it, True)
     # ---------- 样式相关（随时可调） ----------
     def set_font_size_pt(self, pt: int):
         """

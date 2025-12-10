@@ -310,10 +310,22 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkButton">
-                <property name="icon-name">media-playback-start-symbolic</property>
-                <property name="tooltip-text" translatable="yes">Read aloud</property>
-                <signal name="clicked" handler="_on_read_aloud"/>
+              <object class="GtkBox" id="gb_tts_loading">
+                <property name="orientation">horizontal</property>
+                <child>
+                    <object class="GtkButton" id="gb_tts_start">
+                        <property name="icon-name">media-playback-start-symbolic</property>
+                        <property name="tooltip-text" translatable="yes">Read aloud</property>
+                        <signal name="clicked" handler="_on_read_aloud"/>
+                    </object>
+                </child>
+                <child>
+                  <object class="GtkSpinner" id="gs_tts_loading">
+                    <property name="margin-end">8</property>
+                    <property name="valign">center</property>
+                    <property name="visible">false</property>
+                  </object>
+                </child>
               </object>
             </child>
           </object>

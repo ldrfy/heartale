@@ -4,7 +4,6 @@ import copy
 import threading
 import time
 import traceback
-
 from gettext import gettext as _
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
@@ -14,6 +13,8 @@ from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
 from ..servers import Server
 from ..servers.legado import LegadoServer
 from ..servers.txt import TxtServer
+from ..tts import THS
+from ..tts.server_android import TtsSA
 from ..utils.debug import get_logger
 from ..widgets.pg_tag_view import ParagraphTagController
 
@@ -38,6 +39,8 @@ class ReaderPage(Adw.NavigationPage):
     stack: Adw.ViewStack = Gtk.Template.Child()
 
     spinner_sync: Gtk.Spinner = Gtk.Template.Child()
+    gs_tts_loading: Gtk.Spinner = Gtk.Template.Child()
+    gb_tts_start: Gtk.Button = Gtk.Template.Child()
 
     aos_reader: Adw.OverlaySplitView = Gtk.Template.Child()
     page_error: Adw.StatusPage = Gtk.Template.Child()
@@ -60,6 +63,7 @@ class ReaderPage(Adw.NavigationPage):
         self._search_debounce_id = 0
 
         self._server: Server = None
+        self.tts: THS = None
 
         self._build_factory()
 
@@ -106,6 +110,7 @@ class ReaderPage(Adw.NavigationPage):
 
         def worker(_book: Book):
             try:
+                self.tts = TtsSA()
 
                 db = LibraryDB()
                 book = db.get_book_by_md5(_book.md5)
@@ -169,7 +174,8 @@ class ReaderPage(Adw.NavigationPage):
     def show_error(self, des=None):
         """Show the error page with ``des`` as the description."""
         if des is None:
-            des = _("Unable to open this book or its table of contents. Please try again or go back.")
+            des = _(
+                "Unable to open this book or its table of contents. Please try again or go back.")
         self.stack.set_visible_child(self.page_error)
         self.page_error.set_description(des)
 
@@ -194,7 +200,8 @@ class ReaderPage(Adw.NavigationPage):
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
             self.spinner_sync.stop()
 
-            self.glb_chap_txt_n.set_text(f"{self._server.bd.chap_txt_n + 1}/{len(self._server.bd.chap_txts)}")
+            self.glb_chap_txt_n.set_text(
+                f"{self._server.bd.chap_txt_n + 1}/{len(self._server.bd.chap_txts)}")
 
             self.btn_prev_chap.set_sensitive(True)
             self.btn_next_chap.set_sensitive(True)
@@ -267,7 +274,8 @@ class ReaderPage(Adw.NavigationPage):
             # Optionally update the title/subtitle
         except Exception as e:  # pylint: disable=broad-except
             get_logger().error("Failed to switch chapter: %s", e)
-            self.show_error(_("Failed to switch chapter: {error}").format(error=e))
+            self.show_error(
+                _("Failed to switch chapter: {error}").format(error=e))
 
     def _on_click_paragraph(self, idx: int, *_args):
         """Handle a paragraph click inside the reader.
@@ -295,7 +303,8 @@ class ReaderPage(Adw.NavigationPage):
             return
 
         def worker():
-            self.glb_chap_txt_n.set_text(f"{idx + 1}/{len(self._server.bd.chap_txts)}")
+            self.glb_chap_txt_n.set_text(
+                f"{idx + 1}/{len(self._server.bd.chap_txts)}")
             self._server.set_chap_txt_n(idx)
             self._server.save_read_progress(self._server.get_chap_n(),
                                             self._server.get_chap_txt_pos())
@@ -304,13 +313,26 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_read_aloud(self, *_args):
-        text = self.get_current_text(selection_only=True)
-        if not text:
-            text = self.get_current_text(selection_only=False)
-        # Print for now; can be replaced with real TTS later
-        print("[TTS] Reading content:")
-        # Truncate to avoid flooding the console
-        print(text[:400])
+
+        self.gb_tts_start.set_visible(False)
+        self.gs_tts_loading.set_visible(True)
+        self.gs_tts_loading.start()
+        print("隐藏")
+
+        def _ui_update(test):
+            print("显示")
+            self.gs_tts_loading.stop()
+            self.gs_tts_loading.set_visible(False)
+            self.gb_tts_start.set_visible(True)
+
+        def worker(n):
+            text = self.ptc.get_highlight_text()
+            self.tts.download(text, "test")
+
+            GLib.idle_add(_ui_update, "test",
+                          priority=GLib.PRIORITY_DEFAULT)
+
+        threading.Thread(target=worker, args=(0,), daemon=True).start()
 
     @Gtk.Template.Callback()
     def _on_cancel_load_book(self, *_args):
