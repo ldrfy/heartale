@@ -1,12 +1,13 @@
 """Database helpers for the application."""
 
+import json
 import sqlite3
+import time
 from datetime import date, datetime
+from gettext import gettext as _
 from pathlib import Path
 from sqlite3 import OperationalError
 from typing import Iterator, List, Optional
-
-from gettext import gettext as _
 
 from .. import PATH_CONFIG
 from ..utils import sec2str
@@ -187,6 +188,20 @@ class LibraryDB:
             "CREATE INDEX IF NOT EXISTS idx_tr_year_month ON timereads(year, month)")
         cur.execute(
             "CREATE INDEX IF NOT EXISTS idx_tr_year_week ON timereads(year, week)")
+
+        # 配置
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS configs (
+            key TEXT PRIMARY KEY,         -- 配置名
+            value TEXT NOT NULL,          -- 配置内容（字符串或 JSON）
+            update_time INTEGER NOT NULL  -- 更新时间戳
+        )
+        """)
+
+        cur.execute("""
+        CREATE INDEX IF NOT EXISTS idx_configs_update_time 
+        ON configs(update_time);
+        """)
 
         self.conn.commit()
 
@@ -578,3 +593,38 @@ class LibraryDB:
             seconds=row["seconds"],
             dt=dt_obj,
         )
+
+    def set_config(self, key: str, value: str | dict):
+        """设置配置
+
+        Args:
+            key (str): _description_
+            value (str|dict): _description_
+        """
+        cur = self.conn.cursor()
+        value_str = json.dumps(value) if not isinstance(value, str) else value
+        cur.execute(
+            "REPLACE INTO configs (key, value, update_time) VALUES (?, ?, ?)",
+            (key, value_str, int(time.time()))
+        )
+
+    def get_config(self, key: str, default=None):
+        """读取配置
+
+        Args:
+            key (str): _description_
+            default (_type_, optional): _description_. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
+        cur = self.conn.cursor()
+        r = cur.execute("SELECT value FROM configs WHERE key=?",
+                        (key,)).fetchone()
+        if r is None:
+            return default
+        val = r[0]
+        try:
+            return json.loads(val)
+        except Exception:
+            return val

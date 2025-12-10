@@ -32,3 +32,7 @@ src/widgets/shelf_row.py
 src/__init__.py
 src/main.py
 src/window.py
+
+
+src/tts/__init__.py
+src/tts/server_android.py

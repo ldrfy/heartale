@@ -63,6 +63,13 @@ heartale_sources_servers = [
 install_data(heartale_sources_servers, install_dir: moduledir / 'servers')
 
 
+tts_sources_servers = [
+    'tts/__init__.py',
+    'tts/server_android.py',
+]
+install_data(tts_sources_servers, install_dir: moduledir / 'tts')
+
+
 heartale_sources_utils = [
     'utils/__init__.py',
     'utils/debug.py',
