@@ -397,6 +397,39 @@ class ReaderPage(Adw.NavigationPage):
             playback_failed = False
             try:
                 first_downloaded = False
+                intro_texts = [
+                    (self._server.book.name or "").strip(),
+                    (self._server.get_chap_name(self._server.get_chap_n()) or "").strip(),
+                ]
+
+                for intro_text in intro_texts:
+                    if self._tts_stop_event.is_set():
+                        break
+                    if not intro_text:
+                        continue
+
+                    audio_path = self.tts.download(intro_text)
+                    if not audio_path:
+                        playback_failed = True
+                        GLib.idle_add(
+                            self._toast_msg_safe,
+                            _("Read aloud failed. Remote TTS service may be unavailable."),
+                            priority=GLib.PRIORITY_DEFAULT,
+                        )
+                        break
+
+                    if not first_downloaded:
+                        first_downloaded = True
+                        GLib.idle_add(self._set_tts_loading, False,
+                                      priority=GLib.PRIORITY_DEFAULT)
+
+                    played_ok = self._play_audio(audio_path)
+                    if not played_ok:
+                        playback_failed = not self._tts_stop_event.is_set()
+                        break
+
+                if self._tts_stop_event.is_set() or playback_failed:
+                    return
 
                 for idx in range(start_idx, len(chap_txts)):
                     if self._tts_stop_event.is_set():

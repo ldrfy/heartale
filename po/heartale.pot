@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.heartale\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-03 18:12+0800\n"
+"POT-Creation-Date: 2026-03-03 22:43+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -174,7 +174,7 @@ msgid "Loading"
 msgstr ""
 
 #: src/res/reader_page.ui:37 src/pages/shelf_page.py:220
-#: src/widgets/dialog_input.py:21 src/main.py:95
+#: src/widgets/dialog_input.py:21 src/main.py:107
 msgid "Cancel"
 msgstr ""
 
@@ -371,7 +371,7 @@ msgstr ""
 msgid "TTS is not available yet."
 msgstr ""
 
-#: src/pages/reader_page.py:369
+#: src/pages/reader_page.py:369 src/main.py:383
 msgid "paplay is not installed."
 msgstr ""
 
@@ -564,19 +564,19 @@ msgstr ""
 msgid "Cancel topping this book"
 msgstr ""
 
-#: src/main.py:60
+#: src/main.py:72
 msgid "translator-credits"
 msgstr ""
 
-#: src/main.py:87
+#: src/main.py:99
 msgid "New version available"
 msgstr ""
 
-#: src/main.py:96
+#: src/main.py:108
 msgid "Update"
 msgstr ""
 
-#: src/main.py:117
+#: src/main.py:129
 #, python-brace-format
 msgid ""
 "There is no new version.\n"
@@ -584,6 +584,190 @@ msgid ""
 "You can go to {url} to view the beta version."
 msgstr ""
 
-#: src/main.py:121
+#: src/main.py:133
 msgid "No new version found"
+msgstr ""
+
+#: src/main.py:143
+msgid "heartale CLI options"
+msgstr ""
+
+#: src/main.py:149
+msgid "Read the first book in the bookshelf (same as --read-book 1)."
+msgstr ""
+
+#: src/main.py:155
+msgid "Preview character count shown for each paragraph while reading."
+msgstr ""
+
+#: src/main.py:161
+msgid "Print bookshelf list in CLI mode."
+msgstr ""
+
+#: src/main.py:164
+msgid "Read the Nth book from bookshelf (1-based index)."
+msgstr ""
+
+#: src/main.py:169
+msgid "Sync books from Legado into local bookshelf."
+msgstr ""
+
+#: src/main.py:175
+msgid "Legado server URL used for sync (e.g. http://192.168.1.34:1221)."
+msgstr ""
+
+#: src/main.py:181
+msgid "How many books to sync from Legado; 0 means use saved setting."
+msgstr ""
+
+#: src/main.py:188
+msgid "TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."
+msgstr ""
+
+#: src/main.py:194
+msgid "TTS engine name (e.g. com.xiaomi.mibrain.speech)."
+msgstr ""
+
+#: src/main.py:200
+msgid "TTS speaking rate, range 0-100."
+msgstr ""
+
+#: src/main.py:206
+msgid "TTS pitch, range 0-100."
+msgstr ""
+
+#: src/main.py:211
+msgid ""
+"Print current saved settings (TTS/Legado/Reader) and exit unless reading is "
+"requested."
+msgstr ""
+
+#: src/main.py:257
+msgid "Legado URL is empty. Set one in preferences or use --legado-url"
+msgstr ""
+
+#: src/main.py:262
+#, python-brace-format
+msgid "Legado sync URL: {url}"
+msgstr ""
+
+#: src/main.py:263
+#, python-brace-format
+msgid "Legado sync count: {count}"
+msgstr ""
+
+#: src/main.py:277
+msgid "No books found in library"
+msgstr ""
+
+#: src/main.py:280
+msgid "Bookshelf:"
+msgstr ""
+
+#: src/main.py:283
+#, python-brace-format
+msgid "{idx}. [{fmt}] {name} - {author} (chapter {chap_n}/{chap_all})"
+msgstr ""
+
+#: src/main.py:345 src/main.py:412
+#, python-brace-format
+msgid "Invalid TTS config: {error}"
+msgstr ""
+
+#: src/main.py:362
+msgid "Current settings:"
+msgstr ""
+
+#: src/main.py:363
+msgid "TTS:"
+msgstr ""
+
+#: src/main.py:364 src/main.py:369
+#, python-brace-format
+msgid "  url_base: {value}"
+msgstr ""
+
+#: src/main.py:365
+#, python-brace-format
+msgid "  engine: {value}"
+msgstr ""
+
+#: src/main.py:366
+#, python-brace-format
+msgid "  rate: {value}"
+msgstr ""
+
+#: src/main.py:367
+#, python-brace-format
+msgid "  pitch: {value}"
+msgstr ""
+
+#: src/main.py:368
+msgid "Legado:"
+msgstr ""
+
+#: src/main.py:370
+#, python-brace-format
+msgid "  book_n: {value}"
+msgstr ""
+
+#: src/main.py:371
+msgid "Reader:"
+msgstr ""
+
+#: src/main.py:373
+#, python-brace-format
+msgid "  font_size: {value}"
+msgstr ""
+
+#: src/main.py:374
+#, python-brace-format
+msgid "  paragraph_space: {value}"
+msgstr ""
+
+#: src/main.py:376
+#, python-brace-format
+msgid "  line_space: {value}"
+msgstr ""
+
+#: src/main.py:378
+msgid "  (not set)"
+msgstr ""
+
+#: src/main.py:388
+#, python-brace-format
+msgid "Book index out of range: {index}"
+msgstr ""
+
+#: src/main.py:397
+#, python-brace-format
+msgid "Unsupported book format: {fmt}"
+msgstr ""
+
+#: src/main.py:403
+#, python-brace-format
+msgid "Failed to initialize book: {error}"
+msgstr ""
+
+#: src/main.py:415
+#, python-brace-format
+msgid "Book[{index}]: {name}"
+msgstr ""
+
+#: src/main.py:416 src/main.py:461
+#, python-brace-format
+msgid "Chapter: {chapter}"
+msgstr ""
+
+#: src/main.py:428
+#, python-brace-format
+msgid "[{current}/{total}] {preview}"
+msgstr ""
+
+#: src/main.py:449
+msgid "Audio playback failed"
+msgstr ""
+
+#: src/main.py:454
+msgid "Finished all chapters"
 msgstr ""

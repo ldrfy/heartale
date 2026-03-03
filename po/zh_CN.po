@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.lfy\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-03 18:12+0800\n"
-"PO-Revision-Date: 2025-11-04 20:15+0800\n"
+"POT-Creation-Date: 2026-03-03 22:43+0800\n"
+"PO-Revision-Date: 2026-03-03 23:10+0800\n"
 "Last-Translator:  <yuhldr@qq.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
 "Language: zh_CN\n"
@@ -174,7 +174,7 @@ msgid "Loading"
 msgstr "加载中"
 
 #: src/res/reader_page.ui:37 src/pages/shelf_page.py:220
-#: src/widgets/dialog_input.py:21 src/main.py:95
+#: src/widgets/dialog_input.py:21 src/main.py:107
 msgid "Cancel"
 msgstr "取消"
 
@@ -375,7 +375,7 @@ msgstr "切换章节失败：{error}"
 msgid "TTS is not available yet."
 msgstr "TTS 尚不可用。"
 
-#: src/pages/reader_page.py:369
+#: src/pages/reader_page.py:369 src/main.py:383
 msgid "paplay is not installed."
 msgstr "未安装 paplay。"
 
@@ -585,19 +585,19 @@ msgstr "置顶此书"
 msgid "Cancel topping this book"
 msgstr "取消置顶此书"
 
-#: src/main.py:60
+#: src/main.py:72
 msgid "translator-credits"
 msgstr "yuhldr<yuhldr@qq.com>"
 
-#: src/main.py:87
+#: src/main.py:99
 msgid "New version available"
 msgstr "新版本可用"
 
-#: src/main.py:96
+#: src/main.py:108
 msgid "Update"
 msgstr "更新"
 
-#: src/main.py:117
+#: src/main.py:129
 #, python-brace-format
 msgid ""
 "There is no new version.\n"
@@ -608,25 +608,191 @@ msgstr ""
 "当前版本是 {version}.\n"
 "你可以去 {url} 查看测试版."
 
-#: src/main.py:121
+#: src/main.py:133
 msgid "No new version found"
 msgstr "没有新版本被找到"
 
-#, python-brace-format
-#~ msgid "{count} words"
-#~ msgstr "{count} 字"
+#: src/main.py:143
+msgid "heartale CLI options"
+msgstr "heartale 命令行选项"
 
-#~ msgid ""
-#~ "Enter the internal address shown after enabling Legado “Web Service”."
-#~ msgstr "输入启用Legado“Web服务”后显示的内部地址。"
+#: src/main.py:149
+msgid "Read the first book in the bookshelf (same as --read-book 1)."
+msgstr "朗读书架中的第一本书（等同于 --read-book 1）。"
 
+#: src/main.py:155
+msgid "Preview character count shown for each paragraph while reading."
+msgstr "朗读时每段显示的预览字符数。"
+
+#: src/main.py:161
+msgid "Print bookshelf list in CLI mode."
+msgstr "在命令行模式下输出书架列表。"
+
+#: src/main.py:164
+msgid "Read the Nth book from bookshelf (1-based index)."
+msgstr "朗读书架中的第 N 本书（从 1 开始计数）。"
+
+#: src/main.py:169
+msgid "Sync books from Legado into local bookshelf."
+msgstr "将 Legado 书籍同步到本地书架。"
+
+#: src/main.py:175
+msgid "Legado server URL used for sync (e.g. http://192.168.1.34:1221)."
+msgstr "用于同步的 Legado 服务地址（例如 http://192.168.1.34:1221）。"
+
+#: src/main.py:181
+msgid "How many books to sync from Legado; 0 means use saved setting."
+msgstr "从 Legado 同步多少本书；0 表示使用已保存设置。"
+
+#: src/main.py:188
+msgid "TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."
+msgstr "TTS API 地址（例如 http://192.168.1.34:1221/api/tts）。"
+
+#: src/main.py:194
+msgid "TTS engine name (e.g. com.xiaomi.mibrain.speech)."
+msgstr "TTS 引擎名称（例如 com.xiaomi.mibrain.speech）。"
+
+#: src/main.py:200
+msgid "TTS speaking rate, range 0-100."
+msgstr "TTS 语速，范围 0-100。"
+
+#: src/main.py:206
+msgid "TTS pitch, range 0-100."
+msgstr "TTS 音调，范围 0-100。"
+
+#: src/main.py:211
+msgid ""
+"Print current saved settings (TTS/Legado/Reader) and exit unless reading is "
+"requested."
+msgstr ""
+"输出当前保存的设置（TTS/Legado/阅读器）；除非请求朗读，否则执行后退出。"
+
+#: src/main.py:257
+msgid "Legado URL is empty. Set one in preferences or use --legado-url"
+msgstr "Legado 地址为空。请在首选项中设置，或使用 --legado-url。"
+
+#: src/main.py:262
 #, python-brace-format
-#~ msgid ""
-#~ "1. Only the first five books in the app will be synced.\n"
-#~ "2. In Legado, open “Web Service” from the My page.\n"
-#~ "3. Enter the internal address shown there, e.g.\n"
-#~ "{example}"
-#~ msgstr ""
-#~ "1.只会同步应用程序中的前五本书。\n"
-#~ "2。在Legado中，从“我的”页面打开“Web服务”。\n"
-#~ "3。输入此处显示的内部地址，例如：{example}"
+msgid "Legado sync URL: {url}"
+msgstr "Legado 同步地址：{url}"
+
+#: src/main.py:263
+#, python-brace-format
+msgid "Legado sync count: {count}"
+msgstr "Legado 同步数量：{count}"
+
+#: src/main.py:277
+msgid "No books found in library"
+msgstr "书架中没有书籍。"
+
+#: src/main.py:280
+msgid "Bookshelf:"
+msgstr "书架："
+
+#: src/main.py:283
+#, python-brace-format
+msgid "{idx}. [{fmt}] {name} - {author} (chapter {chap_n}/{chap_all})"
+msgstr "{idx}. [{fmt}] {name} - {author}（章节 {chap_n}/{chap_all}）"
+
+#: src/main.py:345 src/main.py:412
+#, python-brace-format
+msgid "Invalid TTS config: {error}"
+msgstr "TTS 配置无效：{error}"
+
+#: src/main.py:362
+msgid "Current settings:"
+msgstr "当前设置："
+
+#: src/main.py:363
+msgid "TTS:"
+msgstr "TTS："
+
+#: src/main.py:364 src/main.py:369
+#, python-brace-format
+msgid "  url_base: {value}"
+msgstr "  url_base: {value}"
+
+#: src/main.py:365
+#, python-brace-format
+msgid "  engine: {value}"
+msgstr "  engine: {value}"
+
+#: src/main.py:366
+#, python-brace-format
+msgid "  rate: {value}"
+msgstr "  rate: {value}"
+
+#: src/main.py:367
+#, python-brace-format
+msgid "  pitch: {value}"
+msgstr "  pitch: {value}"
+
+#: src/main.py:368
+msgid "Legado:"
+msgstr "Legado："
+
+#: src/main.py:370
+#, python-brace-format
+msgid "  book_n: {value}"
+msgstr "  book_n: {value}"
+
+#: src/main.py:371
+msgid "Reader:"
+msgstr "阅读器："
+
+#: src/main.py:373
+#, python-brace-format
+msgid "  font_size: {value}"
+msgstr "  font_size: {value}"
+
+#: src/main.py:374
+#, python-brace-format
+msgid "  paragraph_space: {value}"
+msgstr "  paragraph_space: {value}"
+
+#: src/main.py:376
+#, python-brace-format
+msgid "  line_space: {value}"
+msgstr "  line_space: {value}"
+
+#: src/main.py:378
+msgid "  (not set)"
+msgstr "  （未设置）"
+
+#: src/main.py:388
+#, python-brace-format
+msgid "Book index out of range: {index}"
+msgstr "书籍序号超出范围：{index}"
+
+#: src/main.py:397
+#, python-brace-format
+msgid "Unsupported book format: {fmt}"
+msgstr "不支持的书籍格式：{fmt}"
+
+#: src/main.py:403
+#, python-brace-format
+msgid "Failed to initialize book: {error}"
+msgstr "初始化书籍失败：{error}"
+
+#: src/main.py:415
+#, python-brace-format
+msgid "Book[{index}]: {name}"
+msgstr "书籍[{index}]：{name}"
+
+#: src/main.py:416 src/main.py:461
+#, python-brace-format
+msgid "Chapter: {chapter}"
+msgstr "章节：{chapter}"
+
+#: src/main.py:428
+#, python-brace-format
+msgid "[{current}/{total}] {preview}"
+msgstr "[{current}/{total}] {preview}"
+
+#: src/main.py:449
+msgid "Audio playback failed"
+msgstr "音频播放失败"
+
+#: src/main.py:454
+msgid "Finished all chapters"
+msgstr "已完成所有章节"
