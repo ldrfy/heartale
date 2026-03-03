@@ -20,6 +20,13 @@ from ..tts.server_android import TtsSA
 from ..utils.debug import get_logger
 from ..widgets.pg_tag_view import ParagraphTagController
 
+READER_CONFIG_KEY = "reader_page"
+READER_DEFAULT_CONFIG = {
+    "font_size": 14,
+    "line_space": 8,
+    "paragraph_space": 24,
+}
+
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/reader_page.ui")
 class ReaderPage(Adw.NavigationPage):
@@ -80,6 +87,9 @@ class ReaderPage(Adw.NavigationPage):
         self._tts_book_md5 = None
         self._on_tts_state_changed = None
 
+        self._reader_config = dict(READER_DEFAULT_CONFIG)
+        self._suspend_reader_config_save = False
+
     def clear_data(self):
         """Reset cached server data and show the loading page."""
         self._server = None
@@ -99,7 +109,7 @@ class ReaderPage(Adw.NavigationPage):
 
         self.btn_prev_chap.set_sensitive(True)
         self.btn_next_chap.set_sensitive(True)
-        self._on_set_default()
+        self._load_reader_settings()
         self._on_search_toc_stop()
 
         self.title.set_title(book.name or "")
@@ -560,7 +570,7 @@ class ReaderPage(Adw.NavigationPage):
         self._locate_toc(self._server.get_chap_n())
 
     @Gtk.Template.Callback()
-    def _on_fontsize_changed(self, b) -> None:
+    def _on_fontsize_changed(self, b, persist: bool = True) -> None:
         """Adjust font size.
 
         Args:
@@ -571,10 +581,13 @@ class ReaderPage(Adw.NavigationPage):
             v = b.get_value()
         else:
             v = b
+        v = self._clamp_setting(v, self.ga_f)
         self.ptc.set_font_size_pt(v)
+        if persist and not self._suspend_reader_config_save:
+            self._save_reader_setting("font_size", v)
 
     @Gtk.Template.Callback()
-    def _on_paragraph_space_changed(self, b) -> None:
+    def _on_paragraph_space_changed(self, b, persist: bool = True) -> None:
         """Adjust paragraph spacing.
 
         Args:
@@ -585,10 +598,13 @@ class ReaderPage(Adw.NavigationPage):
             v = b.get_value()
         else:
             v = b
+        v = self._clamp_setting(v, self.ga_p)
         self.ptc.set_paragraph_spacing(0, v)
+        if persist and not self._suspend_reader_config_save:
+            self._save_reader_setting("paragraph_space", v)
 
     @Gtk.Template.Callback()
-    def _on_line_space_changed(self, b) -> None:
+    def _on_line_space_changed(self, b, persist: bool = True) -> None:
         """Adjust line spacing.
 
         Args:
@@ -599,7 +615,10 @@ class ReaderPage(Adw.NavigationPage):
             v = b.get_value()
         else:
             v = b
-        self.ptc.set_line_spacing(int(v))
+        v = self._clamp_setting(v, self.ga_l)
+        self.ptc.set_line_spacing(v)
+        if persist and not self._suspend_reader_config_save:
+            self._save_reader_setting("line_space", v)
 
     @Gtk.Template.Callback()
     def _on_click_title(self, *_args) -> None:
@@ -666,10 +685,65 @@ class ReaderPage(Adw.NavigationPage):
     @Gtk.Template.Callback()
     def _on_set_default(self, *_args) -> None:
         """Restore default reader settings."""
-        self._on_fontsize_changed(14)
-        self._on_line_space_changed(8)
-        self._on_paragraph_space_changed(24)
+        self._apply_reader_settings(READER_DEFAULT_CONFIG, persist=True)
 
-        self.ga_f.set_value(14)
-        self.ga_l.set_value(8)
-        self.ga_p.set_value(24)
+    def _clamp_setting(self, value, adjustment: Gtk.Adjustment) -> int:
+        try:
+            v = int(round(float(value)))
+        except (TypeError, ValueError):
+            v = int(round(float(adjustment.get_value())))
+        lower = int(round(adjustment.get_lower()))
+        upper = int(round(adjustment.get_upper()))
+        return max(lower, min(upper, v))
+
+    def _normalize_reader_settings(self, raw) -> dict:
+        cfg = dict(READER_DEFAULT_CONFIG)
+        if isinstance(raw, dict):
+            cfg.update(raw)
+        cfg["font_size"] = self._clamp_setting(cfg["font_size"], self.ga_f)
+        cfg["line_space"] = self._clamp_setting(cfg["line_space"], self.ga_l)
+        cfg["paragraph_space"] = self._clamp_setting(
+            cfg["paragraph_space"], self.ga_p)
+        return cfg
+
+    def _load_reader_settings(self):
+        cfg = dict(READER_DEFAULT_CONFIG)
+        try:
+            db = LibraryDB()
+            cfg = self._normalize_reader_settings(
+                db.get_config(READER_CONFIG_KEY, READER_DEFAULT_CONFIG))
+            db.close()
+        except Exception as e:  # pylint: disable=broad-except
+            get_logger().warning("Failed to load reader settings: %s", e)
+            cfg = self._normalize_reader_settings(READER_DEFAULT_CONFIG)
+        self._apply_reader_settings(cfg, persist=False)
+
+    def _apply_reader_settings(self, cfg: dict, persist: bool):
+        cfg = self._normalize_reader_settings(cfg)
+        self._suspend_reader_config_save = True
+        try:
+            self.ga_f.set_value(cfg["font_size"])
+            self.ga_l.set_value(cfg["line_space"])
+            self.ga_p.set_value(cfg["paragraph_space"])
+            self._on_fontsize_changed(cfg["font_size"], persist=False)
+            self._on_line_space_changed(cfg["line_space"], persist=False)
+            self._on_paragraph_space_changed(cfg["paragraph_space"], persist=False)
+        finally:
+            self._suspend_reader_config_save = False
+        self._reader_config = dict(cfg)
+        if persist:
+            self._save_reader_settings()
+
+    def _save_reader_setting(self, key: str, value: int):
+        if self._reader_config.get(key) == value:
+            return
+        self._reader_config[key] = value
+        self._save_reader_settings()
+
+    def _save_reader_settings(self):
+        try:
+            db = LibraryDB()
+            db.set_config(READER_CONFIG_KEY, self._reader_config)
+            db.close()
+        except Exception as e:  # pylint: disable=broad-except
+            get_logger().warning("Failed to save reader settings: %s", e)
