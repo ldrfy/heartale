@@ -30,11 +30,6 @@ def main(version, app_id):
     )
 
     parser.add_argument(
-        "--read-first",
-        action="store_true",
-        help=_("Read the first book in the bookshelf (same as --read-book 1)."),
-    )
-    parser.add_argument(
         "--preview-chars",
         type=int,
         default=12,
@@ -127,8 +122,6 @@ def _run_cli(cli_args) -> int:
     read_index = 0
     if cli_args.read_book > 0:
         read_index = cli_args.read_book
-    elif cli_args.read_first:
-        read_index = 1
 
     if read_index > 0:
         return _run_read_book_cli(read_index, preview_chars, cli_args)
