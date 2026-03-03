@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.heartale\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2025-11-04 23:35+0800\n"
+"POT-Creation-Date: 2026-03-03 17:13+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -23,6 +23,74 @@ msgstr ""
 
 #: data/cool.ldr.heartale.desktop.in:8
 msgid "GTK;"
+msgstr ""
+
+#: src/res/preference.ui:7
+msgid "Preferences"
+msgstr ""
+
+#: src/res/preference.ui:10
+msgid "TTS"
+msgstr ""
+
+#: src/res/preference.ui:14
+msgid "Android TTS"
+msgstr ""
+
+#: src/res/preference.ui:15
+msgid "Stored in ~/.config/heartale/heartale.db"
+msgstr ""
+
+#: src/res/preference.ui:18
+msgid "API URL"
+msgstr ""
+
+#: src/res/preference.ui:25
+msgid "Engine"
+msgstr ""
+
+#: src/res/preference.ui:32
+msgid "Rate"
+msgstr ""
+
+#: src/res/preference.ui:33 src/res/preference.ui:47
+msgid "0-100"
+msgstr ""
+
+#: src/res/preference.ui:46
+msgid "Pitch"
+msgstr ""
+
+#: src/res/preference.ui:60
+msgid "Restore defaults"
+msgstr ""
+
+#: src/res/preference.ui:63
+msgid "Reset"
+msgstr ""
+
+#: src/res/preference.ui:77
+msgid "Legado"
+msgstr ""
+
+#: src/res/preference.ui:81
+msgid "Legado Sync"
+msgstr ""
+
+#: src/res/preference.ui:82
+msgid "Used by the shelf sync button"
+msgstr ""
+
+#: src/res/preference.ui:85
+msgid "Legado URL"
+msgstr ""
+
+#: src/res/preference.ui:92
+msgid "Books per sync"
+msgstr ""
+
+#: src/res/preference.ui:93
+msgid "Applied on next sync"
 msgstr ""
 
 #: src/res/properties_view.ui:20
@@ -102,11 +170,11 @@ msgid "Loading"
 msgstr ""
 
 #: src/res/reader_page.ui:37 src/pages/shelf_page.py:220
-#: src/widgets/dialog_input.py:21 src/main.py:98
+#: src/widgets/dialog_input.py:21 src/main.py:95
 msgid "Cancel"
 msgstr ""
 
-#: src/res/reader_page.ui:47 src/pages/reader_page.py:172
+#: src/res/reader_page.ui:47 src/pages/reader_page.py:201
 msgid ""
 "Unable to open this book or its table of contents. Please try again or go "
 "back."
@@ -140,7 +208,7 @@ msgstr ""
 msgid "Show or hide table of contents"
 msgstr ""
 
-#: src/res/reader_page.ui:215 src/res/shelf_page.ui:176
+#: src/res/reader_page.ui:215 src/res/shelf_page.ui:175
 msgid "Search"
 msgstr ""
 
@@ -172,7 +240,7 @@ msgstr ""
 msgid "Paragraph spacing"
 msgstr ""
 
-#: src/res/reader_page.ui:315
+#: src/res/reader_page.ui:318
 msgid "Read aloud"
 msgstr ""
 
@@ -192,7 +260,7 @@ msgstr ""
 msgid "_About Heartale"
 msgstr ""
 
-#: src/res/shelf_page.ui:31 src/res/shelf_page.ui:170
+#: src/res/shelf_page.ui:31 src/res/shelf_page.ui:169
 msgid "Bookshelf"
 msgstr ""
 
@@ -225,23 +293,23 @@ msgstr ""
 msgid "Welcome to Heartale"
 msgstr ""
 
-#: src/res/shelf_page.ui:169
+#: src/res/shelf_page.ui:168
 msgid "Select a book to start reading"
 msgstr ""
 
-#: src/res/shelf_page.ui:183
+#: src/res/shelf_page.ui:182
 msgid "Image Properties"
 msgstr ""
 
-#: src/res/shelf_page.ui:191
+#: src/res/shelf_page.ui:190
 msgid "Main Menu"
 msgstr ""
 
-#: src/res/shelf_page.ui:197
+#: src/res/shelf_page.ui:196
 msgid "Import local books"
 msgstr ""
 
-#: src/res/shelf_page.ui:207
+#: src/res/shelf_page.ui:206
 msgid "Sync Legado books"
 msgstr ""
 
@@ -271,12 +339,16 @@ msgstr ""
 msgid "Heartale"
 msgstr ""
 
+#: src/res/window.ui:30
+msgid "Stop reading aloud"
+msgstr ""
+
 #: src/entity/book.py:58
 #, python-brace-format
 msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
 msgstr ""
 
-#: src/pages/reader_page.py:100
+#: src/pages/reader_page.py:127
 #, python-brace-format
 msgid ""
 "Unable to open this book or its table of contents.\n"
@@ -286,16 +358,36 @@ msgid ""
 "{error}"
 msgstr ""
 
-#: src/pages/reader_page.py:270
+#: src/pages/reader_page.py:302
 #, python-brace-format
 msgid "Failed to switch chapter: {error}"
 msgstr ""
 
-#: src/pages/reader_page.py:326
+#: src/pages/reader_page.py:345
+msgid "TTS is not available yet."
+msgstr ""
+
+#: src/pages/reader_page.py:349
+msgid "paplay is not installed."
+msgstr ""
+
+#: src/pages/reader_page.py:352
+msgid "Already reading aloud."
+msgstr ""
+
+#: src/pages/reader_page.py:358
+msgid "No text to read aloud."
+msgstr ""
+
+#: src/pages/reader_page.py:418
+msgid "Read aloud failed. Check TTS settings or server status."
+msgstr ""
+
+#: src/pages/reader_page.py:552
 msgid "You have reached the last chapter."
 msgstr ""
 
-#: src/pages/reader_page.py:337
+#: src/pages/reader_page.py:564
 msgid "You are already at the first chapter."
 msgstr ""
 
@@ -353,57 +445,53 @@ msgstr ""
 msgid "Legado sync partially failed"
 msgstr ""
 
-#: src/pages/shelf_page.py:378
-msgid "Enter the internal address shown after enabling Legado “Web Service”."
-msgstr ""
-
-#: src/pages/shelf_page.py:390
-msgid "Legado book sync"
-msgstr ""
-
-#: src/pages/shelf_page.py:392
-#, python-brace-format
-msgid ""
-"1. Only the first five books in the app will be synced.\n"
-"2. In Legado, open “Web Service” from the My page.\n"
-"3. Enter the internal address shown there, e.g.\n"
-"{example}"
+#: src/pages/shelf_page.py:375
+msgid "Please set a valid Legado URL in Preferences first."
 msgstr ""
 
 #: src/servers/__init__.py:104
 msgid "Each call should refresh the text and save reading information."
 msgstr ""
 
-#: src/servers/legado.py:77
+#: src/servers/legado.py:75
+msgid "Please enter a valid Legado URL starting with http."
+msgstr ""
+
+#: src/servers/legado.py:96 src/servers/legado.py:99
+msgid "Please enter a valid sync book count."
+msgstr ""
+
+#: src/servers/legado.py:140
 msgid "Failed to fetch Legado book information."
 msgstr ""
 
-#: src/servers/legado.py:191
+#: src/servers/legado.py:254
 #, python-brace-format
 msgid ""
 "Failed to save reading progress!\n"
 "{error}"
 msgstr ""
 
-#: src/servers/legado.py:205
+#: src/servers/legado.py:270
 #, python-brace-format
 msgid ""
 "The website you entered is most likely incorrect. The current URL is: {}"
 msgstr ""
 
-#: src/servers/legado.py:244
+#: src/servers/legado.py:316
 #, python-brace-format
 msgid ""
 "Failed to fetch Legado book\n"
+"\n"
 "{error}"
 msgstr ""
 
-#: src/servers/legado.py:255
+#: src/servers/legado.py:327
 #, python-brace-format
 msgid "Synced Legado book: {name} Author: {author}\n"
 msgstr ""
 
-#: src/servers/legado.py:268
+#: src/servers/legado.py:341
 #, python-brace-format
 msgid "Parsing error: {error}\n"
 msgstr ""
@@ -466,19 +554,19 @@ msgstr ""
 msgid "Cancel topping this book"
 msgstr ""
 
-#: src/main.py:59
+#: src/main.py:60
 msgid "translator-credits"
 msgstr ""
 
-#: src/main.py:90
+#: src/main.py:87
 msgid "New version available"
 msgstr ""
 
-#: src/main.py:99
+#: src/main.py:96
 msgid "Update"
 msgstr ""
 
-#: src/main.py:120
+#: src/main.py:117
 #, python-brace-format
 msgid ""
 "There is no new version.\n"
@@ -486,6 +574,6 @@ msgid ""
 "You can go to {url} to view the beta version."
 msgstr ""
 
-#: src/main.py:124
+#: src/main.py:121
 msgid "No new version found"
 msgstr ""

@@ -9,7 +9,8 @@ from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk  # type: ignore
 
 from ..entity import LibraryDB
 from ..entity.book import Book, BookObject
-from ..servers.legado import get_legado_sync_url, sync_legado_books
+from ..servers.legado import (get_legado_sync_book_n, get_legado_sync_url,
+                              sync_legado_books)
 from ..servers.txt import path2book
 from ..utils.debug import get_logger
 # 必须导入，否则模板无法识别
@@ -362,7 +363,8 @@ class ShelfPage(Adw.NavigationPage):
 
         def worker(url):
             # Run blocking work in a thread
-            sync_ok, s_error = sync_legado_books(url_base=url)
+            book_n = get_legado_sync_book_n()
+            sync_ok, s_error = sync_legado_books(book_n=book_n, url_base=url)
             self.url_legado_sync = url
             GLib.idle_add(update_ui, sync_ok, s_error,
                           priority=GLib.PRIORITY_DEFAULT)

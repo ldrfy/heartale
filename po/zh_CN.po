@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.lfy\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2025-11-04 23:35+0800\n"
+"POT-Creation-Date: 2026-03-03 17:13+0800\n"
 "PO-Revision-Date: 2025-11-04 20:15+0800\n"
 "Last-Translator:  <yuhldr@qq.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -23,7 +23,75 @@ msgstr "兰阅"
 
 #: data/cool.ldr.heartale.desktop.in:8
 msgid "GTK;"
-msgstr ""
+msgstr "GTK;"
+
+#: src/res/preference.ui:7
+msgid "Preferences"
+msgstr "首选项"
+
+#: src/res/preference.ui:10
+msgid "TTS"
+msgstr "TTS"
+
+#: src/res/preference.ui:14
+msgid "Android TTS"
+msgstr "Android TTS"
+
+#: src/res/preference.ui:15
+msgid "Stored in ~/.config/heartale/heartale.db"
+msgstr "存储于 ~/.config/heartale/heartale.db"
+
+#: src/res/preference.ui:18
+msgid "API URL"
+msgstr "API 地址"
+
+#: src/res/preference.ui:25
+msgid "Engine"
+msgstr "引擎"
+
+#: src/res/preference.ui:32
+msgid "Rate"
+msgstr "语速"
+
+#: src/res/preference.ui:33 src/res/preference.ui:47
+msgid "0-100"
+msgstr "0-100"
+
+#: src/res/preference.ui:46
+msgid "Pitch"
+msgstr "音调"
+
+#: src/res/preference.ui:60
+msgid "Restore defaults"
+msgstr "恢复默认"
+
+#: src/res/preference.ui:63
+msgid "Reset"
+msgstr "重置"
+
+#: src/res/preference.ui:77
+msgid "Legado"
+msgstr "Legado"
+
+#: src/res/preference.ui:81
+msgid "Legado Sync"
+msgstr "Legado 同步"
+
+#: src/res/preference.ui:82
+msgid "Used by the shelf sync button"
+msgstr "用于书架页的同步按钮"
+
+#: src/res/preference.ui:85
+msgid "Legado URL"
+msgstr "Legado 地址"
+
+#: src/res/preference.ui:92
+msgid "Books per sync"
+msgstr "每次同步书籍数量"
+
+#: src/res/preference.ui:93
+msgid "Applied on next sync"
+msgstr "将在下次同步时生效"
 
 #: src/res/properties_view.ui:20
 msgid "Folder"
@@ -102,11 +170,11 @@ msgid "Loading"
 msgstr "加载中"
 
 #: src/res/reader_page.ui:37 src/pages/shelf_page.py:220
-#: src/widgets/dialog_input.py:21 src/main.py:98
+#: src/widgets/dialog_input.py:21 src/main.py:95
 msgid "Cancel"
 msgstr "取消"
 
-#: src/res/reader_page.ui:47 src/pages/reader_page.py:172
+#: src/res/reader_page.ui:47 src/pages/reader_page.py:201
 msgid ""
 "Unable to open this book or its table of contents. Please try again or go "
 "back."
@@ -140,7 +208,7 @@ msgstr "章节标题"
 msgid "Show or hide table of contents"
 msgstr "显示或隐藏目录"
 
-#: src/res/reader_page.ui:215 src/res/shelf_page.ui:176
+#: src/res/reader_page.ui:215 src/res/shelf_page.ui:175
 msgid "Search"
 msgstr "搜索"
 
@@ -172,7 +240,7 @@ msgstr "段距"
 msgid "Paragraph spacing"
 msgstr "段落间距"
 
-#: src/res/reader_page.ui:315
+#: src/res/reader_page.ui:318
 msgid "Read aloud"
 msgstr "朗读"
 
@@ -192,7 +260,7 @@ msgstr "键盘快捷键(_K)"
 msgid "_About Heartale"
 msgstr "关于兰阅(_A)"
 
-#: src/res/shelf_page.ui:31 src/res/shelf_page.ui:170
+#: src/res/shelf_page.ui:31 src/res/shelf_page.ui:169
 msgid "Bookshelf"
 msgstr "书架"
 
@@ -225,23 +293,23 @@ msgstr "暂无书籍。点击下方按钮或拖拽文件到此开始阅读。"
 msgid "Welcome to Heartale"
 msgstr "欢迎使用兰阅"
 
-#: src/res/shelf_page.ui:169
+#: src/res/shelf_page.ui:168
 msgid "Select a book to start reading"
 msgstr "选择一本书开始阅读"
 
-#: src/res/shelf_page.ui:183
+#: src/res/shelf_page.ui:182
 msgid "Image Properties"
 msgstr "图片属性"
 
-#: src/res/shelf_page.ui:191
+#: src/res/shelf_page.ui:190
 msgid "Main Menu"
 msgstr "主菜单"
 
-#: src/res/shelf_page.ui:197
+#: src/res/shelf_page.ui:196
 msgid "Import local books"
 msgstr "导入本地书籍"
 
-#: src/res/shelf_page.ui:207
+#: src/res/shelf_page.ui:206
 msgid "Sync Legado books"
 msgstr "同步 Legado 书籍"
 
@@ -271,12 +339,16 @@ msgstr "退出"
 msgid "Heartale"
 msgstr "兰阅"
 
+#: src/res/window.ui:30
+msgid "Stop reading aloud"
+msgstr "停止朗读"
+
 #: src/entity/book.py:58
 #, python-brace-format
 msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
 msgstr "{chapter} · 进度 {percent:.2f}% ({position}/{total})"
 
-#: src/pages/reader_page.py:100
+#: src/pages/reader_page.py:127
 #, python-brace-format
 msgid ""
 "Unable to open this book or its table of contents.\n"
@@ -290,16 +362,36 @@ msgstr ""
 "\n"
 "请重试或返回：{error}"
 
-#: src/pages/reader_page.py:270
+#: src/pages/reader_page.py:302
 #, python-brace-format
 msgid "Failed to switch chapter: {error}"
 msgstr "切换章节失败：{error}"
 
-#: src/pages/reader_page.py:326
+#: src/pages/reader_page.py:345
+msgid "TTS is not available yet."
+msgstr "TTS 尚不可用。"
+
+#: src/pages/reader_page.py:349
+msgid "paplay is not installed."
+msgstr "未安装 paplay。"
+
+#: src/pages/reader_page.py:352
+msgid "Already reading aloud."
+msgstr "正在朗读中。"
+
+#: src/pages/reader_page.py:358
+msgid "No text to read aloud."
+msgstr "没有可朗读的文本。"
+
+#: src/pages/reader_page.py:418
+msgid "Read aloud failed. Check TTS settings or server status."
+msgstr "朗读失败。请检查 TTS 设置或服务器状态。"
+
+#: src/pages/reader_page.py:552
 msgid "You have reached the last chapter."
 msgstr "你已经在最后一章啦"
 
-#: src/pages/reader_page.py:337
+#: src/pages/reader_page.py:564
 msgid "You are already at the first chapter."
 msgstr "你已经在第一章啦"
 
@@ -327,9 +419,8 @@ msgid "Delete"
 msgstr "删除"
 
 #: src/pages/shelf_page.py:237
-#, fuzzy
 msgid "Select books to import"
-msgstr "选择一本书开始阅读"
+msgstr "选择要导入的书籍"
 
 #: src/pages/shelf_page.py:239
 msgid "Documents and e-books"
@@ -360,35 +451,27 @@ msgstr "Legado书籍同步成功"
 msgid "Legado sync partially failed"
 msgstr "Legado 同步失败"
 
-#: src/pages/shelf_page.py:378
-msgid "Enter the internal address shown after enabling Legado “Web Service”."
-msgstr "输入启用Legado“Web服务”后显示的内部地址。"
-
-#: src/pages/shelf_page.py:390
-msgid "Legado book sync"
-msgstr "同步 Legado 书籍"
-
-#: src/pages/shelf_page.py:392
-#, python-brace-format
-msgid ""
-"1. Only the first five books in the app will be synced.\n"
-"2. In Legado, open “Web Service” from the My page.\n"
-"3. Enter the internal address shown there, e.g.\n"
-"{example}"
-msgstr ""
-"1.只会同步应用程序中的前五本书。\n"
-"2。在Legado中，从“我的”页面打开“Web服务”。\n"
-"3。输入此处显示的内部地址，例如：{example}"
+#: src/pages/shelf_page.py:375
+msgid "Please set a valid Legado URL in Preferences first."
+msgstr "请先在首选项中设置有效的 Legado 地址。"
 
 #: src/servers/__init__.py:104
 msgid "Each call should refresh the text and save reading information."
 msgstr "每次调用都应刷新文本并保存阅读信息。"
 
-#: src/servers/legado.py:77
+#: src/servers/legado.py:75
+msgid "Please enter a valid Legado URL starting with http."
+msgstr "请输入以 http 开头的有效 Legado 地址。"
+
+#: src/servers/legado.py:96 src/servers/legado.py:99
+msgid "Please enter a valid sync book count."
+msgstr "请输入有效的同步书籍数量。"
+
+#: src/servers/legado.py:140
 msgid "Failed to fetch Legado book information."
 msgstr "无法获取Legado图书信息。"
 
-#: src/servers/legado.py:191
+#: src/servers/legado.py:254
 #, python-brace-format
 msgid ""
 "Failed to save reading progress!\n"
@@ -397,27 +480,29 @@ msgstr ""
 "保存阅读进度失败！\n"
 "{error}"
 
-#: src/servers/legado.py:205
+#: src/servers/legado.py:270
 #, python-brace-format
 msgid ""
 "The website you entered is most likely incorrect. The current URL is: {}"
 msgstr "您输入的网站很可能不正确。当前URL为：{}"
 
-#: src/servers/legado.py:244
+#: src/servers/legado.py:316
 #, python-brace-format
 msgid ""
-"Failed to fetch Legado book\n\n"
+"Failed to fetch Legado book\n"
+"\n"
 "{error}"
 msgstr ""
-"无法获取Legado图书\n\n"
+"无法获取Legado图书\n"
+"\n"
 "{error}"
 
-#: src/servers/legado.py:255
+#: src/servers/legado.py:327
 #, python-brace-format
 msgid "Synced Legado book: {name} Author: {author}\n"
 msgstr "已同步Legado图书：{name} 作者：{author}\n"
 
-#: src/servers/legado.py:268
+#: src/servers/legado.py:341
 #, python-brace-format
 msgid "Parsing error: {error}\n"
 msgstr "解析错误：{error}\n"
@@ -488,19 +573,19 @@ msgstr "置顶此书"
 msgid "Cancel topping this book"
 msgstr "取消置顶此书"
 
-#: src/main.py:59
+#: src/main.py:60
 msgid "translator-credits"
 msgstr "yuhldr<yuhldr@qq.com>"
 
-#: src/main.py:90
+#: src/main.py:87
 msgid "New version available"
 msgstr "新版本可用"
 
-#: src/main.py:99
+#: src/main.py:96
 msgid "Update"
 msgstr "更新"
 
-#: src/main.py:120
+#: src/main.py:117
 #, python-brace-format
 msgid ""
 "There is no new version.\n"
@@ -511,6 +596,21 @@ msgstr ""
 "当前版本是 {version}.\n"
 "你可以去 {url} 查看测试版."
 
-#: src/main.py:124
+#: src/main.py:121
 msgid "No new version found"
 msgstr "没有新版本被找到"
+
+#~ msgid ""
+#~ "Enter the internal address shown after enabling Legado “Web Service”."
+#~ msgstr "输入启用Legado“Web服务”后显示的内部地址。"
+
+#, python-brace-format
+#~ msgid ""
+#~ "1. Only the first five books in the app will be synced.\n"
+#~ "2. In Legado, open “Web Service” from the My page.\n"
+#~ "3. Enter the internal address shown there, e.g.\n"
+#~ "{example}"
+#~ msgstr ""
+#~ "1.只会同步应用程序中的前五本书。\n"
+#~ "2。在Legado中，从“我的”页面打开“Web服务”。\n"
+#~ "3。输入此处显示的内部地址，例如：{example}"

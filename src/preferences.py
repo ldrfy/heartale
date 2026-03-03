@@ -4,7 +4,8 @@ from gettext import gettext as _
 
 from gi.repository import Adw, Gtk  # type: ignore
 
-from .servers.legado import get_legado_sync_url, set_legado_sync_url
+from .servers.legado import (get_legado_sync_book_n, get_legado_sync_url,
+                             set_legado_sync_book_n, set_legado_sync_url)
 from .tts.server_android import TtsSA
 
 
@@ -19,17 +20,22 @@ class PreferencesDialog(Adw.PreferencesDialog):
     tts_rate: Adw.SpinRow = Gtk.Template.Child()
     tts_pitch: Adw.SpinRow = Gtk.Template.Child()
     legado_sync_url: Adw.EntryRow = Gtk.Template.Child()
+    legado_sync_book_n: Adw.SpinRow = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.tts = TtsSA()
         self._load_tts_config()
         self._load_legado_config()
+        self._load_sync_config()
         self.tts_rate.get_adjustment().connect(
             "value-changed", self._on_tts_numeric_changed
         )
         self.tts_pitch.get_adjustment().connect(
             "value-changed", self._on_tts_numeric_changed
+        )
+        self.legado_sync_book_n.get_adjustment().connect(
+            "value-changed", self._on_legado_sync_book_n_changed
         )
 
     def _load_tts_config(self):
@@ -56,6 +62,9 @@ class PreferencesDialog(Adw.PreferencesDialog):
 
     def _load_legado_config(self):
         self.legado_sync_url.set_text(get_legado_sync_url())
+
+    def _load_sync_config(self):
+        self.legado_sync_book_n.set_value(float(get_legado_sync_book_n()))
 
     def _toast(self, msg: str):
         self.add_toast(Adw.Toast.new(msg))
@@ -86,5 +95,12 @@ class PreferencesDialog(Adw.PreferencesDialog):
             url = set_legado_sync_url(self.legado_sync_url.get_text())
             self.legado_sync_url.set_text(url)
             self._toast(_("Legado sync URL saved"))
+        except Exception as exc:  # pylint: disable=broad-except
+            self._toast(str(exc))
+
+    def _on_legado_sync_book_n_changed(self, _adj):
+        try:
+            n = set_legado_sync_book_n(int(self.legado_sync_book_n.get_value()))
+            self.legado_sync_book_n.set_value(float(n))
         except Exception as exc:  # pylint: disable=broad-except
             self._toast(str(exc))

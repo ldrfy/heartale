@@ -19,7 +19,7 @@ CHAP_INDEX = "durChapterIndex"
 CHAP_TITLE = "durChapterTitle"
 CHAP_TXT_N = "durChapterTxtN"
 LEGADO_SYNC_CONFIG_KEY = "legado_sync"
-LEGADO_SYNC_DEFAULT_CONFIG = {"url_base": "http://10.8.0.6:1122"}
+LEGADO_SYNC_DEFAULT_CONFIG = {"url_base": "http://10.8.0.6:1122", "book_n": 5}
 
 
 def bu(book_data: dict):
@@ -56,6 +56,10 @@ def get_legado_sync_config() -> dict:
         cfg = {}
     merged = dict(LEGADO_SYNC_DEFAULT_CONFIG)
     merged.update(cfg)
+    try:
+        merged["book_n"] = max(1, int(merged.get("book_n", 5)))
+    except (TypeError, ValueError):
+        merged["book_n"] = LEGADO_SYNC_DEFAULT_CONFIG["book_n"]
     return merged
 
 
@@ -77,6 +81,30 @@ def set_legado_sync_url(url_base: str) -> str:
     db.set_config(LEGADO_SYNC_CONFIG_KEY, cfg)
     db.close()
     return url
+
+
+def get_legado_sync_book_n() -> int:
+    """读取每次同步的 Legado 书籍数量。"""
+    return int(get_legado_sync_config().get("book_n", 5))
+
+
+def set_legado_sync_book_n(book_n: int) -> int:
+    """保存每次同步的 Legado 书籍数量。"""
+    try:
+        n = int(book_n)
+    except (TypeError, ValueError) as exc:
+        raise ValueError(_("Please enter a valid sync book count.")) from exc
+
+    if n < 1:
+        raise ValueError(_("Please enter a valid sync book count."))
+
+    cfg = get_legado_sync_config()
+    cfg["book_n"] = n
+
+    db = LibraryDB()
+    db.set_config(LEGADO_SYNC_CONFIG_KEY, cfg)
+    db.close()
+    return n
 
 
 class LegadoServer(Server):

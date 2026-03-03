@@ -87,6 +87,21 @@
                 <signal name="apply" handler="_on_apply_legado"/>
               </object>
             </child>
+            <child>
+              <object class="AdwSpinRow" id="legado_sync_book_n">
+                <property name="title" translatable="yes">Books per sync</property>
+                <property name="subtitle" translatable="yes">Applied on next sync</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">1</property>
+                    <property name="upper">1000</property>
+                    <property name="value">5</property>
+                    <property name="step-increment">1</property>
+                    <property name="page-increment">10</property>
+                  </object>
+                </property>
+              </object>
+            </child>
           </object>
         </child>
       </object>
