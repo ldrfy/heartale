@@ -18,6 +18,8 @@ CHAP_POS = "durChapterPos"
 CHAP_INDEX = "durChapterIndex"
 CHAP_TITLE = "durChapterTitle"
 CHAP_TXT_N = "durChapterTxtN"
+LEGADO_SYNC_CONFIG_KEY = "legado_sync"
+LEGADO_SYNC_DEFAULT_CONFIG = {"url_base": "http://10.8.0.6:1122"}
 
 
 def bu(book_data: dict):
@@ -42,6 +44,39 @@ def data2url(url):
         str: 编码以后的图书信息url
     """
     return quote(url)
+
+
+def get_legado_sync_config() -> dict:
+    """读取 Legado 同步配置。"""
+    db = LibraryDB()
+    cfg = db.get_config(LEGADO_SYNC_CONFIG_KEY, LEGADO_SYNC_DEFAULT_CONFIG)
+    db.close()
+
+    if not isinstance(cfg, dict):
+        cfg = {}
+    merged = dict(LEGADO_SYNC_DEFAULT_CONFIG)
+    merged.update(cfg)
+    return merged
+
+
+def get_legado_sync_url() -> str:
+    """读取 Legado 同步 URL。"""
+    return str(get_legado_sync_config().get("url_base", "")).strip()
+
+
+def set_legado_sync_url(url_base: str) -> str:
+    """保存 Legado 同步 URL。"""
+    url = (url_base or "").strip()
+    if not url or not url.startswith("http"):
+        raise ValueError(_("Please enter a valid Legado URL starting with http."))
+
+    cfg = get_legado_sync_config()
+    cfg["url_base"] = url
+
+    db = LibraryDB()
+    db.set_config(LEGADO_SYNC_CONFIG_KEY, cfg)
+    db.close()
+    return url
 
 
 class LegadoServer(Server):

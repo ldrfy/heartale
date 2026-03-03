@@ -1,6 +1,93 @@
 <?xml version='1.0' encoding='UTF-8'?>
-<!-- Created with Cambalache 0.96.1 -->
 <interface>
+  <requires lib="gtk" version="4.0"/>
   <requires lib="libadwaita" version="1.5"/>
-  <object class="AdwPreferencesDialog"/>
+
+  <template class="PreferencesDialog" parent="AdwPreferencesDialog">
+    <property name="title" translatable="yes">Preferences</property>
+    <child>
+      <object class="AdwPreferencesPage" id="page_tts">
+        <property name="title" translatable="yes">TTS</property>
+        <property name="icon-name">audio-speakers-symbolic</property>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">Android TTS</property>
+            <property name="description" translatable="yes">Stored in ~/.config/heartale/heartale.db</property>
+            <child>
+              <object class="AdwEntryRow" id="tts_url_base">
+                <property name="title" translatable="yes">API URL</property>
+                <property name="show-apply-button">1</property>
+                <signal name="apply" handler="_on_apply_tts"/>
+              </object>
+            </child>
+            <child>
+              <object class="AdwEntryRow" id="tts_engine">
+                <property name="title" translatable="yes">Engine</property>
+                <property name="show-apply-button">1</property>
+                <signal name="apply" handler="_on_apply_tts"/>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSpinRow" id="tts_rate">
+                <property name="title" translatable="yes">Rate</property>
+                <property name="subtitle" translatable="yes">0-100</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">100</property>
+                    <property name="step-increment">1</property>
+                    <property name="page-increment">5</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwSpinRow" id="tts_pitch">
+                <property name="title" translatable="yes">Pitch</property>
+                <property name="subtitle" translatable="yes">0-100</property>
+                <property name="adjustment">
+                  <object class="GtkAdjustment">
+                    <property name="lower">0</property>
+                    <property name="upper">100</property>
+                    <property name="step-increment">1</property>
+                    <property name="page-increment">5</property>
+                  </object>
+                </property>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Restore defaults</property>
+                <child type="suffix">
+                  <object class="GtkButton">
+                    <property name="label" translatable="yes">Reset</property>
+                    <signal name="clicked" handler="_on_reset_tts"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
+      <object class="AdwPreferencesPage" id="page_legado">
+        <property name="title" translatable="yes">Legado</property>
+        <property name="icon-name">network-workgroup-symbolic</property>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">Legado Sync</property>
+            <property name="description" translatable="yes">Used by the shelf sync button</property>
+            <child>
+              <object class="AdwEntryRow" id="legado_sync_url">
+                <property name="title" translatable="yes">Legado URL</property>
+                <property name="show-apply-button">1</property>
+                <signal name="apply" handler="_on_apply_legado"/>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+  </template>
 </interface>

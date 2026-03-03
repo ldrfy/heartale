@@ -22,6 +22,7 @@ configure_file(
 heartale_sources = [
     '__init__.py',
     'main.py',
+    'preferences.py',
     'window.py',
 ]
 

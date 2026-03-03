@@ -6,6 +6,7 @@ from gettext import gettext as _
 
 from gi.repository import Adw, Gio, GLib  # type: ignore
 
+from .preferences import PreferencesDialog
 from .utils import PACKAGE_URL, open_url
 from .utils.check_update import main as check_update
 from .utils.debug import get_gtk_msg
@@ -60,13 +61,9 @@ class HeartaleApplication(Adw.Application):
         about.present(self.props.active_window)
 
     def on_preferences_action(self, _widget, _):
-        """Callback for the app.preferences action.
-
-        Args:
-            _widget (_type_): _description_
-            _ (_type_): _description_
-        """        """"""
-        print('app.preferences action activated')
+        """Open the preferences dialog."""
+        dialog = PreferencesDialog()
+        dialog.present(self.props.active_window)
 
     def create_action(self, name, callback, shortcuts=None):
         """Add an application action.

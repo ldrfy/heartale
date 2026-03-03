@@ -1,6 +1,6 @@
 """Main application window."""
 
-from gi.repository import Adw, Gtk  # type: ignore
+from gi.repository import Adw, GLib, Gtk  # type: ignore
 
 from .pages.reader_page import ReaderPage
 from .pages.shelf_page import ShelfPage
@@ -13,12 +13,16 @@ class HeartaleWindow(Adw.ApplicationWindow):
 
     nav: Adw.NavigationView = Gtk.Template.Child()
     toasts: Adw.ToastOverlay = Gtk.Template.Child()
+    btn_global_tts_stop: Gtk.Button = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
         self._reader_page = ReaderPage(self.nav)
         self._shelf_page = ShelfPage(self.nav, self._reader_page)
+        self._reader_page.set_tts_state_changed_callback(
+            self._on_tts_state_changed
+        )
 
         self.nav.push(self._shelf_page)
 
@@ -39,5 +43,12 @@ class HeartaleWindow(Adw.ApplicationWindow):
         toast = Adw.Toast.new("")
         toast.set_timeout(2)
         toast.dismiss()
-        toast.set_title(toast_msg)
+        toast.set_title(GLib.markup_escape_text(str(toast_msg)))
         self.toasts.add_toast(toast)
+
+    def _on_tts_state_changed(self, is_playing: bool):
+        self.btn_global_tts_stop.set_visible(bool(is_playing))
+
+    @Gtk.Template.Callback()
+    def on_global_tts_stop_clicked(self, *_):
+        self._reader_page.stop_read_aloud()

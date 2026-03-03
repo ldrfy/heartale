@@ -9,10 +9,9 @@ from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk  # type: ignore
 
 from ..entity import LibraryDB
 from ..entity.book import Book, BookObject
-from ..servers.legado import sync_legado_books
+from ..servers.legado import get_legado_sync_url, sync_legado_books
 from ..servers.txt import path2book
 from ..utils.debug import get_logger
-from ..widgets.dialog_input import InputDialog
 # 必须导入，否则模板无法识别
 from ..widgets.properties_view import \
     HPropertiesView  # pylint: disable=unused-import
@@ -47,7 +46,7 @@ class ShelfPage(Adw.NavigationPage):
     def __init__(self, nav: Adw.NavigationView, reader_page: ReaderPage, **kwargs):
         super().__init__(**kwargs)
 
-        self.url_legado_sync = "http://"
+        self.url_legado_sync = get_legado_sync_url()
         self.books = []
         self._nav: Adw.NavigationView = nav
         self._reader_page: ReaderPage = reader_page
@@ -368,32 +367,14 @@ class ShelfPage(Adw.NavigationPage):
             GLib.idle_add(update_ui, sync_ok, s_error,
                           priority=GLib.PRIORITY_DEFAULT)
 
-        def runner(d, r):
-            if r != "ok":
-                return
-            url = d.entry.get_text().strip()
+        url = get_legado_sync_url()
+        if not url or not url.startswith("http"):
+            self.get_root().toast_msg(
+                _("Please set a valid Legado URL in Preferences first.")
+            )
+            return
 
-            if url == "" or not url.startswith("http"):
-                self.get_root().toast_msg(
-                    _("Enter the internal address shown after enabling Legado “Web Service”.")
-                )
-                return
-
-            self.btn_sync.set_visible(False)
-            self.spinner_sync.set_visible(True)
-            self.spinner_sync.start()
-            threading.Thread(target=worker, args=(url,),
-                             daemon=True).start()
-
-        dlg = InputDialog(
-            self.get_root(),
-            title=_("Legado book sync"),
-            subtitle=_(
-                "1. Only the first five books in the app will be synced."
-                "\n2. In Legado, open “Web Service” from the My page."
-                "\n3. Enter the internal address shown there, e.g.\n{example}"
-            ).format(example="http://192.168.1.2:1122"),
-        )
-        dlg.set_input_text(self.url_legado_sync)
-        dlg.connect("response", runner)
-        dlg.present()
+        self.btn_sync.set_visible(False)
+        self.spinner_sync.set_visible(True)
+        self.spinner_sync.start()
+        threading.Thread(target=worker, args=(url,), daemon=True).start()

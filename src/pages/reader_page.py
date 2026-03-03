@@ -77,6 +77,8 @@ class ReaderPage(Adw.NavigationPage):
         self._tts_stop_event = threading.Event()
         self._tts_proc: subprocess.Popen = None
         self._tts_proc_lock = threading.Lock()
+        self._tts_book_md5 = None
+        self._on_tts_state_changed = None
 
     def clear_data(self):
         """Reset cached server data and show the loading page."""
@@ -88,6 +90,10 @@ class ReaderPage(Adw.NavigationPage):
 
     def set_data(self, book: Book):
         """Load ``book`` data in a worker thread and update the UI."""
+        if self._tts_thread and self._tts_thread.is_alive():
+            if self._tts_book_md5 != book.md5:
+                self._stop_tts_playback()
+
         self.t = time.time()
         self._search_debounce_id = 0
 
@@ -195,7 +201,6 @@ class ReaderPage(Adw.NavigationPage):
 
         self.btn_prev_chap.set_sensitive(False)
         self.btn_next_chap.set_sensitive(False)
-        self._stop_tts_playback()
 
         self.spinner_sync.start()
 
@@ -278,6 +283,7 @@ class ReaderPage(Adw.NavigationPage):
     def _on_toc_chapter_activated(self, i: int):
         """Handle a chapter activation from the table of contents."""
         try:
+            self._stop_tts_playback()
             self.set_chap_text(self.chap_ns[i])
             # Optionally update the title/subtitle
         except Exception as e:  # pylint: disable=broad-except
@@ -297,6 +303,8 @@ class ReaderPage(Adw.NavigationPage):
         self._set_read_jd(idx, False)
 
         self.ptc.highlight_paragraph(idx)
+        if self._tts_thread and self._tts_thread.is_alive():
+            self._restart_read_aloud_from(idx)
 
     def _set_read_jd(self, idx, add=True):
         """Update reading progress with the current paragraph index.
@@ -304,6 +312,8 @@ class ReaderPage(Adw.NavigationPage):
         Args:
             idx (_type_): Paragraph index
         """
+        if not self._server or not self._server.bd:
+            return
 
         if self._server.bd.chap_txt_n > idx and add:
             # Auto-scrolling to the previous position keeps firing for a few seconds
@@ -324,6 +334,7 @@ class ReaderPage(Adw.NavigationPage):
         if not self.tts:
             self.get_root().toast_msg(_("TTS is not available yet."))
             return
+        self.tts.reload_config()
         if not shutil.which("paplay"):
             self.get_root().toast_msg(_("paplay is not installed."))
             return
@@ -337,13 +348,22 @@ class ReaderPage(Adw.NavigationPage):
             self.get_root().toast_msg(_("No text to read aloud."))
             return
 
+        self._start_read_aloud_from(start_idx)
+
+    def _start_read_aloud_from(self, start_idx: int):
+        chap_txts = self._server.bd.chap_txts
+        start_idx = max(0, min(start_idx, len(chap_txts) - 1))
+
         self.gb_tts_start.set_visible(False)
         self.gs_tts_loading.set_visible(True)
         self.gs_tts_loading.start()
+        self._emit_tts_state(True)
+        self._tts_book_md5 = self._server.book.md5
 
         self._tts_stop_event.clear()
 
         def worker():
+            auto_next_chapter = False
             try:
                 first_downloaded = False
 
@@ -372,23 +392,44 @@ class ReaderPage(Adw.NavigationPage):
                         GLib.idle_add(self._set_tts_loading, False,
                                       priority=GLib.PRIORITY_DEFAULT)
 
-                    GLib.idle_add(self.ptc.highlight_paragraph, idx,
-                                  priority=GLib.PRIORITY_DEFAULT)
-                    self._set_read_jd(idx, False)
+                    if self._can_update_reader_ui_for_tts():
+                        GLib.idle_add(self.ptc.highlight_paragraph, idx,
+                                      priority=GLib.PRIORITY_DEFAULT)
+                        self._set_read_jd(idx, False)
 
                     if not self._play_audio(audio_path):
                         break
+
+                if not self._tts_stop_event.is_set():
+                    auto_next_chapter = True
             except Exception as e:  # pylint: disable=broad-except
                 get_logger().error("TTS playback failed: %s", e)
                 GLib.idle_add(self.get_root().toast_msg,
-                              _("Read aloud failed: {error}").format(error=e),
+                              _("Read aloud failed. Check TTS settings or server status."),
                               priority=GLib.PRIORITY_DEFAULT)
             finally:
+                if auto_next_chapter:
+                    GLib.idle_add(self._auto_next_chapter_for_tts,
+                                  priority=GLib.PRIORITY_DEFAULT)
                 GLib.idle_add(self._set_tts_loading, False,
                               priority=GLib.PRIORITY_DEFAULT)
+                GLib.idle_add(self._emit_tts_state, False,
+                              priority=GLib.PRIORITY_DEFAULT)
+                self._tts_book_md5 = None
 
         self._tts_thread = threading.Thread(target=worker, daemon=True)
         self._tts_thread.start()
+
+    def _restart_read_aloud_from(self, idx: int):
+        self._stop_tts_playback()
+
+        def wait_and_restart():
+            if self._tts_thread and self._tts_thread.is_alive():
+                return True
+            self._start_read_aloud_from(idx)
+            return False
+
+        GLib.timeout_add(80, wait_and_restart)
 
     def _set_tts_loading(self, loading: bool):
         if loading:
@@ -407,6 +448,9 @@ class ReaderPage(Adw.NavigationPage):
             if self._tts_proc and self._tts_proc.poll() is None:
                 self._tts_proc.terminate()
         self._tts_proc = None
+        self._tts_book_md5 = None
+        GLib.idle_add(self._emit_tts_state, False,
+                      priority=GLib.PRIORITY_DEFAULT)
 
     def _play_audio(self, audio_path):
         with self._tts_proc_lock:
@@ -442,6 +486,47 @@ class ReaderPage(Adw.NavigationPage):
                 return i
         return None
 
+    def _auto_next_chapter_for_tts(self):
+        if not self._server:
+            return False
+        if self._server.book.chap_n + 1 >= len(self._server.chap_names):
+            return False
+
+        self._server.book.chap_n += 1
+        self._server.book.chap_txt_pos = 0
+        self._server.bd.chap_txt_n = 0
+        self._on_toc_chapter_activated(self._server.book.chap_n)
+        self._locate_toc(self._server.get_chap_n())
+
+        def wait_and_restart():
+            if self.spinner_sync.get_spinning():
+                return True
+            self._start_read_aloud_from(0)
+            return False
+
+        GLib.timeout_add(80, wait_and_restart)
+        return False
+
+    def _can_update_reader_ui_for_tts(self) -> bool:
+        if not self._server:
+            return False
+        try:
+            return self._nav.get_visible_page() is self
+        except Exception:  # pylint: disable=broad-except
+            return False
+
+    def stop_read_aloud(self):
+        self._stop_tts_playback()
+        self._set_tts_loading(False)
+
+    def set_tts_state_changed_callback(self, callback):
+        self._on_tts_state_changed = callback
+
+    def _emit_tts_state(self, is_playing: bool):
+        if self._on_tts_state_changed:
+            self._on_tts_state_changed(is_playing)
+        return False
+
     @Gtk.Template.Callback()
     def _on_cancel_load_book(self, *_args):
         self._nav.pop()  # Return to the bookshelf page
@@ -452,6 +537,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_next_chap(self, *_args):
+        self._stop_tts_playback()
         if self._server.book.chap_n + 1 >= len(self._server.chap_names):
             self.get_root().toast_msg(_("You have reached the last chapter."))
             return
@@ -463,6 +549,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_last_chap(self, *_args):
+        self._stop_tts_playback()
         if self._server.book.chap_n - 1 <= 0:
             self.get_root().toast_msg(_("You are already at the first chapter."))
             return

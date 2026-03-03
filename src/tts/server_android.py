@@ -21,6 +21,33 @@ class TtsSA(THS):
     def __init__(self):
         super().__init__("server_android", DEFAULT_CONFIG)
 
+    def update_config(self, **kwargs):
+        """按字段更新配置并持久化到 heartale.db。"""
+        cfg = self.get_config()
+
+        if "url_base" in kwargs and kwargs["url_base"] is not None:
+            cfg["url_base"] = str(kwargs["url_base"]).strip()
+        if "engine" in kwargs and kwargs["engine"] is not None:
+            cfg["engine"] = str(kwargs["engine"]).strip()
+        if "rate" in kwargs and kwargs["rate"] is not None:
+            cfg["rate"] = int(kwargs["rate"])
+        if "pitch" in kwargs and kwargs["pitch"] is not None:
+            cfg["pitch"] = int(kwargs["pitch"])
+
+        self._validate_config(cfg)
+        self.set_config(cfg)
+        return cfg
+
+    def _validate_config(self, cfg: dict):
+        if not cfg.get("url_base"):
+            raise ValueError("url_base can not be empty")
+        if not cfg.get("engine"):
+            raise ValueError("engine can not be empty")
+        if not 0 <= int(cfg["rate"]) <= 100:
+            raise ValueError("rate must be between 0 and 100")
+        if not 0 <= int(cfg["pitch"]) <= 100:
+            raise ValueError("pitch must be between 0 and 100")
+
     def download(self, text, file_name=None):
         text = (text or "").strip()
         if not text:
@@ -110,14 +137,3 @@ def download_stream(text: str, file_name: str, c: dict):
                 f.write(chunk)
                 written += len(chunk)
         return out_path
-
-
-if __name__ == "__main__":
-    data = {
-        "text": "测试一下",
-        "engine": "com.xiaomi.mibrain.speech",
-        "rate": 50,
-        "pitch": 100
-    }
-    file_path = download_stream("http://192.168.1.33:1221/api/tts",
-                                "test", data)
