@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.lfy\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-03 17:13+0800\n"
+"POT-Creation-Date: 2026-03-03 18:12+0800\n"
 "PO-Revision-Date: 2025-11-04 20:15+0800\n"
 "Last-Translator:  <yuhldr@qq.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -113,47 +113,51 @@ msgstr "阅读时间"
 msgid "Today"
 msgstr "今天"
 
-#: src/res/properties_view.ui:70
+#: src/res/properties_view.ui:71
 msgid "This Week"
 msgstr "本周"
 
-#: src/res/properties_view.ui:80
+#: src/res/properties_view.ui:82
 msgid "This Month"
 msgstr "本月"
 
-#: src/res/properties_view.ui:90
+#: src/res/properties_view.ui:93
 msgid "This Year"
 msgstr "今年"
 
-#: src/res/properties_view.ui:100
+#: src/res/properties_view.ui:104
 msgid "All"
 msgstr "全部"
 
-#: src/res/properties_view.ui:113
+#: src/res/properties_view.ui:118
 msgid "Details"
 msgstr "详细信息"
 
-#: src/res/properties_view.ui:117
+#: src/res/properties_view.ui:122
 msgid "txt number"
 msgstr "章节数"
 
-#: src/res/properties_view.ui:128
+#: src/res/properties_view.ui:132
+msgid "Word Count"
+msgstr "字数"
+
+#: src/res/properties_view.ui:143
 msgid "Format"
 msgstr "格式"
 
-#: src/res/properties_view.ui:138
+#: src/res/properties_view.ui:153
 msgid "File Size"
 msgstr "文件大小"
 
-#: src/res/properties_view.ui:151
+#: src/res/properties_view.ui:166
 msgid "Date"
 msgstr "日期"
 
-#: src/res/properties_view.ui:154
+#: src/res/properties_view.ui:169
 msgid "File Created"
 msgstr "创建时间"
 
-#: src/res/properties_view.ui:164
+#: src/res/properties_view.ui:179
 msgid "File Modified"
 msgstr "修改时间"
 
@@ -192,55 +196,55 @@ msgstr "重试"
 msgid "Return to bookshelf"
 msgstr "返回书架"
 
-#: src/res/reader_page.ui:153
+#: src/res/reader_page.ui:111
 msgid "Search chapters…"
 msgstr "搜索章节…"
 
-#: src/res/reader_page.ui:197
+#: src/res/reader_page.ui:156
 msgid "Book title"
 msgstr "书名"
 
-#: src/res/reader_page.ui:198
+#: src/res/reader_page.ui:157
 msgid "Chapter title"
 msgstr "章节标题"
 
-#: src/res/reader_page.ui:207
+#: src/res/reader_page.ui:166
 msgid "Show or hide table of contents"
 msgstr "显示或隐藏目录"
 
-#: src/res/reader_page.ui:215 src/res/shelf_page.ui:175
+#: src/res/reader_page.ui:194 src/res/shelf_page.ui:175
 msgid "Search"
 msgstr "搜索"
 
-#: src/res/reader_page.ui:243
+#: src/res/reader_page.ui:222
 msgid "Reset to defaults"
 msgstr "恢复默认"
 
-#: src/res/reader_page.ui:252
+#: src/res/reader_page.ui:231
 msgid "Font Size"
 msgstr "字体大小"
 
-#: src/res/reader_page.ui:253
+#: src/res/reader_page.ui:232
 msgid "Font size"
 msgstr "字体大小"
 
-#: src/res/reader_page.ui:272
+#: src/res/reader_page.ui:251
 msgid "Line Space"
 msgstr "行距"
 
-#: src/res/reader_page.ui:273
+#: src/res/reader_page.ui:252
 msgid "Line spacing"
 msgstr "行间距"
 
-#: src/res/reader_page.ui:291
+#: src/res/reader_page.ui:270
 msgid "Paragraph Space"
 msgstr "段距"
 
-#: src/res/reader_page.ui:292
+#: src/res/reader_page.ui:271
 msgid "Paragraph spacing"
 msgstr "段落间距"
 
-#: src/res/reader_page.ui:318
+#: src/res/reader_page.ui:294
 msgid "Read aloud"
 msgstr "朗读"
 
@@ -362,36 +366,40 @@ msgstr ""
 "\n"
 "请重试或返回：{error}"
 
-#: src/pages/reader_page.py:302
+#: src/pages/reader_page.py:303
 #, python-brace-format
 msgid "Failed to switch chapter: {error}"
 msgstr "切换章节失败：{error}"
 
-#: src/pages/reader_page.py:345
+#: src/pages/reader_page.py:365
 msgid "TTS is not available yet."
 msgstr "TTS 尚不可用。"
 
-#: src/pages/reader_page.py:349
+#: src/pages/reader_page.py:369
 msgid "paplay is not installed."
 msgstr "未安装 paplay。"
 
-#: src/pages/reader_page.py:352
+#: src/pages/reader_page.py:372
 msgid "Already reading aloud."
 msgstr "正在朗读中。"
 
-#: src/pages/reader_page.py:358
+#: src/pages/reader_page.py:378
 msgid "No text to read aloud."
 msgstr "没有可朗读的文本。"
 
-#: src/pages/reader_page.py:418
+#: src/pages/reader_page.py:414
+msgid "Read aloud failed. Remote TTS service may be unavailable."
+msgstr "朗读失败。远程 TTS 服务可能不可用。"
+
+#: src/pages/reader_page.py:459
 msgid "Read aloud failed. Check TTS settings or server status."
 msgstr "朗读失败。请检查 TTS 设置或服务器状态。"
 
-#: src/pages/reader_page.py:552
+#: src/pages/reader_page.py:599
 msgid "You have reached the last chapter."
 msgstr "你已经在最后一章啦"
 
-#: src/pages/reader_page.py:564
+#: src/pages/reader_page.py:611
 msgid "You are already at the first chapter."
 msgstr "你已经在第一章啦"
 
@@ -471,7 +479,7 @@ msgstr "请输入有效的同步书籍数量。"
 msgid "Failed to fetch Legado book information."
 msgstr "无法获取Legado图书信息。"
 
-#: src/servers/legado.py:254
+#: src/servers/legado.py:261
 #, python-brace-format
 msgid ""
 "Failed to save reading progress!\n"
@@ -480,13 +488,13 @@ msgstr ""
 "保存阅读进度失败！\n"
 "{error}"
 
-#: src/servers/legado.py:270
+#: src/servers/legado.py:277
 #, python-brace-format
 msgid ""
 "The website you entered is most likely incorrect. The current URL is: {}"
 msgstr "您输入的网站很可能不正确。当前URL为：{}"
 
-#: src/servers/legado.py:316
+#: src/servers/legado.py:323
 #, python-brace-format
 msgid ""
 "Failed to fetch Legado book\n"
@@ -497,12 +505,12 @@ msgstr ""
 "\n"
 "{error}"
 
-#: src/servers/legado.py:327
+#: src/servers/legado.py:334
 #, python-brace-format
 msgid "Synced Legado book: {name} Author: {author}\n"
 msgstr "已同步Legado图书：{name} 作者：{author}\n"
 
-#: src/servers/legado.py:341
+#: src/servers/legado.py:348
 #, python-brace-format
 msgid "Parsing error: {error}\n"
 msgstr "解析错误：{error}\n"
@@ -543,23 +551,27 @@ msgstr ""
 msgid "Enter text"
 msgstr "输入文本"
 
-#: src/widgets/properties_view.py:59
-#, python-brace-format
-msgid "{count} words"
-msgstr "{count} 字"
-
-#: src/widgets/properties_view.py:93
+#: src/widgets/properties_view.py:112
 msgid "Unknown size"
 msgstr "未知大小"
 
-#: src/widgets/properties_view.py:101
+#: src/widgets/properties_view.py:120
 #, python-brace-format
 msgid "Plain text (encoding {encoding})"
 msgstr "文本（编码格式 {encoding}）"
 
-#: src/widgets/properties_view.py:103
+#: src/widgets/properties_view.py:122
 msgid "Unknown format"
 msgstr "未知格式"
+
+#: src/widgets/properties_view.py:125
+#, python-brace-format
+msgid ""
+"Read: {read}\n"
+"Listen: {listen}"
+msgstr ""
+"阅读：{read}\n"
+"朗读：{listen}"
 
 #: src/widgets/shelf_row.py:41
 msgid "(Untitled)"
@@ -599,6 +611,10 @@ msgstr ""
 #: src/main.py:121
 msgid "No new version found"
 msgstr "没有新版本被找到"
+
+#, python-brace-format
+#~ msgid "{count} words"
+#~ msgstr "{count} 字"
 
 #~ msgid ""
 #~ "Enter the internal address shown after enabling Legado “Web Service”."

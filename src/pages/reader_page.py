@@ -12,6 +12,7 @@ from gi.repository import Adw, GLib, Gtk  # type: ignore
 
 from ..entity import LibraryDB
 from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
+from ..entity.time_read import TIME_READ_WAY_LISTEN, TIME_READ_WAY_READ
 from ..servers import Server
 from ..servers.legado import LegadoServer
 from ..servers.txt import TxtServer
@@ -316,7 +317,14 @@ class ReaderPage(Adw.NavigationPage):
         if self._tts_thread and self._tts_thread.is_alive():
             self._restart_read_aloud_from(idx)
 
-    def _set_read_jd(self, idx, add=True):
+    def _set_read_jd(
+        self,
+        idx,
+        add=True,
+        save_progress: bool = True,
+        way: int = TIME_READ_WAY_READ,
+        seconds_override: float | None = None,
+    ):
         """Update reading progress with the current paragraph index.
 
         Args:
@@ -329,6 +337,9 @@ class ReaderPage(Adw.NavigationPage):
             # Auto-scrolling to the previous position keeps firing for a few seconds
             # This prevents saving progress when the user scrolls backwards
             return
+        if add and save_progress and self._tts_thread and self._tts_thread.is_alive():
+            # Ignore auto-scroll callbacks during TTS to avoid duplicate timing records.
+            return
 
         def worker():
             GLib.idle_add(
@@ -338,8 +349,13 @@ class ReaderPage(Adw.NavigationPage):
                 priority=GLib.PRIORITY_DEFAULT,
             )
             self._server.set_chap_txt_n(idx)
-            self._server.save_read_progress(self._server.get_chap_n(),
-                                            self._server.get_chap_txt_pos())
+            if save_progress:
+                self._server.save_read_progress(
+                    self._server.get_chap_n(),
+                    self._server.get_chap_txt_pos(),
+                    way=way,
+                    seconds_override=seconds_override,
+                )
 
         threading.Thread(target=worker, daemon=True).start()
 
@@ -378,6 +394,7 @@ class ReaderPage(Adw.NavigationPage):
 
         def worker():
             auto_next_chapter = False
+            playback_failed = False
             try:
                 first_downloaded = False
 
@@ -391,7 +408,13 @@ class ReaderPage(Adw.NavigationPage):
 
                     audio_path = self.tts.download(text)
                     if not audio_path:
-                        continue
+                        playback_failed = True
+                        GLib.idle_add(
+                            self._toast_msg_safe,
+                            _("Read aloud failed. Remote TTS service may be unavailable."),
+                            priority=GLib.PRIORITY_DEFAULT,
+                        )
+                        break
 
                     next_idx = self._find_next_tts_idx(idx + 1, chap_txts)
                     if next_idx is not None:
@@ -409,16 +432,30 @@ class ReaderPage(Adw.NavigationPage):
                     if self._can_update_reader_ui_for_tts():
                         GLib.idle_add(self.ptc.highlight_paragraph, idx, True,
                                       priority=GLib.PRIORITY_DEFAULT)
-                        self._set_read_jd(idx, False)
+                        # Keep UI position in sync, but save timing after audio playback.
+                        self._set_read_jd(idx, False, save_progress=False)
 
-                    if not self._play_audio(audio_path):
+                    play_start = time.time()
+                    played_ok = self._play_audio(audio_path)
+                    play_seconds = max(0.0, time.time() - play_start)
+                    if play_seconds > 0:
+                        self._set_read_jd(
+                            idx,
+                            False,
+                            save_progress=True,
+                            way=TIME_READ_WAY_LISTEN,
+                            seconds_override=play_seconds,
+                        )
+
+                    if not played_ok:
+                        playback_failed = not self._tts_stop_event.is_set()
                         break
 
-                if not self._tts_stop_event.is_set():
+                if not self._tts_stop_event.is_set() and not playback_failed:
                     auto_next_chapter = True
             except Exception as e:  # pylint: disable=broad-except
                 get_logger().error("TTS playback failed: %s", e)
-                GLib.idle_add(self.get_root().toast_msg,
+                GLib.idle_add(self._toast_msg_safe,
                               _("Read aloud failed. Check TTS settings or server status."),
                               priority=GLib.PRIORITY_DEFAULT)
             finally:
@@ -539,6 +576,12 @@ class ReaderPage(Adw.NavigationPage):
     def _emit_tts_state(self, is_playing: bool):
         if self._on_tts_state_changed:
             self._on_tts_state_changed(is_playing)
+        return False
+
+    def _toast_msg_safe(self, msg: str):
+        root = self.get_root()
+        if root and hasattr(root, "toast_msg"):
+            root.toast_msg(msg)
         return False
 
     @Gtk.Template.Callback()

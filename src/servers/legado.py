@@ -209,7 +209,13 @@ class LegadoServer(Server):
         resp = requests.get(url, timeout=10)
         return [d["title"] for d in resp.json()["data"]]
 
-    def save_read_progress(self, chap_n: int, chap_txt_pos: int, way=TIME_READ_WAY_READ):
+    def save_read_progress(
+        self,
+        chap_n: int,
+        chap_txt_pos: int,
+        way=TIME_READ_WAY_READ,
+        seconds_override: float | None = None,
+    ):
         """_summary_
 
         Args:
@@ -219,7 +225,8 @@ class LegadoServer(Server):
         if not self.init:
             # 刚开始读取进度,但是不能保存云端
             self._save_book_progress(self.book_data)
-        super().save_read_progress(chap_n, chap_txt_pos, way)
+        super().save_read_progress(
+            chap_n, chap_txt_pos, way, seconds_override=seconds_override)
 
     def _save_book_progress(self, book_data: dict):
         """异步保存阅读进度

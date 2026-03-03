@@ -15,10 +15,25 @@ from .book import Book
 from .time_read import TimeRead
 
 
+def _format_words_compact(total_words: int) -> str:
+    if total_words >= 10_000:
+        value = total_words / 10_000
+        suffix = "w"
+    elif total_words >= 1_000:
+        value = total_words / 1_000
+        suffix = "k"
+    else:
+        return str(total_words)
+
+    if float(value).is_integer():
+        return f"{int(value)}{suffix}"
+    return f"{value:.1f}{suffix}"
+
+
 def _data2str(trs: list[TimeRead]):
     total_seconds = int(sum(tr.seconds for tr in trs))
     total_words = sum(tr.words for tr in trs)
-    return f"{sec2str(total_seconds)}/{total_words}w"
+    return f"{sec2str(total_seconds)}/{_format_words_compact(total_words)}"
 
 
 class LibraryDB:
@@ -495,7 +510,8 @@ class LibraryDB:
         day: Optional[int] = None,
         week: Optional[int] = None,
         year: Optional[int] = None,
-        month: Optional[int] = None
+        month: Optional[int] = None,
+        way: Optional[int] = None,
     ) -> List[TimeRead]:
         """
         查询 TimeRead 条目，可按书和时间范围（天/月/年/周）过滤。
@@ -520,44 +536,47 @@ class LibraryDB:
         if year is not None:
             conditions.append("year = ?")
             params.append(year)
+        if way is not None:
+            conditions.append("way = ?")
+            params.append(way)
 
         where_clause = " AND ".join(conditions) if conditions else "1"
         sql = f"SELECT * FROM timereads WHERE {where_clause} ORDER BY dt ASC"
         cur.execute(sql, params)
         return [self._r2td(r) for r in cur.fetchall()]
 
-    def get_td_day(self, md5: Optional[str] = None) -> str:
+    def get_td_day(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
         """今天阅读时间和字数，md5=None 表示全书"""
         today = date.today()
         trs = self._query_time_reads(md5=md5, day=today.day,
-                                     month=today.month, year=today.year)
+                                     month=today.month, year=today.year, way=way)
 
         return _data2str(trs)
 
-    def get_td_all(self, md5: Optional[str] = None) -> str:
+    def get_td_all(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
         """某书所有的时间和字数，md5=None 表示全书"""
-        return _data2str(self._query_time_reads(md5=md5))
+        return _data2str(self._query_time_reads(md5=md5, way=way))
 
-    def get_td_week(self, md5: Optional[str] = None) -> str:
+    def get_td_week(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
         """本月阅读时间和字数，md5=None 表示全书"""
         today = date.today()
         week = int(today.strftime("%W"))
 
         trs = self._query_time_reads(md5=md5, year=today.year,
-                                     week=week)
+                                     week=week, way=way)
         return _data2str(trs)
 
-    def get_td_month(self, md5: Optional[str] = None) -> str:
+    def get_td_month(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
         """本月阅读时间和字数，md5=None 表示全书"""
         today = date.today()
         trs = self._query_time_reads(md5=md5, year=today.year,
-                                     month=today.month)
+                                     month=today.month, way=way)
         return _data2str(trs)
 
-    def get_td_year(self, md5: Optional[str] = None) -> str:
+    def get_td_year(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
         """本年阅读时间和字数，md5=None 表示全书"""
         today = date.today()
-        trs = self._query_time_reads(md5=md5, year=today.year)
+        trs = self._query_time_reads(md5=md5, year=today.year, way=way)
         return _data2str(trs)
 
     def delete_tr(self, tr: TimeRead) -> None:

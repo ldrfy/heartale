@@ -5,8 +5,9 @@ from gettext import gettext as _
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
 
-from ..entity import LibraryDB
+from ..entity import LibraryDB, _format_words_compact
 from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
+from ..entity.time_read import TIME_READ_WAY_LISTEN, TIME_READ_WAY_READ
 from ..utils import get_file_size, get_time, open_folder
 
 
@@ -20,6 +21,7 @@ class HPropertiesView(Adw.Bin):
     __gtype_name__ = "HPropertiesView"
     aar_book_uri: Adw.ActionRow = Gtk.Template.Child()
     aar_book_txt_all: Adw.ActionRow = Gtk.Template.Child()
+    aar_book_words: Adw.ActionRow = Gtk.Template.Child()
     aar_book_fmt: Adw.ActionRow = Gtk.Template.Child()
     aar_file_size: Adw.ActionRow = Gtk.Template.Child()
     file_created: Adw.ActionRow = Gtk.Template.Child()
@@ -50,13 +52,29 @@ class HPropertiesView(Adw.Bin):
                 f"{book.name}",
                 f"{book.get_path()}",
 
-                db.get_td_year(book_md5),
-                db.get_td_month(book_md5),
-                db.get_td_week(book_md5),
-                db.get_td_day(book_md5),
-                db.get_td_all(book_md5),
+                self._merge_read_and_listen(
+                    db.get_td_year(book_md5, way=TIME_READ_WAY_READ),
+                    db.get_td_year(book_md5, way=TIME_READ_WAY_LISTEN),
+                ),
+                self._merge_read_and_listen(
+                    db.get_td_month(book_md5, way=TIME_READ_WAY_READ),
+                    db.get_td_month(book_md5, way=TIME_READ_WAY_LISTEN),
+                ),
+                self._merge_read_and_listen(
+                    db.get_td_week(book_md5, way=TIME_READ_WAY_READ),
+                    db.get_td_week(book_md5, way=TIME_READ_WAY_LISTEN),
+                ),
+                self._merge_read_and_listen(
+                    db.get_td_day(book_md5, way=TIME_READ_WAY_READ),
+                    db.get_td_day(book_md5, way=TIME_READ_WAY_LISTEN),
+                ),
+                self._merge_read_and_listen(
+                    db.get_td_all(book_md5, way=TIME_READ_WAY_READ),
+                    db.get_td_all(book_md5, way=TIME_READ_WAY_LISTEN),
+                ),
 
-                _("{count} words").format(count=book.txt_all),
+                str(max(0, int(book.chap_all))),
+                _format_words_compact(max(0, int(book.txt_all))),
                 self._get_fmt(),
                 self._get_file_size(),
 
@@ -69,7 +87,7 @@ class HPropertiesView(Adw.Bin):
                           priority=GLib.PRIORITY_DEFAULT)
 
         def update_ui(ps):
-            name, path, y, m, w, d, a, ws, fmt, fs, dc, du = ps
+            name, path, y, m, w, d, a, chapters, ws, fmt, fs, dc, du = ps
             self.aar_folder.set_subtitle(name)
             self.aar_book_uri.set_subtitle(path)
 
@@ -79,7 +97,8 @@ class HPropertiesView(Adw.Bin):
             self.read_time_day.set_subtitle(d)
             self.read_time_all.set_subtitle(a)
 
-            self.aar_book_txt_all.set_subtitle(ws)
+            self.aar_book_txt_all.set_subtitle(chapters)
+            self.aar_book_words.set_subtitle(ws)
             self.aar_book_fmt.set_subtitle(fmt)
             self.aar_file_size.set_subtitle(fs)
 
@@ -101,6 +120,11 @@ class HPropertiesView(Adw.Bin):
             return _("Plain text (encoding {encoding})").format(encoding=self.book.encoding)
 
         return _("Unknown format")
+
+    def _merge_read_and_listen(self, read_stat: str, listen_stat: str) -> str:
+        return _("Read: {read}\nListen: {listen}").format(
+            read=read_stat, listen=listen_stat
+        )
 
     @Gtk.Template.Callback()
     def _on_open_file(self, *_):

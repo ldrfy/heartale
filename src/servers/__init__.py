@@ -159,7 +159,13 @@ class Server:
         self.bd.chap_txt_n = chap_txt_n
         self.book.chap_txt_pos = self.bd.chap_txt_p2s[chap_txt_n]
 
-    def save_read_progress(self, chap_n: int, chap_txt_pos: int, way=TIME_READ_WAY_READ):
+    def save_read_progress(
+        self,
+        chap_n: int,
+        chap_txt_pos: int,
+        way=TIME_READ_WAY_READ,
+        seconds_override: float | None = None,
+    ):
         """异步保存阅读进度
 
         Args:
@@ -170,7 +176,10 @@ class Server:
         """
 
         w = len(self.bd.chap_txts[self.bd.chap_txt_n])
-        sec = time.time() - self.read_time
+        if seconds_override is None:
+            sec = time.time() - self.read_time
+        else:
+            sec = max(0.0, float(seconds_override))
 
         self.book.chap_n = chap_n
         self.book.chap_name = self.get_chap_name(chap_n)
