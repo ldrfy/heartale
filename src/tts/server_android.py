@@ -1,4 +1,5 @@
-'服务'
+"""服务"""
+import hashlib
 import mimetypes
 
 import requests
@@ -7,7 +8,7 @@ from .. import PATH_TEMP_TTS
 from . import THS
 
 DEFAULT_CONFIG = {
-    "url_base": "http://192.168.31.6:1221/api/tts",
+    "url_base": "http://192.168.1.33:1221/api/tts",
     "engine": "com.xiaomi.mibrain.speech",
     "rate": 50,
     "pitch": 100
@@ -21,7 +22,31 @@ class TtsSA(THS):
         super().__init__("server_android", DEFAULT_CONFIG)
 
     def download(self, text, file_name=None):
-        download_stream(text, file_name, self.c)
+        text = (text or "").strip()
+        if not text:
+            return None
+
+        cache_key = file_name or self._build_cache_key(text)
+        cached = self._find_cached_file(cache_key)
+        if cached is not None:
+            return cached
+
+        return download_stream(text, cache_key, self.c)
+
+    def _build_cache_key(self, text: str) -> str:
+        payload = "|".join([
+            text,
+            str(self.c["engine"]),
+            str(self.c["rate"]),
+            str(self.c["pitch"]),
+        ])
+        return hashlib.sha1(payload.encode("utf-8")).hexdigest()
+
+    def _find_cached_file(self, cache_key: str):
+        matches = sorted(PATH_TEMP_TTS.glob(f"{cache_key}.*"))
+        if matches:
+            return matches[0]
+        return None
 
 
 def get_ext(r: requests.Response):
@@ -48,14 +73,13 @@ def get_ext(r: requests.Response):
     return ".bin"
 
 
-def download_stream(text: str, file_name: str, c: dict, print_log=False):
+def download_stream(text: str, file_name: str, c: dict):
     """_summary_
 
     Args:
         text (str): _description_
-        out_path (str): _description_
-        timeout (int, optional): _description_. Defaults to 15.
-        print_log (bool, optional): _description_. Defaults to False.
+        file_name (str): _description_
+        c (dict, optional): _description_. Defaults to 15.
 
     Returns:
         _type_: _description_
@@ -74,7 +98,6 @@ def download_stream(text: str, file_name: str, c: dict, print_log=False):
         # 根据 Content-Type 推断扩展名
         file_name = file_name + get_ext(response)
 
-        total = int(response.headers.get("content-length") or 0)
         written = 0
         chunk_size = 8192
 
@@ -86,14 +109,6 @@ def download_stream(text: str, file_name: str, c: dict, print_log=False):
                     continue
                 f.write(chunk)
                 written += len(chunk)
-                if total and print_log:
-                    pct = written / total * 100
-                    print(f"\r已下载: {written}/{total} bytes ({pct:.1f}%)",
-                          end="", flush=True)
-        if total:
-            print("\n下载完成:", out_path)
-        else:
-            print("下载完成（总长度未知）:", out_path)
         return out_path
 
 
@@ -104,5 +119,5 @@ if __name__ == "__main__":
         "rate": 50,
         "pitch": 100
     }
-    file_path = download_stream("http://192.168.31.6:1221/api/tts",
-                                "test", data,  print_log=True)
+    file_path = download_stream("http://192.168.1.33:1221/api/tts",
+                                "test", data)

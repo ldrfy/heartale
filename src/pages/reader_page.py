@@ -1,6 +1,8 @@
 """Reader page."""
 
 import copy
+import shutil
+import subprocess
 import threading
 import time
 import traceback
@@ -70,6 +72,11 @@ class ReaderPage(Adw.NavigationPage):
         self.ptc = ParagraphTagController(self.gtv_text, self.gsw_text)
         self.ptc.set_on_paragraph_click(self._on_click_paragraph)
         self.ptc.set_on_visible_paragraph_changed(self._set_read_jd)
+
+        self._tts_thread: threading.Thread = None
+        self._tts_stop_event = threading.Event()
+        self._tts_proc: subprocess.Popen = None
+        self._tts_proc_lock = threading.Lock()
 
     def clear_data(self):
         """Reset cached server data and show the loading page."""
@@ -188,6 +195,7 @@ class ReaderPage(Adw.NavigationPage):
 
         self.btn_prev_chap.set_sensitive(False)
         self.btn_next_chap.set_sensitive(False)
+        self._stop_tts_playback()
 
         self.spinner_sync.start()
 
@@ -313,26 +321,126 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_read_aloud(self, *_args):
+        if not self.tts:
+            self.get_root().toast_msg(_("TTS is not available yet."))
+            return
+        if not shutil.which("paplay"):
+            self.get_root().toast_msg(_("paplay is not installed."))
+            return
+        if self._tts_thread and self._tts_thread.is_alive():
+            self.get_root().toast_msg(_("Already reading aloud."))
+            return
+
+        chap_txts = self._server.bd.chap_txts
+        start_idx = max(0, min(self._server.bd.chap_txt_n, len(chap_txts) - 1))
+        if not chap_txts:
+            self.get_root().toast_msg(_("No text to read aloud."))
+            return
 
         self.gb_tts_start.set_visible(False)
         self.gs_tts_loading.set_visible(True)
         self.gs_tts_loading.start()
-        print("隐藏")
 
-        def _ui_update(test):
-            print("显示")
+        self._tts_stop_event.clear()
+
+        def worker():
+            try:
+                first_downloaded = False
+
+                for idx in range(start_idx, len(chap_txts)):
+                    if self._tts_stop_event.is_set():
+                        break
+
+                    text = (chap_txts[idx] or "").strip()
+                    if not text:
+                        continue
+
+                    audio_path = self.tts.download(text)
+                    if not audio_path:
+                        continue
+
+                    next_idx = self._find_next_tts_idx(idx + 1, chap_txts)
+                    if next_idx is not None:
+                        threading.Thread(
+                            target=self._prefetch_tts_audio,
+                            args=(chap_txts[next_idx],),
+                            daemon=True,
+                        ).start()
+
+                    if not first_downloaded:
+                        first_downloaded = True
+                        GLib.idle_add(self._set_tts_loading, False,
+                                      priority=GLib.PRIORITY_DEFAULT)
+
+                    GLib.idle_add(self.ptc.highlight_paragraph, idx,
+                                  priority=GLib.PRIORITY_DEFAULT)
+                    self._set_read_jd(idx, False)
+
+                    if not self._play_audio(audio_path):
+                        break
+            except Exception as e:  # pylint: disable=broad-except
+                get_logger().error("TTS playback failed: %s", e)
+                GLib.idle_add(self.get_root().toast_msg,
+                              _("Read aloud failed: {error}").format(error=e),
+                              priority=GLib.PRIORITY_DEFAULT)
+            finally:
+                GLib.idle_add(self._set_tts_loading, False,
+                              priority=GLib.PRIORITY_DEFAULT)
+
+        self._tts_thread = threading.Thread(target=worker, daemon=True)
+        self._tts_thread.start()
+
+    def _set_tts_loading(self, loading: bool):
+        if loading:
+            self.gb_tts_start.set_visible(False)
+            self.gs_tts_loading.set_visible(True)
+            self.gs_tts_loading.start()
+        else:
             self.gs_tts_loading.stop()
             self.gs_tts_loading.set_visible(False)
             self.gb_tts_start.set_visible(True)
+        return False
 
-        def worker(n):
-            text = self.ptc.get_highlight_text()
-            self.tts.download(text, "test")
+    def _stop_tts_playback(self):
+        self._tts_stop_event.set()
+        with self._tts_proc_lock:
+            if self._tts_proc and self._tts_proc.poll() is None:
+                self._tts_proc.terminate()
+        self._tts_proc = None
 
-            GLib.idle_add(_ui_update, "test",
-                          priority=GLib.PRIORITY_DEFAULT)
+    def _play_audio(self, audio_path):
+        with self._tts_proc_lock:
+            self._tts_proc = subprocess.Popen(["paplay", str(audio_path)])
 
-        threading.Thread(target=worker, args=(0,), daemon=True).start()
+        while True:
+            if self._tts_stop_event.is_set():
+                with self._tts_proc_lock:
+                    if self._tts_proc and self._tts_proc.poll() is None:
+                        self._tts_proc.terminate()
+                return False
+
+            with self._tts_proc_lock:
+                if not self._tts_proc:
+                    return False
+                code = self._tts_proc.poll()
+
+            if code is not None:
+                return code == 0
+            time.sleep(0.1)
+
+    def _prefetch_tts_audio(self, text: str):
+        try:
+            text = (text or "").strip()
+            if text:
+                self.tts.download(text)
+        except Exception as e:  # pylint: disable=broad-except
+            get_logger().warning("Prefetch TTS failed: %s", e)
+
+    def _find_next_tts_idx(self, start: int, chap_txts):
+        for i in range(start, len(chap_txts)):
+            if (chap_txts[i] or "").strip():
+                return i
+        return None
 
     @Gtk.Template.Callback()
     def _on_cancel_load_book(self, *_args):
