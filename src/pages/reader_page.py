@@ -58,7 +58,6 @@ class ReaderPage(Adw.NavigationPage):
     ga_f: Gtk.Adjustment = Gtk.Template.Child()
     ga_l: Gtk.Adjustment = Gtk.Template.Child()
     ga_p: Gtk.Adjustment = Gtk.Template.Child()
-
     glb_chap_txt_n: Gtk.Label = Gtk.Template.Child()
 
     def __init__(self, nav: Adw.NavigationView, **kwargs):
@@ -222,9 +221,10 @@ class ReaderPage(Adw.NavigationPage):
             self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
             self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
             self.spinner_sync.stop()
-
-            self.glb_chap_txt_n.set_text(
-                f"{self._server.bd.chap_txt_n + 1}/{len(self._server.bd.chap_txts)}")
+            self._update_chap_txt_progress_label(
+                self._server.bd.chap_txt_n,
+                len(self._server.bd.chap_txts),
+            )
 
             self.btn_prev_chap.set_sensitive(True)
             self.btn_next_chap.set_sensitive(True)
@@ -331,8 +331,12 @@ class ReaderPage(Adw.NavigationPage):
             return
 
         def worker():
-            self.glb_chap_txt_n.set_text(
-                f"{idx + 1}/{len(self._server.bd.chap_txts)}")
+            GLib.idle_add(
+                self._update_chap_txt_progress_label,
+                idx,
+                len(self._server.bd.chap_txts),
+                priority=GLib.PRIORITY_DEFAULT,
+            )
             self._server.set_chap_txt_n(idx)
             self._server.save_read_progress(self._server.get_chap_n(),
                                             self._server.get_chap_txt_pos())
@@ -403,7 +407,7 @@ class ReaderPage(Adw.NavigationPage):
                                       priority=GLib.PRIORITY_DEFAULT)
 
                     if self._can_update_reader_ui_for_tts():
-                        GLib.idle_add(self.ptc.highlight_paragraph, idx,
+                        GLib.idle_add(self.ptc.highlight_paragraph, idx, True,
                                       priority=GLib.PRIORITY_DEFAULT)
                         self._set_read_jd(idx, False)
 
@@ -747,3 +751,10 @@ class ReaderPage(Adw.NavigationPage):
             db.close()
         except Exception as e:  # pylint: disable=broad-except
             get_logger().warning("Failed to save reader settings: %s", e)
+
+    def _update_chap_txt_progress_label(self, idx: int, total: int):
+        if total <= 0:
+            self.glb_chap_txt_n.set_text("")
+            return False
+        self.glb_chap_txt_n.set_text(f"{idx + 1}/{total}")
+        return False

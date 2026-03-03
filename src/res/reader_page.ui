@@ -89,48 +89,6 @@
                         </child>
                       </object>
                     </child>
-                    <child>
-                      <object class="GtkBox">
-                        <property name="halign">center</property>
-                        <property name="orientation">horizontal</property>
-                        <property name="spacing">64</property>
-                        <child>
-                          <object class="GtkButton" id="btn_prev_chap">
-                            <property name="margin-bottom">8</property>
-                            <property name="margin-top">8</property>
-                            <signal name="clicked" handler="_on_last_chap"/>
-                            <child>
-                              <object class="AdwButtonContent">
-                                <!-- <property name="label">上一章</property> -->
-                                <property name="icon-name">go-up-symbolic</property>
-                              </object>
-                            </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkLabel" id="glb_chap_txt_n">
-                            <property name="ellipsize">end</property>
-                            <property name="xalign">0.0</property>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkButton" id="btn_next_chap">
-                            <property name="margin-bottom">8</property>
-                            <property name="margin-top">8</property>
-                            <signal name="clicked" handler="_on_next_chap"/>
-                            <child>
-                              <object class="AdwButtonContent">
-                                <!-- <property name="label">下一章</property> -->
-                                <property name="icon-name">go-down-symbolic</property>
-                              </object>
-                            </child>
-                            <style>
-                              <class name="suggested-action"/>
-                            </style>
-                          </object>
-                        </child>
-                      </object>
-                    </child>
                   </object>
                 </property>
                 <property name="hexpand">true</property>
@@ -182,6 +140,7 @@
         </property>
         <child type="top">
           <object class="AdwHeaderBar">
+            <property name="show-end-title-buttons">false</property>
             <property name="title-widget">
                 <object class="GtkButton">
                 <property name="valign">center</property>
@@ -205,6 +164,26 @@
               <object class="GtkToggleButton" id="btn_toggle_sidebar">
                 <property name="icon-name">sidebar-show-symbolic</property>
                 <property name="tooltip-text" translatable="yes">Show or hide table of contents</property>
+              </object>
+            </child>
+            <child type="start">
+              <object class="GtkButton" id="btn_prev_chap">
+                <signal name="clicked" handler="_on_last_chap"/>
+                <child>
+                  <object class="AdwButtonContent">
+                    <property name="icon-name">go-up-symbolic</property>
+                  </object>
+                </child>
+              </object>
+            </child>
+            <child type="start">
+              <object class="GtkButton" id="btn_next_chap">
+                <signal name="clicked" handler="_on_next_chap"/>
+                <child>
+                  <object class="AdwButtonContent">
+                    <property name="icon-name">go-down-symbolic</property>
+                  </object>
+                </child>
               </object>
             </child>
 
@@ -310,22 +289,25 @@
               </object>
             </child>
             <child type="end">
-              <object class="GtkBox" id="gb_tts_loading">
-                <property name="orientation">horizontal</property>
-                <child>
-                    <object class="GtkButton" id="gb_tts_start">
-                        <property name="icon-name">media-playback-start-symbolic</property>
-                        <property name="tooltip-text" translatable="yes">Read aloud</property>
-                        <signal name="clicked" handler="_on_read_aloud"/>
-                    </object>
-                </child>
-                <child>
-                  <object class="GtkSpinner" id="gs_tts_loading">
-                    <property name="margin-end">8</property>
-                    <property name="valign">center</property>
-                    <property name="visible">false</property>
-                  </object>
-                </child>
+                <object class="GtkButton" id="gb_tts_start">
+                    <property name="icon-name">media-playback-start-symbolic</property>
+                    <property name="tooltip-text" translatable="yes">Read aloud</property>
+                    <signal name="clicked" handler="_on_read_aloud"/>
+                </object>
+            </child>
+            <child type="end">
+              <object class="GtkLabel" id="glb_chap_txt_n">
+                <property name="ellipsize">end</property>
+                <property name="valign">center</property>
+                <property name="xalign">1.0</property>
+                <property name="margin-end">4</property>
+              </object>
+            </child>
+            <child type="end">
+              <object class="GtkSpinner" id="gs_tts_loading">
+                <property name="margin-end">8</property>
+                <property name="valign">center</property>
+                <property name="visible">false</property>
               </object>
             </child>
           </object>

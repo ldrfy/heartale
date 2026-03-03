@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.heartale\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-03 17:13+0800\n"
+"POT-Creation-Date: 2026-03-03 17:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -174,7 +174,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: src/res/reader_page.ui:47 src/pages/reader_page.py:201
+#: src/res/reader_page.ui:47 src/pages/reader_page.py:202
 msgid ""
 "Unable to open this book or its table of contents. Please try again or go "
 "back."
@@ -192,55 +192,55 @@ msgstr ""
 msgid "Return to bookshelf"
 msgstr ""
 
-#: src/res/reader_page.ui:153
+#: src/res/reader_page.ui:111
 msgid "Search chapters…"
 msgstr ""
 
-#: src/res/reader_page.ui:197
+#: src/res/reader_page.ui:155
 msgid "Book title"
 msgstr ""
 
-#: src/res/reader_page.ui:198
+#: src/res/reader_page.ui:156
 msgid "Chapter title"
 msgstr ""
 
-#: src/res/reader_page.ui:207
+#: src/res/reader_page.ui:165
 msgid "Show or hide table of contents"
 msgstr ""
 
-#: src/res/reader_page.ui:215 src/res/shelf_page.ui:175
+#: src/res/reader_page.ui:202 src/res/shelf_page.ui:175
 msgid "Search"
 msgstr ""
 
-#: src/res/reader_page.ui:243
+#: src/res/reader_page.ui:230
 msgid "Reset to defaults"
 msgstr ""
 
-#: src/res/reader_page.ui:252
+#: src/res/reader_page.ui:239
 msgid "Font Size"
 msgstr ""
 
-#: src/res/reader_page.ui:253
+#: src/res/reader_page.ui:240
 msgid "Font size"
 msgstr ""
 
-#: src/res/reader_page.ui:272
+#: src/res/reader_page.ui:259
 msgid "Line Space"
 msgstr ""
 
-#: src/res/reader_page.ui:273
+#: src/res/reader_page.ui:260
 msgid "Line spacing"
 msgstr ""
 
-#: src/res/reader_page.ui:291
+#: src/res/reader_page.ui:278
 msgid "Paragraph Space"
 msgstr ""
 
-#: src/res/reader_page.ui:292
+#: src/res/reader_page.ui:279
 msgid "Paragraph spacing"
 msgstr ""
 
-#: src/res/reader_page.ui:318
+#: src/res/reader_page.ui:313
 msgid "Read aloud"
 msgstr ""
 
@@ -348,7 +348,7 @@ msgstr ""
 msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
 msgstr ""
 
-#: src/pages/reader_page.py:127
+#: src/pages/reader_page.py:128
 #, python-brace-format
 msgid ""
 "Unable to open this book or its table of contents.\n"
@@ -358,36 +358,36 @@ msgid ""
 "{error}"
 msgstr ""
 
-#: src/pages/reader_page.py:302
+#: src/pages/reader_page.py:305
 #, python-brace-format
 msgid "Failed to switch chapter: {error}"
 msgstr ""
 
-#: src/pages/reader_page.py:345
+#: src/pages/reader_page.py:352
 msgid "TTS is not available yet."
 msgstr ""
 
-#: src/pages/reader_page.py:349
+#: src/pages/reader_page.py:356
 msgid "paplay is not installed."
 msgstr ""
 
-#: src/pages/reader_page.py:352
+#: src/pages/reader_page.py:359
 msgid "Already reading aloud."
 msgstr ""
 
-#: src/pages/reader_page.py:358
+#: src/pages/reader_page.py:365
 msgid "No text to read aloud."
 msgstr ""
 
-#: src/pages/reader_page.py:418
+#: src/pages/reader_page.py:425
 msgid "Read aloud failed. Check TTS settings or server status."
 msgstr ""
 
-#: src/pages/reader_page.py:552
+#: src/pages/reader_page.py:559
 msgid "You have reached the last chapter."
 msgstr ""
 
-#: src/pages/reader_page.py:564
+#: src/pages/reader_page.py:571
 msgid "You are already at the first chapter."
 msgstr ""
 
