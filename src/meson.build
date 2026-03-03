@@ -21,6 +21,7 @@ configure_file(
 
 heartale_sources = [
     '__init__.py',
+    'gui_app.py',
     'main.py',
     'preferences.py',
     'window.py',
@@ -74,6 +75,8 @@ install_data(tts_sources_servers, install_dir: moduledir / 'tts')
 heartale_sources_utils = [
     'utils/__init__.py',
     'utils/debug.py',
+    'utils/debug_gtk.py',
+    'utils/gui.py',
     'utils/text.py',
     'utils/check_update.py',
 ]

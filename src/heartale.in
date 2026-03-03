@@ -48,15 +48,16 @@ except AttributeError as e:
 
 
 if __name__ == '__main__':
-    import gi
-
-    gi.require_version('Gtk', '4.0')
-    gi.require_version('Adw', '1')
-    gi.require_version("GObject", "2.0")
-
-    from gi.repository import Gio
-    resource = Gio.Resource.load(os.path.join(pkgdatadir, 'heartale.gresource'))
-    resource._register()
-
     from heartale import main
+    if "--gui" in sys.argv[1:]:
+        import gi
+
+        gi.require_version('Gtk', '4.0')
+        gi.require_version('Adw', '1')
+        gi.require_version("GObject", "2.0")
+
+        from gi.repository import Gio
+        resource = Gio.Resource.load(os.path.join(pkgdatadir, 'heartale.gresource'))
+        resource._register()
+
     sys.exit(main.main(VERSION, APP_ID))

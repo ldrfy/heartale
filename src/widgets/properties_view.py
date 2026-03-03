@@ -8,7 +8,8 @@ from gi.repository import Adw, GLib, Gtk  # type: ignore
 from ..entity import LibraryDB, _format_words_compact
 from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
 from ..entity.time_read import TIME_READ_WAY_LISTEN, TIME_READ_WAY_READ
-from ..utils import get_file_size, get_time, open_folder
+from ..utils import get_file_size, get_time
+from ..utils.gui import open_folder
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/properties_view.ui")

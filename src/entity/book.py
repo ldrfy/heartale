@@ -1,11 +1,18 @@
 """书籍实体类"""
+import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Optional
 
 from gettext import gettext as _
 
-from gi.repository import GLib, GObject  # type: ignore
+try:
+    from gi.repository import GLib, GObject  # type: ignore
+    HAS_GI = True
+except Exception:  # pylint: disable=broad-except
+    GLib = None
+    GObject = None
+    HAS_GI = False
 
 BOOK_FMT_TXT = 0
 BOOK_FMT_LEGADO = 1
@@ -64,81 +71,73 @@ class Book:
 
     def get_path(self) -> str:
         """Return the book path with the home directory shortened."""
-        path_home = GLib.get_home_dir()
+        path_home = GLib.get_home_dir() if HAS_GI else os.path.expanduser("~")
         return self.path.replace(path_home, '~')
 
 
-class BookObject(GObject.GObject):
-    """供 Gtk/Gio 模型使用的 GObject 封装"""
-    path = GObject.Property(type=str)
-    name = GObject.Property(type=str)
-    author = GObject.Property(type=str)
-    chap_n = GObject.Property(type=int)
-    chap_name = GObject.Property(type=str)
-    chap_all = GObject.Property(type=int)
-    chap_txt_pos = GObject.Property(type=int)
-    txt_pos = GObject.Property(type=int)
-    txt_all = GObject.Property(type=int)
-    encoding = GObject.Property(type=str)
-    md5 = GObject.Property(type=str)
-    sort = GObject.Property(type=float)
-    fmt = GObject.Property(type=int)
-    create_date = GObject.Property(type=int)
-    update_date = GObject.Property(type=int)
+if HAS_GI:
+    class BookObject(GObject.GObject):
+        """供 Gtk/Gio 模型使用的 GObject 封装"""
+        path = GObject.Property(type=str)
+        name = GObject.Property(type=str)
+        author = GObject.Property(type=str)
+        chap_n = GObject.Property(type=int)
+        chap_name = GObject.Property(type=str)
+        chap_all = GObject.Property(type=int)
+        chap_txt_pos = GObject.Property(type=int)
+        txt_pos = GObject.Property(type=int)
+        txt_all = GObject.Property(type=int)
+        encoding = GObject.Property(type=str)
+        md5 = GObject.Property(type=str)
+        sort = GObject.Property(type=float)
+        fmt = GObject.Property(type=int)
+        create_date = GObject.Property(type=int)
+        update_date = GObject.Property(type=int)
 
-    def __init__(self, **kwargs):
-        """_summary_
-        """
-        super().__init__(**kwargs)
+        def __init__(self, **kwargs):
+            super().__init__(**kwargs)
 
-    @classmethod
-    def from_dataclass(cls, b: Book) -> "BookObject":
-        """_summary_
+        @classmethod
+        def from_dataclass(cls, b: Book) -> "BookObject":
+            return cls(
+                path=b.path,
+                name=b.name,
+                author=b.author,
+                chap_n=b.chap_n,
+                chap_name=b.chap_name,
+                chap_all=b.chap_all,
+                chap_txt_pos=b.chap_txt_pos,
+                txt_pos=b.txt_pos,
+                txt_all=b.txt_all,
+                encoding=b.encoding,
+                md5=b.md5,
+                sort=b.sort,
+                fmt=b.fmt,
+                create_date=b.create_date,
+                update_date=b.update_date,
+            )
 
-        Args:
-            b (Book): _description_
+        def to_dataclass(self) -> Book:
+            return Book(
+                path=self.path,
+                name=self.name,
+                author=self.author,
+                chap_n=self.chap_n,
+                chap_name=self.chap_name,
+                chap_all=self.chap_all,
+                chap_txt_pos=self.chap_txt_pos,
+                txt_pos=self.txt_pos,
+                txt_all=self.txt_all,
+                encoding=self.encoding,
+                md5=self.md5,
+                sort=self.sort,
+                fmt=self.fmt,
+                create_date=self.create_date,
+                update_date=self.update_date,
+            )
+else:
+    class BookObject:  # pragma: no cover
+        """Fallback placeholder when GTK stack is unavailable."""
 
-        Returns:
-            BookObject: _description_
-        """
-        return cls(
-            path=b.path,
-            name=b.name,
-            author=b.author,
-            chap_n=b.chap_n,
-            chap_name=b.chap_name,
-            chap_all=b.chap_all,
-            chap_txt_pos=b.chap_txt_pos,
-            txt_pos=b.txt_pos,
-            txt_all=b.txt_all,
-            encoding=b.encoding,
-            md5=b.md5,
-            sort=b.sort,
-            fmt=b.fmt,
-            create_date=b.create_date,
-            update_date=b.update_date,
-        )
-
-    def to_dataclass(self) -> Book:
-        """_summary_
-
-        Returns:
-            Book: _description_
-        """
-        return Book(
-            path=self.path,
-            name=self.name,
-            author=self.author,
-            chap_n=self.chap_n,
-            chap_name=self.chap_name,
-            chap_all=self.chap_all,
-            chap_txt_pos=self.chap_txt_pos,
-            txt_pos=self.txt_pos,
-            txt_all=self.txt_all,
-            encoding=self.encoding,
-            md5=self.md5,
-            sort=self.sort,
-            fmt=self.fmt,
-            create_date=self.create_date,
-            update_date=self.update_date,
-        )
+        def __init__(self, **_kwargs):
+            raise RuntimeError("BookObject requires GTK (gi)")

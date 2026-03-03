@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.lfy\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-03 22:43+0800\n"
+"POT-Creation-Date: 2026-03-03 23:09+0800\n"
 "PO-Revision-Date: 2026-03-03 23:10+0800\n"
 "Last-Translator:  <yuhldr@qq.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -174,7 +174,7 @@ msgid "Loading"
 msgstr "加载中"
 
 #: src/res/reader_page.ui:37 src/pages/shelf_page.py:220
-#: src/widgets/dialog_input.py:21 src/main.py:107
+#: src/widgets/dialog_input.py:21
 msgid "Cancel"
 msgstr "取消"
 
@@ -347,7 +347,7 @@ msgstr "兰阅"
 msgid "Stop reading aloud"
 msgstr "停止朗读"
 
-#: src/entity/book.py:58
+#: src/entity/book.py:65
 #, python-brace-format
 msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
 msgstr "{chapter} · 进度 {percent:.2f}% ({position}/{total})"
@@ -375,7 +375,7 @@ msgstr "切换章节失败：{error}"
 msgid "TTS is not available yet."
 msgstr "TTS 尚不可用。"
 
-#: src/pages/reader_page.py:369 src/main.py:383
+#: src/pages/reader_page.py:369 src/main.py:268
 msgid "paplay is not installed."
 msgstr "未安装 paplay。"
 
@@ -387,19 +387,20 @@ msgstr "正在朗读中。"
 msgid "No text to read aloud."
 msgstr "没有可朗读的文本。"
 
-#: src/pages/reader_page.py:414
+#: src/pages/reader_page.py:416 src/pages/reader_page.py:447 src/main.py:316
+#: src/main.py:337
 msgid "Read aloud failed. Remote TTS service may be unavailable."
 msgstr "朗读失败。远程 TTS 服务可能不可用。"
 
-#: src/pages/reader_page.py:459
+#: src/pages/reader_page.py:492
 msgid "Read aloud failed. Check TTS settings or server status."
 msgstr "朗读失败。请检查 TTS 设置或服务器状态。"
 
-#: src/pages/reader_page.py:599
+#: src/pages/reader_page.py:632
 msgid "You have reached the last chapter."
 msgstr "你已经在最后一章啦"
 
-#: src/pages/reader_page.py:611
+#: src/pages/reader_page.py:644
 msgid "You are already at the first chapter."
 msgstr "你已经在第一章啦"
 
@@ -585,214 +586,217 @@ msgstr "置顶此书"
 msgid "Cancel topping this book"
 msgstr "取消置顶此书"
 
-#: src/main.py:72
-msgid "translator-credits"
-msgstr "yuhldr<yuhldr@qq.com>"
-
-#: src/main.py:99
-msgid "New version available"
-msgstr "新版本可用"
-
-#: src/main.py:108
-msgid "Update"
-msgstr "更新"
-
-#: src/main.py:129
-#, python-brace-format
-msgid ""
-"There is no new version.\n"
-"The current version is {version}.\n"
-"You can go to {url} to view the beta version."
-msgstr ""
-"没有新版本.\n"
-"当前版本是 {version}.\n"
-"你可以去 {url} 查看测试版."
-
-#: src/main.py:133
-msgid "No new version found"
-msgstr "没有新版本被找到"
-
-#: src/main.py:143
+#: src/main.py:24
 msgid "heartale CLI options"
 msgstr "heartale 命令行选项"
 
-#: src/main.py:149
+#: src/main.py:29
+msgid "Start GTK UI mode."
+msgstr "启动 GTK 图形界面模式。"
+
+#: src/main.py:35
 msgid "Read the first book in the bookshelf (same as --read-book 1)."
 msgstr "朗读书架中的第一本书（等同于 --read-book 1）。"
 
-#: src/main.py:155
+#: src/main.py:41
 msgid "Preview character count shown for each paragraph while reading."
 msgstr "朗读时每段显示的预览字符数。"
 
-#: src/main.py:161
+#: src/main.py:47
 msgid "Print bookshelf list in CLI mode."
 msgstr "在命令行模式下输出书架列表。"
 
-#: src/main.py:164
+#: src/main.py:50
 msgid "Read the Nth book from bookshelf (1-based index)."
 msgstr "朗读书架中的第 N 本书（从 1 开始计数）。"
 
-#: src/main.py:169
+#: src/main.py:55
 msgid "Sync books from Legado into local bookshelf."
 msgstr "将 Legado 书籍同步到本地书架。"
 
-#: src/main.py:175
+#: src/main.py:61
 msgid "Legado server URL used for sync (e.g. http://192.168.1.34:1221)."
 msgstr "用于同步的 Legado 服务地址（例如 http://192.168.1.34:1221）。"
 
-#: src/main.py:181
+#: src/main.py:67
 msgid "How many books to sync from Legado; 0 means use saved setting."
 msgstr "从 Legado 同步多少本书；0 表示使用已保存设置。"
 
-#: src/main.py:188
+#: src/main.py:74
 msgid "TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."
 msgstr "TTS API 地址（例如 http://192.168.1.34:1221/api/tts）。"
 
-#: src/main.py:194
+#: src/main.py:80
 msgid "TTS engine name (e.g. com.xiaomi.mibrain.speech)."
 msgstr "TTS 引擎名称（例如 com.xiaomi.mibrain.speech）。"
 
-#: src/main.py:200
+#: src/main.py:86
 msgid "TTS speaking rate, range 0-100."
 msgstr "TTS 语速，范围 0-100。"
 
-#: src/main.py:206
+#: src/main.py:92
 msgid "TTS pitch, range 0-100."
 msgstr "TTS 音调，范围 0-100。"
 
-#: src/main.py:211
+#: src/main.py:97
 msgid ""
 "Print current saved settings (TTS/Legado/Reader) and exit unless reading is "
 "requested."
 msgstr ""
 "输出当前保存的设置（TTS/Legado/阅读器）；除非请求朗读，否则执行后退出。"
 
-#: src/main.py:257
+#: src/main.py:142
 msgid "Legado URL is empty. Set one in preferences or use --legado-url"
 msgstr "Legado 地址为空。请在首选项中设置，或使用 --legado-url。"
 
-#: src/main.py:262
+#: src/main.py:147
 #, python-brace-format
 msgid "Legado sync URL: {url}"
 msgstr "Legado 同步地址：{url}"
 
-#: src/main.py:263
+#: src/main.py:148
 #, python-brace-format
 msgid "Legado sync count: {count}"
 msgstr "Legado 同步数量：{count}"
 
-#: src/main.py:277
+#: src/main.py:162
 msgid "No books found in library"
 msgstr "书架中没有书籍。"
 
-#: src/main.py:280
+#: src/main.py:165
 msgid "Bookshelf:"
 msgstr "书架："
 
-#: src/main.py:283
+#: src/main.py:168
 #, python-brace-format
 msgid "{idx}. [{fmt}] {name} - {author} (chapter {chap_n}/{chap_all})"
 msgstr "{idx}. [{fmt}] {name} - {author}（章节 {chap_n}/{chap_all}）"
 
-#: src/main.py:345 src/main.py:412
+#: src/main.py:230 src/main.py:297
 #, python-brace-format
 msgid "Invalid TTS config: {error}"
 msgstr "TTS 配置无效：{error}"
 
-#: src/main.py:362
+#: src/main.py:247
 msgid "Current settings:"
 msgstr "当前设置："
 
-#: src/main.py:363
+#: src/main.py:248
 msgid "TTS:"
 msgstr "TTS："
 
-#: src/main.py:364 src/main.py:369
+#: src/main.py:249 src/main.py:254
 #, python-brace-format
 msgid "  url_base: {value}"
 msgstr "  url_base: {value}"
 
-#: src/main.py:365
+#: src/main.py:250
 #, python-brace-format
 msgid "  engine: {value}"
 msgstr "  engine: {value}"
 
-#: src/main.py:366
+#: src/main.py:251
 #, python-brace-format
 msgid "  rate: {value}"
 msgstr "  rate: {value}"
 
-#: src/main.py:367
+#: src/main.py:252
 #, python-brace-format
 msgid "  pitch: {value}"
 msgstr "  pitch: {value}"
 
-#: src/main.py:368
+#: src/main.py:253
 msgid "Legado:"
 msgstr "Legado："
 
-#: src/main.py:370
+#: src/main.py:255
 #, python-brace-format
 msgid "  book_n: {value}"
 msgstr "  book_n: {value}"
 
-#: src/main.py:371
+#: src/main.py:256
 msgid "Reader:"
 msgstr "阅读器："
 
-#: src/main.py:373
+#: src/main.py:258
 #, python-brace-format
 msgid "  font_size: {value}"
 msgstr "  font_size: {value}"
 
-#: src/main.py:374
+#: src/main.py:259
 #, python-brace-format
 msgid "  paragraph_space: {value}"
 msgstr "  paragraph_space: {value}"
 
-#: src/main.py:376
+#: src/main.py:261
 #, python-brace-format
 msgid "  line_space: {value}"
 msgstr "  line_space: {value}"
 
-#: src/main.py:378
+#: src/main.py:263
 msgid "  (not set)"
 msgstr "  （未设置）"
 
-#: src/main.py:388
+#: src/main.py:273
 #, python-brace-format
 msgid "Book index out of range: {index}"
 msgstr "书籍序号超出范围：{index}"
 
-#: src/main.py:397
+#: src/main.py:282
 #, python-brace-format
 msgid "Unsupported book format: {fmt}"
 msgstr "不支持的书籍格式：{fmt}"
 
-#: src/main.py:403
+#: src/main.py:288
 #, python-brace-format
 msgid "Failed to initialize book: {error}"
 msgstr "初始化书籍失败：{error}"
 
-#: src/main.py:415
+#: src/main.py:300
 #, python-brace-format
 msgid "Book[{index}]: {name}"
 msgstr "书籍[{index}]：{name}"
 
-#: src/main.py:416 src/main.py:461
+#: src/main.py:301 src/main.py:365
 #, python-brace-format
 msgid "Chapter: {chapter}"
 msgstr "章节：{chapter}"
 
-#: src/main.py:428
+#: src/main.py:320 src/main.py:353
+msgid "Audio playback failed"
+msgstr "音频播放失败"
+
+#: src/main.py:332
 #, python-brace-format
 msgid "[{current}/{total}] {preview}"
 msgstr "[{current}/{total}] {preview}"
 
-#: src/main.py:449
-msgid "Audio playback failed"
-msgstr "音频播放失败"
-
-#: src/main.py:454
+#: src/main.py:358
 msgid "Finished all chapters"
 msgstr "已完成所有章节"
+
+#~ msgid "translator-credits"
+#~ msgstr "yuhldr<yuhldr@qq.com>"
+
+#~ msgid "New version available"
+#~ msgstr "新版本可用"
+
+#~ msgid "Update"
+#~ msgstr "更新"
+
+#, python-brace-format
+#~ msgid ""
+#~ "There is no new version.\n"
+#~ "The current version is {version}.\n"
+#~ "You can go to {url} to view the beta version."
+#~ msgstr ""
+#~ "没有新版本.\n"
+#~ "当前版本是 {version}.\n"
+#~ "你可以去 {url} 查看测试版."
+
+#~ msgid "No new version found"
+#~ msgstr "没有新版本被找到"
+
+#, python-brace-format
+#~ msgid "GTK UI dependencies are unavailable: {error}"
+#~ msgstr "GTK 图形界面依赖不可用：{error}"
