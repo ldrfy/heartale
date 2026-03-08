@@ -67,8 +67,30 @@
                   </object>
                 </child>
                 <child>
+                  <object class="AdwActionRow" id="read_time_yesterday">
+                    <property name="title" translatable="yes">Yesterday</property>
+                    <property name="subtitle-selectable">True</property>
+                    <property name="subtitle-lines">2</property>
+                    <property name="use-markup">False</property>
+                    <style>
+                      <class name="property" />
+                    </style>
+                  </object>
+                </child>
+                <child>
                   <object class="AdwActionRow" id="read_time_week">
                     <property name="title" translatable="yes">This Week</property>
+                    <property name="subtitle-selectable">True</property>
+                    <property name="subtitle-lines">2</property>
+                    <property name="use-markup">False</property>
+                    <style>
+                      <class name="property" />
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="read_time_last_week">
+                    <property name="title" translatable="yes">Last Week</property>
                     <property name="subtitle-selectable">True</property>
                     <property name="subtitle-lines">2</property>
                     <property name="use-markup">False</property>
@@ -89,8 +111,30 @@
                   </object>
                 </child>
                 <child>
+                  <object class="AdwActionRow" id="read_time_last_month">
+                    <property name="title" translatable="yes">Last Month</property>
+                    <property name="subtitle-selectable">True</property>
+                    <property name="subtitle-lines">2</property>
+                    <property name="use-markup">False</property>
+                    <style>
+                      <class name="property" />
+                    </style>
+                  </object>
+                </child>
+                <child>
                   <object class="AdwActionRow" id="read_time_year">
                     <property name="title" translatable="yes">This Year</property>
+                    <property name="subtitle-selectable">True</property>
+                    <property name="subtitle-lines">2</property>
+                    <property name="use-markup">False</property>
+                    <style>
+                      <class name="property" />
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="read_time_last_year">
+                    <property name="title" translatable="yes">Last Year</property>
                     <property name="subtitle-selectable">True</property>
                     <property name="subtitle-lines">2</property>
                     <property name="use-markup">False</property>

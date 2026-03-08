@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.lfy\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-03 23:09+0800\n"
+"POT-Creation-Date: 2026-03-08 20:15+0800\n"
 "PO-Revision-Date: 2026-03-03 23:10+0800\n"
 "Last-Translator:  <yuhldr@qq.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -114,50 +114,67 @@ msgid "Today"
 msgstr "今天"
 
 #: src/res/properties_view.ui:71
+msgid "Yesterday"
+msgstr "昨天"
+
+#: src/res/properties_view.ui:82
 msgid "This Week"
 msgstr "本周"
 
-#: src/res/properties_view.ui:82
+#: src/res/properties_view.ui:93
+#, fuzzy
+msgid "Last Week"
+msgstr "本周"
+
+#: src/res/properties_view.ui:104
 msgid "This Month"
 msgstr "本月"
 
-#: src/res/properties_view.ui:93
+#: src/res/properties_view.ui:115
+msgid "Last Month"
+msgstr "上个月"
+
+#: src/res/properties_view.ui:126
 msgid "This Year"
 msgstr "今年"
 
-#: src/res/properties_view.ui:104
+#: src/res/properties_view.ui:137
+msgid "Last Year"
+msgstr "去年"
+
+#: src/res/properties_view.ui:148
 msgid "All"
 msgstr "全部"
 
-#: src/res/properties_view.ui:118
+#: src/res/properties_view.ui:162
 msgid "Details"
 msgstr "详细信息"
 
-#: src/res/properties_view.ui:122
+#: src/res/properties_view.ui:166
 msgid "txt number"
 msgstr "章节数"
 
-#: src/res/properties_view.ui:132
+#: src/res/properties_view.ui:176
 msgid "Word Count"
 msgstr "字数"
 
-#: src/res/properties_view.ui:143
+#: src/res/properties_view.ui:187
 msgid "Format"
 msgstr "格式"
 
-#: src/res/properties_view.ui:153
+#: src/res/properties_view.ui:197
 msgid "File Size"
 msgstr "文件大小"
 
-#: src/res/properties_view.ui:166
+#: src/res/properties_view.ui:210
 msgid "Date"
 msgstr "日期"
 
-#: src/res/properties_view.ui:169
+#: src/res/properties_view.ui:213
 msgid "File Created"
 msgstr "创建时间"
 
-#: src/res/properties_view.ui:179
+#: src/res/properties_view.ui:223
 msgid "File Modified"
 msgstr "修改时间"
 
@@ -178,7 +195,7 @@ msgstr "加载中"
 msgid "Cancel"
 msgstr "取消"
 
-#: src/res/reader_page.ui:47 src/pages/reader_page.py:201
+#: src/res/reader_page.ui:47 src/pages/reader_page.py:213
 msgid ""
 "Unable to open this book or its table of contents. Please try again or go "
 "back."
@@ -301,13 +318,13 @@ msgstr "欢迎使用兰阅"
 msgid "Select a book to start reading"
 msgstr "选择一本书开始阅读"
 
-#: src/res/shelf_page.ui:182
-msgid "Image Properties"
-msgstr "图片属性"
-
-#: src/res/shelf_page.ui:190
+#: src/res/shelf_page.ui:184
 msgid "Main Menu"
 msgstr "主菜单"
+
+#: src/res/shelf_page.ui:190
+msgid "Image Properties"
+msgstr "图片属性"
 
 #: src/res/shelf_page.ui:196
 msgid "Import local books"
@@ -352,7 +369,7 @@ msgstr "停止朗读"
 msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
 msgstr "{chapter} · 进度 {percent:.2f}% ({position}/{total})"
 
-#: src/pages/reader_page.py:127
+#: src/pages/reader_page.py:136
 #, python-brace-format
 msgid ""
 "Unable to open this book or its table of contents.\n"
@@ -366,41 +383,40 @@ msgstr ""
 "\n"
 "请重试或返回：{error}"
 
-#: src/pages/reader_page.py:303
+#: src/pages/reader_page.py:316
 #, python-brace-format
 msgid "Failed to switch chapter: {error}"
 msgstr "切换章节失败：{error}"
 
-#: src/pages/reader_page.py:365
+#: src/pages/reader_page.py:388
 msgid "TTS is not available yet."
 msgstr "TTS 尚不可用。"
 
-#: src/pages/reader_page.py:369 src/main.py:268
+#: src/pages/reader_page.py:392
 msgid "paplay is not installed."
 msgstr "未安装 paplay。"
 
-#: src/pages/reader_page.py:372
+#: src/pages/reader_page.py:395
 msgid "Already reading aloud."
 msgstr "正在朗读中。"
 
-#: src/pages/reader_page.py:378
+#: src/pages/reader_page.py:401
 msgid "No text to read aloud."
 msgstr "没有可朗读的文本。"
 
-#: src/pages/reader_page.py:416 src/pages/reader_page.py:447 src/main.py:316
-#: src/main.py:337
+#: src/pages/reader_page.py:446 src/pages/reader_page.py:485
 msgid "Read aloud failed. Remote TTS service may be unavailable."
 msgstr "朗读失败。远程 TTS 服务可能不可用。"
 
-#: src/pages/reader_page.py:492
+#: src/pages/reader_page.py:529
 msgid "Read aloud failed. Check TTS settings or server status."
 msgstr "朗读失败。请检查 TTS 设置或服务器状态。"
 
-#: src/pages/reader_page.py:632
+#: src/pages/reader_page.py:743
 msgid "You have reached the last chapter."
 msgstr "你已经在最后一章啦"
 
-#: src/pages/reader_page.py:644
+#: src/pages/reader_page.py:755
 msgid "You are already at the first chapter."
 msgstr "你已经在第一章啦"
 
@@ -464,7 +480,7 @@ msgstr "Legado 同步失败"
 msgid "Please set a valid Legado URL in Preferences first."
 msgstr "请先在首选项中设置有效的 Legado 地址。"
 
-#: src/servers/__init__.py:104
+#: src/servers/__init__.py:107
 msgid "Each call should refresh the text and save reading information."
 msgstr "每次调用都应刷新文本并保存阅读信息。"
 
@@ -489,13 +505,13 @@ msgstr ""
 "保存阅读进度失败！\n"
 "{error}"
 
-#: src/servers/legado.py:277
+#: src/servers/legado.py:278
 #, python-brace-format
 msgid ""
 "The website you entered is most likely incorrect. The current URL is: {}"
 msgstr "您输入的网站很可能不正确。当前URL为：{}"
 
-#: src/servers/legado.py:323
+#: src/servers/legado.py:327
 #, python-brace-format
 msgid ""
 "Failed to fetch Legado book\n"
@@ -506,12 +522,12 @@ msgstr ""
 "\n"
 "{error}"
 
-#: src/servers/legado.py:334
+#: src/servers/legado.py:338
 #, python-brace-format
 msgid "Synced Legado book: {name} Author: {author}\n"
 msgstr "已同步Legado图书：{name} 作者：{author}\n"
 
-#: src/servers/legado.py:348
+#: src/servers/legado.py:352
 #, python-brace-format
 msgid "Parsing error: {error}\n"
 msgstr "解析错误：{error}\n"
@@ -552,20 +568,20 @@ msgstr ""
 msgid "Enter text"
 msgstr "输入文本"
 
-#: src/widgets/properties_view.py:112
+#: src/widgets/properties_view.py:137
 msgid "Unknown size"
 msgstr "未知大小"
 
-#: src/widgets/properties_view.py:120
+#: src/widgets/properties_view.py:145
 #, python-brace-format
 msgid "Plain text (encoding {encoding})"
 msgstr "文本（编码格式 {encoding}）"
 
-#: src/widgets/properties_view.py:122
+#: src/widgets/properties_view.py:147
 msgid "Unknown format"
 msgstr "未知格式"
 
-#: src/widgets/properties_view.py:125
+#: src/widgets/properties_view.py:150
 #, python-brace-format
 msgid ""
 "Read: {read}\n"
@@ -586,194 +602,193 @@ msgstr "置顶此书"
 msgid "Cancel topping this book"
 msgstr "取消置顶此书"
 
-#: src/main.py:24
+#: src/main.py:21
 msgid "heartale CLI options"
 msgstr "heartale 命令行选项"
 
-#: src/main.py:29
+#: src/main.py:26
 msgid "Start GTK UI mode."
 msgstr "启动 GTK 图形界面模式。"
 
-#: src/main.py:35
-msgid "Read the first book in the bookshelf (same as --read-book 1)."
-msgstr "朗读书架中的第一本书（等同于 --read-book 1）。"
-
-#: src/main.py:41
-msgid "Preview character count shown for each paragraph while reading."
-msgstr "朗读时每段显示的预览字符数。"
-
-#: src/main.py:47
+#: src/main.py:32
 msgid "Print bookshelf list in CLI mode."
 msgstr "在命令行模式下输出书架列表。"
 
-#: src/main.py:50
+#: src/main.py:36
 msgid "Read the Nth book from bookshelf (1-based index)."
 msgstr "朗读书架中的第 N 本书（从 1 开始计数）。"
 
-#: src/main.py:55
+#: src/main.py:42
+msgid "Preview character count shown for each paragraph while reading."
+msgstr "朗读时每段显示的预览字符数。"
+
+#: src/main.py:48
 msgid "Sync books from Legado into local bookshelf."
 msgstr "将 Legado 书籍同步到本地书架。"
 
-#: src/main.py:61
+#: src/main.py:54
 msgid "Legado server URL used for sync (e.g. http://192.168.1.34:1221)."
 msgstr "用于同步的 Legado 服务地址（例如 http://192.168.1.34:1221）。"
 
-#: src/main.py:67
+#: src/main.py:60
 msgid "How many books to sync from Legado; 0 means use saved setting."
 msgstr "从 Legado 同步多少本书；0 表示使用已保存设置。"
 
-#: src/main.py:74
-msgid "TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."
+#: src/main.py:68
+#, fuzzy
+msgid "Android TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."
 msgstr "TTS API 地址（例如 http://192.168.1.34:1221/api/tts）。"
 
-#: src/main.py:80
-msgid "TTS engine name (e.g. com.xiaomi.mibrain.speech)."
+#: src/main.py:75
+#, fuzzy
+msgid "Android TTS engine name (e.g. com.xiaomi.mibrain.speech)."
 msgstr "TTS 引擎名称（例如 com.xiaomi.mibrain.speech）。"
 
-#: src/main.py:86
-msgid "TTS speaking rate, range 0-100."
+#: src/main.py:82
+#, fuzzy
+msgid "Android TTS speaking rate, range 0-100."
 msgstr "TTS 语速，范围 0-100。"
 
-#: src/main.py:92
-msgid "TTS pitch, range 0-100."
+#: src/main.py:89
+#, fuzzy
+msgid "Android TTS pitch, range 0-100."
 msgstr "TTS 音调，范围 0-100。"
 
-#: src/main.py:97
+#: src/main.py:95
 msgid ""
 "Print current saved settings (TTS/Legado/Reader) and exit unless reading is "
 "requested."
 msgstr ""
 "输出当前保存的设置（TTS/Legado/阅读器）；除非请求朗读，否则执行后退出。"
 
-#: src/main.py:142
+#: src/main.py:146
 msgid "Legado URL is empty. Set one in preferences or use --legado-url"
 msgstr "Legado 地址为空。请在首选项中设置，或使用 --legado-url。"
 
-#: src/main.py:147
+#: src/main.py:152
 #, python-brace-format
 msgid "Legado sync URL: {url}"
 msgstr "Legado 同步地址：{url}"
 
-#: src/main.py:148
+#: src/main.py:153
 #, python-brace-format
 msgid "Legado sync count: {count}"
 msgstr "Legado 同步数量：{count}"
 
-#: src/main.py:162
+#: src/main.py:167
 msgid "No books found in library"
 msgstr "书架中没有书籍。"
 
-#: src/main.py:165
+#: src/main.py:170
 msgid "Bookshelf:"
 msgstr "书架："
 
-#: src/main.py:168
+#: src/main.py:173
 #, python-brace-format
 msgid "{idx}. [{fmt}] {name} - {author} (chapter {chap_n}/{chap_all})"
 msgstr "{idx}. [{fmt}] {name} - {author}（章节 {chap_n}/{chap_all}）"
 
-#: src/main.py:230 src/main.py:297
+#: src/main.py:208
 #, python-brace-format
 msgid "Invalid TTS config: {error}"
 msgstr "TTS 配置无效：{error}"
 
-#: src/main.py:247
+#: src/main.py:225
 msgid "Current settings:"
 msgstr "当前设置："
 
-#: src/main.py:248
-msgid "TTS:"
-msgstr "TTS："
+#: src/main.py:226
+#, fuzzy
+msgid "TTS-Android:"
+msgstr "Android TTS"
 
-#: src/main.py:249 src/main.py:254
+#: src/main.py:227 src/main.py:232
 #, python-brace-format
 msgid "  url_base: {value}"
 msgstr "  url_base: {value}"
 
-#: src/main.py:250
+#: src/main.py:228
 #, python-brace-format
 msgid "  engine: {value}"
 msgstr "  engine: {value}"
 
-#: src/main.py:251
+#: src/main.py:229
 #, python-brace-format
 msgid "  rate: {value}"
 msgstr "  rate: {value}"
 
-#: src/main.py:252
+#: src/main.py:230
 #, python-brace-format
 msgid "  pitch: {value}"
 msgstr "  pitch: {value}"
 
-#: src/main.py:253
+#: src/main.py:231
 msgid "Legado:"
 msgstr "Legado："
 
-#: src/main.py:255
+#: src/main.py:234
 #, python-brace-format
 msgid "  book_n: {value}"
 msgstr "  book_n: {value}"
 
-#: src/main.py:256
+#: src/main.py:235
 msgid "Reader:"
 msgstr "阅读器："
 
-#: src/main.py:258
+#: src/main.py:237
 #, python-brace-format
 msgid "  font_size: {value}"
 msgstr "  font_size: {value}"
 
-#: src/main.py:259
+#: src/main.py:239
 #, python-brace-format
 msgid "  paragraph_space: {value}"
 msgstr "  paragraph_space: {value}"
 
-#: src/main.py:261
+#: src/main.py:241
 #, python-brace-format
 msgid "  line_space: {value}"
 msgstr "  line_space: {value}"
 
-#: src/main.py:263
+#: src/main.py:244
 msgid "  (not set)"
 msgstr "  （未设置）"
 
-#: src/main.py:273
+#~ msgid "Read the first book in the bookshelf (same as --read-book 1)."
+#~ msgstr "朗读书架中的第一本书（等同于 --read-book 1）。"
+
+#~ msgid "TTS:"
+#~ msgstr "TTS："
+
 #, python-brace-format
-msgid "Book index out of range: {index}"
-msgstr "书籍序号超出范围：{index}"
+#~ msgid "Book index out of range: {index}"
+#~ msgstr "书籍序号超出范围：{index}"
 
-#: src/main.py:282
 #, python-brace-format
-msgid "Unsupported book format: {fmt}"
-msgstr "不支持的书籍格式：{fmt}"
+#~ msgid "Unsupported book format: {fmt}"
+#~ msgstr "不支持的书籍格式：{fmt}"
 
-#: src/main.py:288
 #, python-brace-format
-msgid "Failed to initialize book: {error}"
-msgstr "初始化书籍失败：{error}"
+#~ msgid "Failed to initialize book: {error}"
+#~ msgstr "初始化书籍失败：{error}"
 
-#: src/main.py:300
 #, python-brace-format
-msgid "Book[{index}]: {name}"
-msgstr "书籍[{index}]：{name}"
+#~ msgid "Book[{index}]: {name}"
+#~ msgstr "书籍[{index}]：{name}"
 
-#: src/main.py:301 src/main.py:365
 #, python-brace-format
-msgid "Chapter: {chapter}"
-msgstr "章节：{chapter}"
+#~ msgid "Chapter: {chapter}"
+#~ msgstr "章节：{chapter}"
 
-#: src/main.py:320 src/main.py:353
-msgid "Audio playback failed"
-msgstr "音频播放失败"
+#~ msgid "Audio playback failed"
+#~ msgstr "音频播放失败"
 
-#: src/main.py:332
 #, python-brace-format
-msgid "[{current}/{total}] {preview}"
-msgstr "[{current}/{total}] {preview}"
+#~ msgid "[{current}/{total}] {preview}"
+#~ msgstr "[{current}/{total}] {preview}"
 
-#: src/main.py:358
-msgid "Finished all chapters"
-msgstr "已完成所有章节"
+#~ msgid "Finished all chapters"
+#~ msgstr "已完成所有章节"
 
 #~ msgid "translator-credits"
 #~ msgstr "yuhldr<yuhldr@qq.com>"

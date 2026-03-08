@@ -3,7 +3,7 @@
 import json
 import sqlite3
 import time
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from gettext import gettext as _
 from pathlib import Path
 from sqlite3 import OperationalError
@@ -553,6 +553,18 @@ class LibraryDB:
 
         return _data2str(trs)
 
+    def get_td_yesterday(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
+        """昨天阅读时间和字数，md5=None 表示全书"""
+        target_day = date.today() - timedelta(days=1)
+        trs = self._query_time_reads(
+            md5=md5,
+            day=target_day.day,
+            month=target_day.month,
+            year=target_day.year,
+            way=way,
+        )
+        return _data2str(trs)
+
     def get_td_all(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
         """某书所有的时间和字数，md5=None 表示全书"""
         return _data2str(self._query_time_reads(md5=md5, way=way))
@@ -566,6 +578,14 @@ class LibraryDB:
                                      week=week, way=way)
         return _data2str(trs)
 
+    def get_td_last_week(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
+        """上周阅读时间和字数，md5=None 表示全书"""
+        target_day = date.today() - timedelta(days=7)
+        week = int(target_day.strftime("%W"))
+        trs = self._query_time_reads(md5=md5, year=target_day.year,
+                                     week=week, way=way)
+        return _data2str(trs)
+
     def get_td_month(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
         """本月阅读时间和字数，md5=None 表示全书"""
         today = date.today()
@@ -573,10 +593,27 @@ class LibraryDB:
                                      month=today.month, way=way)
         return _data2str(trs)
 
+    def get_td_last_month(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
+        """上月阅读时间和字数，md5=None 表示全书"""
+        today = date.today()
+        if today.month == 1:
+            year = today.year - 1
+            month = 12
+        else:
+            year = today.year
+            month = today.month - 1
+        trs = self._query_time_reads(md5=md5, year=year, month=month, way=way)
+        return _data2str(trs)
+
     def get_td_year(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
         """本年阅读时间和字数，md5=None 表示全书"""
         today = date.today()
         trs = self._query_time_reads(md5=md5, year=today.year, way=way)
+        return _data2str(trs)
+
+    def get_td_last_year(self, md5: Optional[str] = None, way: Optional[int] = None) -> str:
+        """去年阅读时间和字数，md5=None 表示全书"""
+        trs = self._query_time_reads(md5=md5, year=date.today().year - 1, way=way)
         return _data2str(trs)
 
     def delete_tr(self, tr: TimeRead) -> None:

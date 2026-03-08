@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.heartale\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-03 23:09+0800\n"
+"POT-Creation-Date: 2026-03-08 20:15+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -114,50 +114,66 @@ msgid "Today"
 msgstr ""
 
 #: src/res/properties_view.ui:71
-msgid "This Week"
+msgid "Yesterday"
 msgstr ""
 
 #: src/res/properties_view.ui:82
-msgid "This Month"
+msgid "This Week"
 msgstr ""
 
 #: src/res/properties_view.ui:93
-msgid "This Year"
+msgid "Last Week"
 msgstr ""
 
 #: src/res/properties_view.ui:104
+msgid "This Month"
+msgstr ""
+
+#: src/res/properties_view.ui:115
+msgid "Last Month"
+msgstr ""
+
+#: src/res/properties_view.ui:126
+msgid "This Year"
+msgstr ""
+
+#: src/res/properties_view.ui:137
+msgid "Last Year"
+msgstr ""
+
+#: src/res/properties_view.ui:148
 msgid "All"
 msgstr ""
 
-#: src/res/properties_view.ui:118
+#: src/res/properties_view.ui:162
 msgid "Details"
 msgstr ""
 
-#: src/res/properties_view.ui:122
+#: src/res/properties_view.ui:166
 msgid "txt number"
 msgstr ""
 
-#: src/res/properties_view.ui:132
+#: src/res/properties_view.ui:176
 msgid "Word Count"
 msgstr ""
 
-#: src/res/properties_view.ui:143
+#: src/res/properties_view.ui:187
 msgid "Format"
 msgstr ""
 
-#: src/res/properties_view.ui:153
+#: src/res/properties_view.ui:197
 msgid "File Size"
 msgstr ""
 
-#: src/res/properties_view.ui:166
+#: src/res/properties_view.ui:210
 msgid "Date"
 msgstr ""
 
-#: src/res/properties_view.ui:169
+#: src/res/properties_view.ui:213
 msgid "File Created"
 msgstr ""
 
-#: src/res/properties_view.ui:179
+#: src/res/properties_view.ui:223
 msgid "File Modified"
 msgstr ""
 
@@ -178,7 +194,7 @@ msgstr ""
 msgid "Cancel"
 msgstr ""
 
-#: src/res/reader_page.ui:47 src/pages/reader_page.py:201
+#: src/res/reader_page.ui:47 src/pages/reader_page.py:213
 msgid ""
 "Unable to open this book or its table of contents. Please try again or go "
 "back."
@@ -301,12 +317,12 @@ msgstr ""
 msgid "Select a book to start reading"
 msgstr ""
 
-#: src/res/shelf_page.ui:182
-msgid "Image Properties"
+#: src/res/shelf_page.ui:184
+msgid "Main Menu"
 msgstr ""
 
 #: src/res/shelf_page.ui:190
-msgid "Main Menu"
+msgid "Image Properties"
 msgstr ""
 
 #: src/res/shelf_page.ui:196
@@ -352,7 +368,7 @@ msgstr ""
 msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
 msgstr ""
 
-#: src/pages/reader_page.py:127
+#: src/pages/reader_page.py:136
 #, python-brace-format
 msgid ""
 "Unable to open this book or its table of contents.\n"
@@ -362,41 +378,40 @@ msgid ""
 "{error}"
 msgstr ""
 
-#: src/pages/reader_page.py:303
+#: src/pages/reader_page.py:316
 #, python-brace-format
 msgid "Failed to switch chapter: {error}"
 msgstr ""
 
-#: src/pages/reader_page.py:365
+#: src/pages/reader_page.py:388
 msgid "TTS is not available yet."
 msgstr ""
 
-#: src/pages/reader_page.py:369 src/main.py:268
+#: src/pages/reader_page.py:392
 msgid "paplay is not installed."
 msgstr ""
 
-#: src/pages/reader_page.py:372
+#: src/pages/reader_page.py:395
 msgid "Already reading aloud."
 msgstr ""
 
-#: src/pages/reader_page.py:378
+#: src/pages/reader_page.py:401
 msgid "No text to read aloud."
 msgstr ""
 
-#: src/pages/reader_page.py:416 src/pages/reader_page.py:447 src/main.py:316
-#: src/main.py:337
+#: src/pages/reader_page.py:446 src/pages/reader_page.py:485
 msgid "Read aloud failed. Remote TTS service may be unavailable."
 msgstr ""
 
-#: src/pages/reader_page.py:492
+#: src/pages/reader_page.py:529
 msgid "Read aloud failed. Check TTS settings or server status."
 msgstr ""
 
-#: src/pages/reader_page.py:632
+#: src/pages/reader_page.py:743
 msgid "You have reached the last chapter."
 msgstr ""
 
-#: src/pages/reader_page.py:644
+#: src/pages/reader_page.py:755
 msgid "You are already at the first chapter."
 msgstr ""
 
@@ -458,7 +473,7 @@ msgstr ""
 msgid "Please set a valid Legado URL in Preferences first."
 msgstr ""
 
-#: src/servers/__init__.py:104
+#: src/servers/__init__.py:107
 msgid "Each call should refresh the text and save reading information."
 msgstr ""
 
@@ -481,13 +496,13 @@ msgid ""
 "{error}"
 msgstr ""
 
-#: src/servers/legado.py:277
+#: src/servers/legado.py:278
 #, python-brace-format
 msgid ""
 "The website you entered is most likely incorrect. The current URL is: {}"
 msgstr ""
 
-#: src/servers/legado.py:323
+#: src/servers/legado.py:327
 #, python-brace-format
 msgid ""
 "Failed to fetch Legado book\n"
@@ -495,12 +510,12 @@ msgid ""
 "{error}"
 msgstr ""
 
-#: src/servers/legado.py:334
+#: src/servers/legado.py:338
 #, python-brace-format
 msgid "Synced Legado book: {name} Author: {author}\n"
 msgstr ""
 
-#: src/servers/legado.py:348
+#: src/servers/legado.py:352
 #, python-brace-format
 msgid "Parsing error: {error}\n"
 msgstr ""
@@ -533,20 +548,20 @@ msgstr ""
 msgid "Enter text"
 msgstr ""
 
-#: src/widgets/properties_view.py:112
+#: src/widgets/properties_view.py:137
 msgid "Unknown size"
 msgstr ""
 
-#: src/widgets/properties_view.py:120
+#: src/widgets/properties_view.py:145
 #, python-brace-format
 msgid "Plain text (encoding {encoding})"
 msgstr ""
 
-#: src/widgets/properties_view.py:122
+#: src/widgets/properties_view.py:147
 msgid "Unknown format"
 msgstr ""
 
-#: src/widgets/properties_view.py:125
+#: src/widgets/properties_view.py:150
 #, python-brace-format
 msgid ""
 "Read: {read}\n"
@@ -565,190 +580,148 @@ msgstr ""
 msgid "Cancel topping this book"
 msgstr ""
 
-#: src/main.py:24
+#: src/main.py:21
 msgid "heartale CLI options"
 msgstr ""
 
-#: src/main.py:29
+#: src/main.py:26
 msgid "Start GTK UI mode."
 msgstr ""
 
-#: src/main.py:35
-msgid "Read the first book in the bookshelf (same as --read-book 1)."
-msgstr ""
-
-#: src/main.py:41
-msgid "Preview character count shown for each paragraph while reading."
-msgstr ""
-
-#: src/main.py:47
+#: src/main.py:32
 msgid "Print bookshelf list in CLI mode."
 msgstr ""
 
-#: src/main.py:50
+#: src/main.py:36
 msgid "Read the Nth book from bookshelf (1-based index)."
 msgstr ""
 
-#: src/main.py:55
+#: src/main.py:42
+msgid "Preview character count shown for each paragraph while reading."
+msgstr ""
+
+#: src/main.py:48
 msgid "Sync books from Legado into local bookshelf."
 msgstr ""
 
-#: src/main.py:61
+#: src/main.py:54
 msgid "Legado server URL used for sync (e.g. http://192.168.1.34:1221)."
 msgstr ""
 
-#: src/main.py:67
+#: src/main.py:60
 msgid "How many books to sync from Legado; 0 means use saved setting."
 msgstr ""
 
-#: src/main.py:74
-msgid "TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."
+#: src/main.py:68
+msgid "Android TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."
 msgstr ""
 
-#: src/main.py:80
-msgid "TTS engine name (e.g. com.xiaomi.mibrain.speech)."
+#: src/main.py:75
+msgid "Android TTS engine name (e.g. com.xiaomi.mibrain.speech)."
 msgstr ""
 
-#: src/main.py:86
-msgid "TTS speaking rate, range 0-100."
+#: src/main.py:82
+msgid "Android TTS speaking rate, range 0-100."
 msgstr ""
 
-#: src/main.py:92
-msgid "TTS pitch, range 0-100."
+#: src/main.py:89
+msgid "Android TTS pitch, range 0-100."
 msgstr ""
 
-#: src/main.py:97
+#: src/main.py:95
 msgid ""
 "Print current saved settings (TTS/Legado/Reader) and exit unless reading is "
 "requested."
 msgstr ""
 
-#: src/main.py:142
+#: src/main.py:146
 msgid "Legado URL is empty. Set one in preferences or use --legado-url"
 msgstr ""
 
-#: src/main.py:147
+#: src/main.py:152
 #, python-brace-format
 msgid "Legado sync URL: {url}"
 msgstr ""
 
-#: src/main.py:148
+#: src/main.py:153
 #, python-brace-format
 msgid "Legado sync count: {count}"
 msgstr ""
 
-#: src/main.py:162
+#: src/main.py:167
 msgid "No books found in library"
 msgstr ""
 
-#: src/main.py:165
+#: src/main.py:170
 msgid "Bookshelf:"
 msgstr ""
 
-#: src/main.py:168
+#: src/main.py:173
 #, python-brace-format
 msgid "{idx}. [{fmt}] {name} - {author} (chapter {chap_n}/{chap_all})"
 msgstr ""
 
-#: src/main.py:230 src/main.py:297
+#: src/main.py:208
 #, python-brace-format
 msgid "Invalid TTS config: {error}"
 msgstr ""
 
-#: src/main.py:247
+#: src/main.py:225
 msgid "Current settings:"
 msgstr ""
 
-#: src/main.py:248
-msgid "TTS:"
+#: src/main.py:226
+msgid "TTS-Android:"
 msgstr ""
 
-#: src/main.py:249 src/main.py:254
+#: src/main.py:227 src/main.py:232
 #, python-brace-format
 msgid "  url_base: {value}"
 msgstr ""
 
-#: src/main.py:250
+#: src/main.py:228
 #, python-brace-format
 msgid "  engine: {value}"
 msgstr ""
 
-#: src/main.py:251
+#: src/main.py:229
 #, python-brace-format
 msgid "  rate: {value}"
 msgstr ""
 
-#: src/main.py:252
+#: src/main.py:230
 #, python-brace-format
 msgid "  pitch: {value}"
 msgstr ""
 
-#: src/main.py:253
+#: src/main.py:231
 msgid "Legado:"
 msgstr ""
 
-#: src/main.py:255
+#: src/main.py:234
 #, python-brace-format
 msgid "  book_n: {value}"
 msgstr ""
 
-#: src/main.py:256
+#: src/main.py:235
 msgid "Reader:"
 msgstr ""
 
-#: src/main.py:258
+#: src/main.py:237
 #, python-brace-format
 msgid "  font_size: {value}"
 msgstr ""
 
-#: src/main.py:259
+#: src/main.py:239
 #, python-brace-format
 msgid "  paragraph_space: {value}"
 msgstr ""
 
-#: src/main.py:261
+#: src/main.py:241
 #, python-brace-format
 msgid "  line_space: {value}"
 msgstr ""
 
-#: src/main.py:263
+#: src/main.py:244
 msgid "  (not set)"
-msgstr ""
-
-#: src/main.py:273
-#, python-brace-format
-msgid "Book index out of range: {index}"
-msgstr ""
-
-#: src/main.py:282
-#, python-brace-format
-msgid "Unsupported book format: {fmt}"
-msgstr ""
-
-#: src/main.py:288
-#, python-brace-format
-msgid "Failed to initialize book: {error}"
-msgstr ""
-
-#: src/main.py:300
-#, python-brace-format
-msgid "Book[{index}]: {name}"
-msgstr ""
-
-#: src/main.py:301 src/main.py:365
-#, python-brace-format
-msgid "Chapter: {chapter}"
-msgstr ""
-
-#: src/main.py:320 src/main.py:353
-msgid "Audio playback failed"
-msgstr ""
-
-#: src/main.py:332
-#, python-brace-format
-msgid "[{current}/{total}] {preview}"
-msgstr ""
-
-#: src/main.py:358
-msgid "Finished all chapters"
 msgstr ""

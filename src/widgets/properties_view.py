@@ -30,9 +30,13 @@ class HPropertiesView(Adw.Bin):
     aar_folder: Adw.ActionRow = Gtk.Template.Child()
 
     read_time_year: Adw.ActionRow = Gtk.Template.Child()
+    read_time_last_year: Adw.ActionRow = Gtk.Template.Child()
     read_time_month: Adw.ActionRow = Gtk.Template.Child()
+    read_time_last_month: Adw.ActionRow = Gtk.Template.Child()
     read_time_week: Adw.ActionRow = Gtk.Template.Child()
+    read_time_last_week: Adw.ActionRow = Gtk.Template.Child()
     read_time_day: Adw.ActionRow = Gtk.Template.Child()
+    read_time_yesterday: Adw.ActionRow = Gtk.Template.Child()
     read_time_all: Adw.ActionRow = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
@@ -49,62 +53,82 @@ class HPropertiesView(Adw.Bin):
             book_md5 = self.book.md5
             db = LibraryDB()
 
-            ps = (
-                f"{book.name}",
-                f"{book.get_path()}",
-
-                self._merge_read_and_listen(
+            read_time_stats = {
+                "year": self._merge_read_and_listen(
                     db.get_td_year(book_md5, way=TIME_READ_WAY_READ),
                     db.get_td_year(book_md5, way=TIME_READ_WAY_LISTEN),
                 ),
-                self._merge_read_and_listen(
+                "last_year": self._merge_read_and_listen(
+                    db.get_td_last_year(book_md5, way=TIME_READ_WAY_READ),
+                    db.get_td_last_year(book_md5, way=TIME_READ_WAY_LISTEN),
+                ),
+                "month": self._merge_read_and_listen(
                     db.get_td_month(book_md5, way=TIME_READ_WAY_READ),
                     db.get_td_month(book_md5, way=TIME_READ_WAY_LISTEN),
                 ),
-                self._merge_read_and_listen(
+                "last_month": self._merge_read_and_listen(
+                    db.get_td_last_month(book_md5, way=TIME_READ_WAY_READ),
+                    db.get_td_last_month(book_md5, way=TIME_READ_WAY_LISTEN),
+                ),
+                "week": self._merge_read_and_listen(
                     db.get_td_week(book_md5, way=TIME_READ_WAY_READ),
                     db.get_td_week(book_md5, way=TIME_READ_WAY_LISTEN),
                 ),
-                self._merge_read_and_listen(
+                "last_week": self._merge_read_and_listen(
+                    db.get_td_last_week(book_md5, way=TIME_READ_WAY_READ),
+                    db.get_td_last_week(book_md5, way=TIME_READ_WAY_LISTEN),
+                ),
+                "day": self._merge_read_and_listen(
                     db.get_td_day(book_md5, way=TIME_READ_WAY_READ),
                     db.get_td_day(book_md5, way=TIME_READ_WAY_LISTEN),
                 ),
-                self._merge_read_and_listen(
+                "yesterday": self._merge_read_and_listen(
+                    db.get_td_yesterday(book_md5, way=TIME_READ_WAY_READ),
+                    db.get_td_yesterday(book_md5, way=TIME_READ_WAY_LISTEN),
+                ),
+                "all": self._merge_read_and_listen(
                     db.get_td_all(book_md5, way=TIME_READ_WAY_READ),
                     db.get_td_all(book_md5, way=TIME_READ_WAY_LISTEN),
                 ),
-
-                str(max(0, int(book.chap_all))),
-                _format_words_compact(max(0, int(book.txt_all))),
-                self._get_fmt(),
-                self._get_file_size(),
-
-                get_time(book.create_date),
-                get_time(book.update_date),
-            )
+            }
+            ps = {
+                "name": f"{book.name}",
+                "path": f"{book.get_path()}",
+                "read_time_stats": read_time_stats,
+                "chapters": str(max(0, int(book.chap_all))),
+                "word_count": _format_words_compact(max(0, int(book.txt_all))),
+                "fmt": self._get_fmt(),
+                "file_size": self._get_file_size(),
+                "created_at": get_time(book.create_date),
+                "updated_at": get_time(book.update_date),
+            }
 
             db.close()
             GLib.idle_add(update_ui, ps,
                           priority=GLib.PRIORITY_DEFAULT)
 
         def update_ui(ps):
-            name, path, y, m, w, d, a, chapters, ws, fmt, fs, dc, du = ps
-            self.aar_folder.set_subtitle(name)
-            self.aar_book_uri.set_subtitle(path)
+            self.aar_folder.set_subtitle(ps["name"])
+            self.aar_book_uri.set_subtitle(ps["path"])
 
-            self.read_time_year.set_subtitle(y)
-            self.read_time_month.set_subtitle(m)
-            self.read_time_week.set_subtitle(w)
-            self.read_time_day.set_subtitle(d)
-            self.read_time_all.set_subtitle(a)
+            stats = ps["read_time_stats"]
+            self.read_time_year.set_subtitle(stats["year"])
+            self.read_time_last_year.set_subtitle(stats["last_year"])
+            self.read_time_month.set_subtitle(stats["month"])
+            self.read_time_last_month.set_subtitle(stats["last_month"])
+            self.read_time_week.set_subtitle(stats["week"])
+            self.read_time_last_week.set_subtitle(stats["last_week"])
+            self.read_time_day.set_subtitle(stats["day"])
+            self.read_time_yesterday.set_subtitle(stats["yesterday"])
+            self.read_time_all.set_subtitle(stats["all"])
 
-            self.aar_book_txt_all.set_subtitle(chapters)
-            self.aar_book_words.set_subtitle(ws)
-            self.aar_book_fmt.set_subtitle(fmt)
-            self.aar_file_size.set_subtitle(fs)
+            self.aar_book_txt_all.set_subtitle(ps["chapters"])
+            self.aar_book_words.set_subtitle(ps["word_count"])
+            self.aar_book_fmt.set_subtitle(ps["fmt"])
+            self.aar_file_size.set_subtitle(ps["file_size"])
 
-            self.file_created.set_subtitle(dc)
-            self.file_modified.set_subtitle(du)
+            self.file_created.set_subtitle(ps["created_at"])
+            self.file_modified.set_subtitle(ps["updated_at"])
 
         threading.Thread(target=worker, daemon=True).start()
 
