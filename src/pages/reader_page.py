@@ -1,7 +1,6 @@
 """阅读页面。"""
 # pylint: disable=too-many-lines
 
-import copy
 import shutil
 import subprocess
 import threading
@@ -950,8 +949,11 @@ class ReaderPage(Adw.NavigationPage):
         self._apply_search()
 
     def _apply_search(self, kw_=""):
-
-        def update_ui():
+        def update_ui(chap_names, chap_ns):
+            self.chap_ns = chap_ns
+            self._toc_sel = Gtk.SingleSelection.new(
+                Gtk.StringList.new(chap_names)
+            )
             self.toc.set_model(self._toc_sel)
             return False
 
@@ -959,21 +961,19 @@ class ReaderPage(Adw.NavigationPage):
             self._search_debounce_id = 0
             kw = kw.strip()
             if kw:
-                self.chap_ns = []
                 chap_names = []
+                chap_ns = []
                 for i, name in enumerate(self._server.chap_names):
                     if kw not in name:
                         continue
-                    self.chap_ns.append(i)
+                    chap_ns.append(i)
                     chap_names.append(name)
             else:
-                chap_names = copy.deepcopy(self._server.chap_names)
-                self.chap_ns = range(len(chap_names))
+                chap_names = list(self._server.chap_names)
+                chap_ns = list(range(len(chap_names)))
 
-            self._toc_sel = Gtk.SingleSelection.new(
-                Gtk.StringList.new(chap_names))
-
-            GLib.idle_add(update_ui, priority=GLib.PRIORITY_DEFAULT)
+            GLib.idle_add(update_ui, chap_names, chap_ns,
+                          priority=GLib.PRIORITY_DEFAULT)
 
         threading.Thread(target=worker, args=(kw_,), daemon=True).start()
 
