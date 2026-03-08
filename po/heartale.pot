@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.heartale\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-09 00:19+0800\n"
+"POT-Creation-Date: 2026-03-09 00:39+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -61,11 +61,11 @@ msgstr ""
 msgid "Pitch"
 msgstr ""
 
-#: src/res/preference.ui:60
+#: src/res/preference.ui:60 src/res/preference.ui:133
 msgid "Restore defaults"
 msgstr ""
 
-#: src/res/preference.ui:63
+#: src/res/preference.ui:63 src/res/preference.ui:136
 msgid "Reset"
 msgstr ""
 
@@ -91,6 +91,28 @@ msgstr ""
 
 #: src/res/preference.ui:93
 msgid "Applied on next sync"
+msgstr ""
+
+#: src/res/preference.ui:111
+msgid "TXT"
+msgstr ""
+
+#: src/res/preference.ui:115
+msgid "TXT Parse"
+msgstr ""
+
+#: src/res/preference.ui:116
+msgid ""
+"Custom primary patterns; failed matches will retry with ^ and then fall back "
+"to built-in rules"
+msgstr ""
+
+#: src/res/preference.ui:119
+msgid "Volume pattern"
+msgstr ""
+
+#: src/res/preference.ui:126
+msgid "Chapter pattern"
 msgstr ""
 
 #: src/res/properties_view.ui:20 src/widgets/properties_view.py:186
@@ -523,9 +545,19 @@ msgstr ""
 msgid "Parsing error: {error}\n"
 msgstr ""
 
-#: src/servers/txt.py:74
+#: src/servers/txt.py:91
 #, python-brace-format
 msgid "File not found: {path}"
+msgstr ""
+
+#: src/servers/txt.py:283
+#, python-brace-format
+msgid "{field} can not be empty"
+msgstr ""
+
+#: src/servers/txt.py:288
+#, python-brace-format
+msgid "Invalid regular expression for {field}: {error}"
 msgstr ""
 
 #: src/utils/check_update.py:32 src/utils/check_update.py:118

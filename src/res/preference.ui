@@ -106,5 +106,44 @@
         </child>
       </object>
     </child>
+    <child>
+      <object class="AdwPreferencesPage" id="page_txt">
+        <property name="title" translatable="yes">TXT</property>
+        <property name="icon-name">text-x-generic-symbolic</property>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">TXT Parse</property>
+            <property name="description" translatable="yes">Custom primary patterns; failed matches will retry with ^ and then fall back to built-in rules</property>
+            <child>
+              <object class="AdwEntryRow" id="txt_volume_pattern">
+                <property name="title" translatable="yes">Volume pattern</property>
+                <property name="show-apply-button">1</property>
+                <signal name="apply" handler="_on_apply_txt_parse"/>
+              </object>
+            </child>
+            <child>
+              <object class="AdwEntryRow" id="txt_chapter_pattern">
+                <property name="title" translatable="yes">Chapter pattern</property>
+                <property name="show-apply-button">1</property>
+                <signal name="apply" handler="_on_apply_txt_parse"/>
+              </object>
+            </child>
+            <child>
+              <object class="AdwActionRow">
+                <property name="title" translatable="yes">Restore defaults</property>
+                <child type="suffix">
+                  <object class="GtkButton">
+                    <property name="label" translatable="yes">Reset</property>
+                    <property name="margin-top">6</property>
+                    <property name="margin-bottom">6</property>
+                    <signal name="clicked" handler="_on_reset_txt_parse"/>
+                  </object>
+                </child>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
   </template>
 </interface>

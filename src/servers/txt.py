@@ -1,5 +1,6 @@
 """阅读本地txt文件"""
 import hashlib
+import locale
 import os
 import re
 import shutil
@@ -7,6 +8,7 @@ from gettext import gettext as _
 from pathlib import Path
 
 from .. import PATH_CONFIG_BOOKS
+from ..entity import LibraryDB
 from ..entity.book import Book
 from ..utils.debug import get_logger
 from . import Server
@@ -90,7 +92,8 @@ class TxtServer(Server):
 
         with open(self.book.path, "r", encoding=self.book.encoding, errors="ignore") as f:
             text = f.read()
-        return parse_chap_names(text)
+        primary_rule = get_txt_parse_rules()[0]
+        return parse_chap_names(text, **primary_rule)
 
     def _strip_leading_chap_name(self, chap_txt: str, chap_n: int) -> str:
         """去掉章节正文开头与目录重复的标题行。
@@ -141,13 +144,14 @@ class TxtServer(Server):
         chap_name = self.chap_names[chap_n].strip()
         candidates = {self._normalize_heading(chap_name)}
 
-        volume_match = re.search(VOLUME_PATTERN2, chap_name)
-        if volume_match:
-            candidates.add(self._normalize_heading(volume_match.group()))
+        for rule in TXT_PARSE_RULES:
+            volume_match = re.search(rule["volume_pattern"], chap_name)
+            if volume_match:
+                candidates.add(self._normalize_heading(volume_match.group()))
 
-        chapter_match = re.search(CHAPTER_PATTERN2, chap_name)
-        if chapter_match:
-            candidates.add(self._normalize_heading(chapter_match.group()))
+            chapter_match = re.search(rule["chapter_pattern"], chap_name)
+            if chapter_match:
+                candidates.add(self._normalize_heading(chapter_match.group()))
 
         return {candidate for candidate in candidates if candidate}
 
@@ -164,52 +168,300 @@ class TxtServer(Server):
         return text.strip().lstrip("\ufeff")
 
 
-VOLUME_PATTERN = r'^第([一二三四五六七八九十\d]+)卷\s*(.*)'  # 匹配卷号
-CHAPTER_PATTERN = r'^第([一二三四五六七八九十百千\d]+)章\s*(.*)'  # 匹配章号
+TXT_PARSE_CONFIG_KEY = "txt_parse"
+TXT_PARSE_RULES = [
+    {
+        "volume_pattern": r'第([一二三四五六七八九十\d]+)卷\s*(.*)',
+        "chapter_pattern": r'第([一二三四五六七八九十百千\d]+)章\s*(.*)',
+    },
+    {
+        "volume_pattern": r'[Vv]ol(?:ume)?\.?\s*([A-Za-z0-9IVXLC]+)\s*(.*)',
+        "chapter_pattern": r'[Cc]h(?:apter)?\.?\s*([A-Za-z0-9IVXLC]+)\s*(.*)',
+    },
+]
+TXT_PARSE_DEFAULT_CONFIG = dict(TXT_PARSE_RULES[0])
+TXT_PARSE_DEFAULT_CONFIG_EN = dict(TXT_PARSE_RULES[1])
 
-VOLUME_PATTERN2 = r'第([一二三四五六七八九十\d]+)卷\s*(.*)'  # 匹配卷号
-CHAPTER_PATTERN2 = r'第([一二三四五六七八九十百千\d]+)章\s*(.*)'  # 匹配章号
 
-
-def parse_chap_names(file_content, volume_pattern=VOLUME_PATTERN, chapter_pattern=CHAPTER_PATTERN):
-    """
-
-    Args:
-        file_content (str): _description_
+def get_txt_parse_config() -> dict:
+    """读取 txt 章节解析配置。
 
     Returns:
-        _type_: _description_
+        dict: txt 章节解析配置
     """
+    default_config = get_txt_parse_default_config()
+    db = LibraryDB()
+    cfg = db.get_config(TXT_PARSE_CONFIG_KEY, default_config)
+    db.close()
 
+    merged = dict(default_config)
+    if isinstance(cfg, dict):
+        merged.update(cfg)
+    return merged
+
+
+def get_txt_parse_default_config() -> dict:
+    """获取当前界面语言对应的默认 txt 解析配置。
+
+    Returns:
+        dict: 默认 txt 解析配置
+    """
+    if is_english_locale():
+        return dict(TXT_PARSE_DEFAULT_CONFIG_EN)
+    return dict(TXT_PARSE_DEFAULT_CONFIG)
+
+
+def get_txt_parse_rules() -> list[dict[str, str]]:
+    """读取并校验 txt 章节解析规则列表。
+
+    Returns:
+        list[dict[str, str]]: 章节解析规则列表
+    """
+    cfg = get_txt_parse_config()
+    default_config = get_txt_parse_default_config()
+    primary_rule = {
+        "volume_pattern": _validate_regex_config(
+            cfg.get("volume_pattern"),
+            default_config["volume_pattern"],
+            "volume_pattern",
+        ),
+        "chapter_pattern": _validate_regex_config(
+            cfg.get("chapter_pattern"),
+            default_config["chapter_pattern"],
+            "chapter_pattern",
+        ),
+    }
+    return [primary_rule, *TXT_PARSE_RULES]
+
+
+def set_txt_parse_config(**kwargs) -> dict:
+    """保存 txt 章节解析配置。
+
+    Args:
+        **kwargs: 需要更新的正则配置
+
+    Returns:
+        dict: 保存后的 txt 章节解析配置
+    """
+    cfg = get_txt_parse_config()
+    for key, default in get_txt_parse_default_config().items():
+        if key in kwargs and kwargs[key] is not None:
+            cfg[key] = _validate_regex_config(
+                kwargs[key],
+                default,
+                key,
+            )
+
+    db = LibraryDB()
+    db.set_config(TXT_PARSE_CONFIG_KEY, cfg)
+    db.close()
+    return cfg
+
+
+def reset_txt_parse_config() -> dict:
+    """恢复 txt 章节解析默认配置。
+
+    Returns:
+        dict: 默认 txt 章节解析配置
+    """
+    return set_txt_parse_config(**get_txt_parse_default_config())
+
+
+def _validate_regex_config(value: str, default: str, field_name: str) -> str:
+    """校验章节解析正则配置。
+
+    Args:
+        value (str): 待校验的正则文本
+        default (str): 默认正则文本
+        field_name (str): 配置字段名
+
+    Returns:
+        str: 合法的正则文本
+    """
+    pattern = str(value or default).strip()
+    if not pattern:
+        raise ValueError(_("{field} can not be empty").format(field=field_name))
+    try:
+        re.compile(pattern)
+    except re.error as exc:
+        raise ValueError(
+            _("Invalid regular expression for {field}: {error}").format(
+                field=field_name,
+                error=exc,
+            )
+        ) from exc
+    return pattern
+
+
+def is_english_locale() -> bool:
+    """判断当前界面语言是否为英文。
+
+    Returns:
+        bool: 当前界面语言是否为英文
+    """
+    lang, _encoding = locale.getlocale()
+    if not lang:
+        lang = os.environ.get("LANG", "")
+    return str(lang).lower().startswith("en")
+
+
+def parse_chap_names(
+    file_content: str,
+    volume_pattern: str | None = None,
+    chapter_pattern: str | None = None,
+):
+    """解析 txt 书籍的章节目录。
+
+    Args:
+        file_content (str): txt 全文内容
+        volume_pattern (str | None, optional): 主卷标题正则. Defaults to None.
+        chapter_pattern (str | None, optional): 主章节标题正则. Defaults to None.
+
+    Returns:
+        tuple[list[str], list[int]]: 章节标题和对应偏移位置
+    """
+    primary_rule = _build_parse_rule(
+        volume_pattern,
+        chapter_pattern,
+    )
+    rules = _expand_parse_rules_for_match(
+        [primary_rule, *get_txt_parse_rules()[1:]]
+    )
+    for rule in rules:
+        chap_names, chap_ps = _parse_chap_names_once(
+            file_content,
+            rule["volume_pattern"],
+            rule["chapter_pattern"],
+        )
+        if chap_names:
+            return chap_names, chap_ps
+    return [], []
+
+
+def _parse_chap_names_once(
+    file_content: str,
+    volume_pattern: str,
+    chapter_pattern: str,
+) -> tuple[list[str], list[int]]:
+    """使用一组正则解析一次章节目录。
+
+    Args:
+        file_content (str): txt 全文内容
+        volume_pattern (str): 卷标题正则
+        chapter_pattern (str): 章节标题正则
+
+    Returns:
+        tuple[list[str], list[int]]: 章节标题和对应偏移位置
+    """
     current_volume = None
     chap_names = []
     chap_ps = []
 
     words = 0
     for line in file_content.split("\n"):
-        # 匹配卷号
         volume_match = re.search(volume_pattern, line)
         if volume_match:
-            current_volume = volume_match.group()  # 获取当前卷
+            current_volume = volume_match.group()
             words += len(line + "\n")
-            continue  # 继续找章
+            continue
 
-        # 匹配章号
         chapter_match = re.search(chapter_pattern, line)
         if chapter_match:
             current_chapter = chapter_match.group()
             if current_volume:
                 chap_names.append(f"{current_volume} {current_chapter}")
-                current_volume = None  # 重置卷号
+                current_volume = None
             else:
-                chap_names.append(f"{current_chapter}")
+                chap_names.append(current_chapter)
             chap_ps.append(words)
         words += len(line + "\n")
 
-    if len(chap_names) == 0:
-        return parse_chap_names(file_content, VOLUME_PATTERN2, CHAPTER_PATTERN2)
-
     return chap_names, chap_ps
+
+
+def _build_parse_rule(
+    volume_pattern: str | None,
+    chapter_pattern: str | None,
+) -> dict[str, str]:
+    """构造并校验一条章节解析规则。
+
+    Args:
+        volume_pattern (str | None): 卷标题正则
+        chapter_pattern (str | None): 章节标题正则
+
+    Returns:
+        dict[str, str]: 校验后的章节解析规则
+    """
+    default_config = get_txt_parse_default_config()
+    return {
+        "volume_pattern": _validate_regex_config(
+            volume_pattern,
+            default_config["volume_pattern"],
+            "volume_pattern",
+        ),
+        "chapter_pattern": _validate_regex_config(
+            chapter_pattern,
+            default_config["chapter_pattern"],
+            "chapter_pattern",
+        ),
+    }
+
+
+def _expand_parse_rules_for_match(
+    rules: list[dict[str, str]],
+) -> list[dict[str, str]]:
+    """扩展章节解析规则列表，自动补充带 ^ 的重试版本。
+
+    Args:
+        rules (list[dict[str, str]]): 基础章节解析规则列表
+
+    Returns:
+        list[dict[str, str]]: 实际用于匹配的章节解析规则列表
+    """
+    expanded_rules = []
+    seen = set()
+    for rule in rules:
+        candidates = [rule, _with_line_start_anchor(rule)]
+        for candidate in candidates:
+            key = (
+                candidate["volume_pattern"],
+                candidate["chapter_pattern"],
+            )
+            if key in seen:
+                continue
+            seen.add(key)
+            expanded_rules.append(candidate)
+    return expanded_rules
+
+
+def _with_line_start_anchor(rule: dict[str, str]) -> dict[str, str]:
+    """为章节解析规则补充行首锚点。
+
+    Args:
+        rule (dict[str, str]): 原始章节解析规则
+
+    Returns:
+        dict[str, str]: 补充了行首锚点的章节解析规则
+    """
+    return {
+        "volume_pattern": _ensure_line_start_anchor(rule["volume_pattern"]),
+        "chapter_pattern": _ensure_line_start_anchor(rule["chapter_pattern"]),
+    }
+
+
+def _ensure_line_start_anchor(pattern: str) -> str:
+    """确保正则以行首锚点开头。
+
+    Args:
+        pattern (str): 原始正则
+
+    Returns:
+        str: 带行首锚点的正则
+    """
+    stripped = pattern.lstrip()
+    if stripped.startswith("^"):
+        return pattern
+    return f"^{pattern}"
 
 
 def cal_md5(path: Path, chunk_size: int = 8192) -> str:
@@ -277,7 +529,7 @@ def path2book(src: str, cfg_dir: Path = PATH_CONFIG_BOOKS) -> Book:
     with open(src, "r", encoding=enc, errors="ignore") as file:
         f_txt = file.read()
     txt_all = len(f_txt)
-    chap_names, _chap_ps = parse_chap_names(f_txt)
+    chap_names, _chap_ps = parse_chap_names(f_txt, **get_txt_parse_rules()[0])
     chap_all = len(chap_names)
 
     dest = cfg_dir / src_path.name

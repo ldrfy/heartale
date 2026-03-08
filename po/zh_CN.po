@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.lfy\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-09 00:19+0800\n"
+"POT-Creation-Date: 2026-03-09 00:39+0800\n"
 "PO-Revision-Date: 2026-03-03 23:10+0800\n"
 "Last-Translator:  <yuhldr@qq.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -61,11 +61,11 @@ msgstr "0-100"
 msgid "Pitch"
 msgstr "音调"
 
-#: src/res/preference.ui:60
+#: src/res/preference.ui:60 src/res/preference.ui:133
 msgid "Restore defaults"
 msgstr "恢复默认"
 
-#: src/res/preference.ui:63
+#: src/res/preference.ui:63 src/res/preference.ui:136
 msgid "Reset"
 msgstr "重置"
 
@@ -92,6 +92,28 @@ msgstr "每次同步书籍数量"
 #: src/res/preference.ui:93
 msgid "Applied on next sync"
 msgstr "将在下次同步时生效"
+
+#: src/res/preference.ui:111
+msgid "TXT"
+msgstr "TXT"
+
+#: src/res/preference.ui:115
+msgid "TXT Parse"
+msgstr "TXT 解析"
+
+#: src/res/preference.ui:116
+msgid ""
+"Custom primary patterns; failed matches will retry with ^ and then fall back "
+"to built-in rules"
+msgstr "自定义主规则；匹配失败时会自动再试一次 ^ 版本，随后回退到内置规则"
+
+#: src/res/preference.ui:119
+msgid "Volume pattern"
+msgstr "卷标题规则"
+
+#: src/res/preference.ui:126
+msgid "Chapter pattern"
+msgstr "章节标题规则"
 
 #: src/res/properties_view.ui:20 src/widgets/properties_view.py:186
 msgid "Folder"
@@ -534,10 +556,20 @@ msgstr "已同步Legado图书：{name} 作者：{author}\n"
 msgid "Parsing error: {error}\n"
 msgstr "解析错误：{error}\n"
 
-#: src/servers/txt.py:74
+#: src/servers/txt.py:91
 #, python-brace-format
 msgid "File not found: {path}"
 msgstr "找不到文件：{path}"
+
+#: src/servers/txt.py:283
+#, python-brace-format
+msgid "{field} can not be empty"
+msgstr "{field} 不能为空"
+
+#: src/servers/txt.py:288
+#, python-brace-format
+msgid "Invalid regular expression for {field}: {error}"
+msgstr "{field} 的正则表达式无效：{error}"
 
 #: src/utils/check_update.py:32 src/utils/check_update.py:118
 #, python-brace-format
@@ -645,24 +677,20 @@ msgid "How many books to sync from Legado; 0 means use saved setting."
 msgstr "从 Legado 同步多少本书；0 表示使用已保存设置。"
 
 #: src/main.py:68
-#, fuzzy
 msgid "Android TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."
-msgstr "TTS API 地址（例如 http://192.168.1.34:1221/api/tts）。"
+msgstr "Android TTS API 地址（例如 http://192.168.1.34:1221/api/tts）。"
 
 #: src/main.py:75
-#, fuzzy
 msgid "Android TTS engine name (e.g. com.xiaomi.mibrain.speech)."
-msgstr "TTS 引擎名称（例如 com.xiaomi.mibrain.speech）。"
+msgstr "Android TTS 引擎名称（例如 com.xiaomi.mibrain.speech）。"
 
 #: src/main.py:82
-#, fuzzy
 msgid "Android TTS speaking rate, range 0-100."
-msgstr "TTS 语速，范围 0-100。"
+msgstr "Android TTS 语速，范围 0-100。"
 
 #: src/main.py:89
-#, fuzzy
 msgid "Android TTS pitch, range 0-100."
-msgstr "TTS 音调，范围 0-100。"
+msgstr "Android TTS 音调，范围 0-100。"
 
 #: src/main.py:95
 msgid ""
@@ -708,9 +736,8 @@ msgid "Current settings:"
 msgstr "当前设置："
 
 #: src/main.py:226
-#, fuzzy
 msgid "TTS-Android:"
-msgstr "Android TTS"
+msgstr "TTS-Android："
 
 #: src/main.py:227 src/main.py:232
 #, python-brace-format

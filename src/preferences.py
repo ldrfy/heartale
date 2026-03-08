@@ -6,6 +6,8 @@ from gi.repository import Adw, Gtk  # type: ignore
 
 from .servers.legado import (get_legado_sync_book_n, get_legado_sync_url,
                              set_legado_sync_book_n, set_legado_sync_url)
+from .servers.txt import (get_txt_parse_config, reset_txt_parse_config,
+                          set_txt_parse_config)
 from .tts.backends import create_active_tts_backend
 
 
@@ -21,6 +23,8 @@ class PreferencesDialog(Adw.PreferencesDialog):
     tts_pitch: Adw.SpinRow = Gtk.Template.Child()
     legado_sync_url: Adw.EntryRow = Gtk.Template.Child()
     legado_sync_book_n: Adw.SpinRow = Gtk.Template.Child()
+    txt_volume_pattern: Adw.EntryRow = Gtk.Template.Child()
+    txt_chapter_pattern: Adw.EntryRow = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -41,6 +45,7 @@ class PreferencesDialog(Adw.PreferencesDialog):
         self._load_tts_config()
         self._load_legado_config()
         self._load_sync_config()
+        self._load_txt_parse_config()
 
     def reset_tts_settings(self) -> None:
         """重置 Android TTS 设置并刷新界面。"""
@@ -74,6 +79,19 @@ class PreferencesDialog(Adw.PreferencesDialog):
 
     def _load_sync_config(self):
         self.legado_sync_book_n.set_value(float(get_legado_sync_book_n()))
+
+    def _load_txt_parse_config(self):
+        """加载 txt 章节解析配置。"""
+        cfg = get_txt_parse_config()
+        self.txt_volume_pattern.set_text(str(cfg.get("volume_pattern", "")))
+        self.txt_chapter_pattern.set_text(str(cfg.get("chapter_pattern", "")))
+
+    def _save_txt_parse_config(self):
+        """保存 txt 章节解析配置。"""
+        return set_txt_parse_config(
+            volume_pattern=self.txt_volume_pattern.get_text().strip(),
+            chapter_pattern=self.txt_chapter_pattern.get_text().strip(),
+        )
 
     def _toast(self, msg: str):
         self.add_toast(Adw.Toast.new(msg))
@@ -111,5 +129,22 @@ class PreferencesDialog(Adw.PreferencesDialog):
             n = set_legado_sync_book_n(
                 int(self.legado_sync_book_n.get_value()))
             self.legado_sync_book_n.set_value(float(n))
+        except Exception as exc:  # pylint: disable=broad-except
+            self._toast(str(exc))
+
+    @Gtk.Template.Callback()
+    def _on_apply_txt_parse(self, _row):
+        try:
+            self._save_txt_parse_config()
+            self._toast(_("TXT parse settings saved"))
+        except Exception as exc:  # pylint: disable=broad-except
+            self._toast(str(exc))
+
+    @Gtk.Template.Callback()
+    def _on_reset_txt_parse(self, _btn):
+        try:
+            reset_txt_parse_config()
+            self._load_txt_parse_config()
+            self._toast(_("TXT parse settings reset to defaults"))
         except Exception as exc:  # pylint: disable=broad-except
             self._toast(str(exc))
