@@ -1,6 +1,5 @@
-"""属性"""
+"""书籍属性侧栏。"""
 import threading
-
 from gettext import gettext as _
 
 from gi.repository import Adw, GLib, Gtk  # type: ignore
@@ -9,16 +8,13 @@ from ..entity import LibraryDB, _format_words_compact
 from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
 from ..entity.time_read import TIME_READ_WAY_LISTEN, TIME_READ_WAY_READ
 from ..utils import get_file_size, get_time
-from ..utils.gui import open_folder
+from ..utils.gui import open_folder, open_url
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/properties_view.ui")
 class HPropertiesView(Adw.Bin):
-    """_summary_
+    """显示当前书籍的属性与阅读统计。"""
 
-    Args:
-        Adw (_type_): _description_
-    """
     __gtype_name__ = "HPropertiesView"
     aar_book_uri: Adw.ActionRow = Gtk.Template.Child()
     aar_book_txt_all: Adw.ActionRow = Gtk.Template.Child()
@@ -28,6 +24,7 @@ class HPropertiesView(Adw.Bin):
     file_created: Adw.ActionRow = Gtk.Template.Child()
     file_modified: Adw.ActionRow = Gtk.Template.Child()
     aar_folder: Adw.ActionRow = Gtk.Template.Child()
+    folder_button: Gtk.Button = Gtk.Template.Child()
 
     read_time_year: Adw.ActionRow = Gtk.Template.Child()
     read_time_last_year: Adw.ActionRow = Gtk.Template.Child()
@@ -43,10 +40,12 @@ class HPropertiesView(Adw.Bin):
         self.book: Book = None
         super().__init__(**kwargs)
 
-        # Template 的子控件可用 Gtk.Template.Child() 绑定
-
     def set_data(self, book: Book):
-        """Populate the view with information about ``book``."""
+        """使用书籍数据刷新属性侧栏。
+
+        Args:
+            book (Book): 书籍信息
+        """
         self.book = book
 
         def worker():
@@ -101,6 +100,7 @@ class HPropertiesView(Adw.Bin):
                 "file_size": self._get_file_size(),
                 "created_at": get_time(book.create_date),
                 "updated_at": get_time(book.update_date),
+                "is_legado": book.fmt == BOOK_FMT_LEGADO,
             }
 
             db.close()
@@ -110,6 +110,7 @@ class HPropertiesView(Adw.Bin):
         def update_ui(ps):
             self.aar_folder.set_subtitle(ps["name"])
             self.aar_book_uri.set_subtitle(ps["path"])
+            self._update_open_button(ps["is_legado"])
 
             stats = ps["read_time_stats"]
             self.read_time_year.set_subtitle(stats["year"])
@@ -133,11 +134,21 @@ class HPropertiesView(Adw.Bin):
         threading.Thread(target=worker, daemon=True).start()
 
     def _get_file_size(self):
+        """返回当前书籍文件大小文本。
+
+        Returns:
+            str: 文件大小文本
+        """
         if self.book.fmt == BOOK_FMT_LEGADO:
             return _("Unknown size")
         return get_file_size(self.book.path)
 
     def _get_fmt(self):
+        """返回当前书籍格式文本。
+
+        Returns:
+            str: 书籍格式说明
+        """
         if self.book.fmt == BOOK_FMT_LEGADO:
             return "Legado"
 
@@ -147,14 +158,45 @@ class HPropertiesView(Adw.Bin):
         return _("Unknown format")
 
     def _merge_read_and_listen(self, read_stat: str, listen_stat: str) -> str:
+        """合并阅读与朗读统计文本。
+
+        Args:
+            read_stat (str): 阅读统计
+            listen_stat (str): 朗读统计
+
+        Returns:
+            str: 合并后的统计文本
+        """
         return _("Read: {read}\nListen: {listen}").format(
             read=read_stat, listen=listen_stat
         )
 
-    @Gtk.Template.Callback()
-    def _on_open_file(self, *_):
+    def _update_open_button(self, is_legado: bool) -> None:
+        """按书籍类型更新打开按钮的图标与文案。
+
+        Args:
+            is_legado (bool): 是否为 Legado 书籍
+        """
+        if is_legado:
+            self.aar_folder.set_title(_("Link"))
+            self.folder_button.set_icon_name("folder-remote-symbolic")
+            self.folder_button.set_tooltip_text(_("Open Link"))
+            return
+
+        self.aar_folder.set_title(_("Folder"))
+        self.folder_button.set_icon_name("folder-open-symbolic")
+        self.folder_button.set_tooltip_text(_("Open Containing Folder"))
+
+    def open_current_resource(self) -> None:
+        """打开当前书籍对应的链接或所在文件夹。"""
         if not self.book:
             return
         if self.book.fmt == BOOK_FMT_LEGADO:
+            open_url(self.book.path)
             return
         open_folder(self.book.path)
+
+    @Gtk.Template.Callback()
+    def _on_open_file(self, *_):
+        """响应按钮点击并打开当前书籍资源。"""
+        self.open_current_resource()

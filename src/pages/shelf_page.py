@@ -1,9 +1,8 @@
 """Bookshelf page."""
 
 import threading
-from pathlib import Path
-
 from gettext import gettext as _
+from pathlib import Path
 
 from gi.repository import Adw, Gdk, Gio, GLib, GObject, Gtk  # type: ignore
 
@@ -116,7 +115,8 @@ class ShelfPage(Adw.NavigationPage):
 
         summary = self._reader_page.get_current_read_summary_text().strip()
         if summary:
-            self.window_title.set_subtitle(_("Reading aloud: {summary}").format(summary=summary))
+            self.window_title.set_subtitle(
+                _("Reading aloud: {summary}").format(summary=summary))
             return
         self.window_title.set_subtitle(_("Select a book to start reading"))
 
@@ -169,9 +169,9 @@ class ShelfPage(Adw.NavigationPage):
             row = ShelfRow()
             # 连接一次行内的删除信号，回调里调用页面的方法删除数据
             row.connect("delete-request", lambda _row,
-                                                 book: self._present_delete_confirm_adw(book))
+                        book: self._present_delete_confirm_adw(book))
             row.connect("top-request", lambda _row,
-                                              book: self._on_shelfrow_top(book))
+                        book: self._on_shelfrow_top(book))
             li.set_child(row)
 
         def bind(_f, li: Gtk.ListItem):

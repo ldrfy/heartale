@@ -8,6 +8,10 @@
     color: @theme_selected_bg_color;
 }
 
+.top-indicator {
+    color: @theme_selected_bg_color;
+}
+
 .paragraph {
     font-size: 16px;
     line-height: 1.6;

@@ -131,7 +131,8 @@ class _HeartaleApplicationMixin:
             "\nThe current version is {version}."
             "\nYou can go to {url} to view the beta version."
         ).format(version=self.version, url=self._gui.package_url)
-        self._gui.glib.idle_add(self.update_app, message, _("No new version found"))
+        self._gui.glib.idle_add(self.update_app, message,
+                                _("No new version found"))
 
     def find_update(self, widget_no_auto=None, _w=None):
         """异步检查新版本。
@@ -224,7 +225,8 @@ def run_gui_app(version: str, app_id: str, argv: list[str]) -> int:
     """
     gui_deps, error = _load_gui_deps()
     if error is not None:
-        print(_("GTK UI dependencies are unavailable: {error}").format(error=error))
+        print(_("GTK UI dependencies are unavailable: {error}").format(
+            error=error))
         return 1
 
     app_class = _build_heartale_application_class(gui_deps)

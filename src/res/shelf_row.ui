@@ -37,21 +37,14 @@
       </object>
     </child>
     <child>
-      <object class="GtkButton" id="btn_del">
-        <property name="icon-name">user-trash-symbolic</property>
-        <property name="tooltip-text" translatable="yes">Delete this book</property>
-        <property name="valign">center</property>
-        <signal name="clicked" handler="_on_book_del"/>
-      </object>
-    </child>
-    <child>
-      <object class="GtkButton" id="btn_top">
+      <object class="GtkImage" id="img_top_mark">
         <property name="icon-name">go-top-symbolic</property>
-        <property name="tooltip-text" translatable="yes">Pin this book</property>
+        <property name="pixel-size">14</property>
+        <property name="tooltip-text" translatable="yes">This book is pinned</property>
         <property name="valign">center</property>
-        <signal name="clicked" handler="_on_book_top"/>
+        <property name="visible">false</property>
         <style>
-          <class name="top-btn"/>
+          <class name="top-indicator"/>
         </style>
       </object>
     </child>

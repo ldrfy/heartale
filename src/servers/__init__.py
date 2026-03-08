@@ -253,36 +253,57 @@ class Server:
         self,
         chap_n: int,
         chap_txt_pos: int,
-        way=TIME_READ_WAY_READ,
+        way: int | None = TIME_READ_WAY_READ,
         seconds_override: float | None = None,
-    ):
-        """异步保存阅读进度
+    ) -> None:
+        """保存阅读进度，可选是否累计阅读统计。
 
         Args:
-            book_data (dict): 书籍信息
-
-        Raises:
-            ValueError: 当进度保存出错时抛出异常
+            chap_n (int): 当前章节索引
+            chap_txt_pos (int): 当前章节内字符位置
+            way (int | None, optional): 阅读方式；为 None 时仅保存位置. Defaults to TIME_READ_WAY_READ.
+            seconds_override (float | None, optional): 指定本段耗时. Defaults to None.
         """
-
-        w = len(self.bd.chap_txts[self.bd.chap_txt_n])
-        if seconds_override is None:
-            sec = time.time() - self.read_time
-        else:
-            sec = max(0.0, float(seconds_override))
 
         self.book.chap_n = chap_n
         self.book.chap_name = self.get_chap_name(chap_n)
         self.book.chap_txt_pos = chap_txt_pos
         self.book.update_date = int(datetime.now().timestamp())
-        self.book.txt_pos += w
-
-        td = TimeRead(md5=self.book.md5, name=self.book.name,
-                      chap_n=chap_n, way=way, words=w, seconds=sec)
 
         db = LibraryDB()
-        db.update_book(self.book)
-        db.save_time_read(td)
+        if way is not None:
+            w = len(self.bd.chap_txts[self.bd.chap_txt_n])
+            if seconds_override is None:
+                sec = time.time() - self.read_time
+            else:
+                sec = max(0.0, float(seconds_override))
+
+            self.book.txt_pos += w
+            td = TimeRead(md5=self.book.md5, name=self.book.name,
+                          chap_n=chap_n, way=way, words=w, seconds=sec)
+            db.update_book(self.book)
+            db.save_time_read(td)
+            self.read_time = time.time()
+        else:
+            db.update_book(self.book)
         db.close()
 
-        self.read_time = time.time()
+    def get_paragraph_anchor_pos(self, chap_txt_n: int) -> int:
+        """返回指定段落内部的一个稳定锚点位置。
+
+        Args:
+            chap_txt_n (int): 段落索引
+
+        Returns:
+            int: 位于该段内部的字符位置
+        """
+        if not self.bd.chap_txts:
+            return 0
+
+        safe_idx = max(0, min(int(chap_txt_n), len(self.bd.chap_txts) - 1))
+        start = self.bd.chap_txt_p2s[safe_idx]
+        paragraph = self.bd.chap_txts[safe_idx]
+        length = len(paragraph)
+        if length <= 1:
+            return start
+        return start + min(length - 1, max(1, length // 2))

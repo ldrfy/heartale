@@ -3,9 +3,8 @@ import hashlib
 import os
 import re
 import shutil
-from pathlib import Path
-
 from gettext import gettext as _
+from pathlib import Path
 
 from .. import PATH_CONFIG_BOOKS
 from ..entity.book import Book
@@ -71,7 +70,8 @@ class TxtServer(Server):
 
     def _get_chap_names(self):
         if not os.path.isfile(self.book.path):
-            raise FileNotFoundError(_("File not found: {path}").format(path=self.book.get_path()))
+            raise FileNotFoundError(
+                _("File not found: {path}").format(path=self.book.get_path()))
 
         with open(self.book.path, "r", encoding=self.book.encoding, errors="ignore") as f:
             text = f.read()

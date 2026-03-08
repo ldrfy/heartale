@@ -6,7 +6,7 @@ from gi.repository import Adw, Gtk  # type: ignore
 
 from .servers.legado import (get_legado_sync_book_n, get_legado_sync_url,
                              set_legado_sync_book_n, set_legado_sync_url)
-from .tts.server_android import TtsSA
+from .tts.backends import create_active_tts_backend
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/preference.ui")
@@ -24,10 +24,8 @@ class PreferencesDialog(Adw.PreferencesDialog):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.tts = TtsSA()
-        self._load_tts_config()
-        self._load_legado_config()
-        self._load_sync_config()
+        self.tts = create_active_tts_backend()
+        self.reload_settings()
         self.tts_rate.get_adjustment().connect(
             "value-changed", self._on_tts_numeric_changed
         )
@@ -37,6 +35,17 @@ class PreferencesDialog(Adw.PreferencesDialog):
         self.legado_sync_book_n.get_adjustment().connect(
             "value-changed", self._on_legado_sync_book_n_changed
         )
+
+    def reload_settings(self) -> None:
+        """重新加载偏好设置内容。"""
+        self._load_tts_config()
+        self._load_legado_config()
+        self._load_sync_config()
+
+    def reset_tts_settings(self) -> None:
+        """重置 Android TTS 设置并刷新界面。"""
+        self.tts.set_config(self.tts.default_config)
+        self._load_tts_config()
 
     def _load_tts_config(self):
         cfg = self.tts.get_config()
@@ -85,8 +94,7 @@ class PreferencesDialog(Adw.PreferencesDialog):
 
     @Gtk.Template.Callback()
     def _on_reset_tts(self, _btn):
-        self.tts.set_config(self.tts.default_config)
-        self._load_tts_config()
+        self.reset_tts_settings()
         self._toast(_("TTS settings reset to defaults"))
 
     @Gtk.Template.Callback()
@@ -100,7 +108,8 @@ class PreferencesDialog(Adw.PreferencesDialog):
 
     def _on_legado_sync_book_n_changed(self, _adj):
         try:
-            n = set_legado_sync_book_n(int(self.legado_sync_book_n.get_value()))
+            n = set_legado_sync_book_n(
+                int(self.legado_sync_book_n.get_value()))
             self.legado_sync_book_n.set_value(float(n))
         except Exception as exc:  # pylint: disable=broad-except
             self._toast(str(exc))

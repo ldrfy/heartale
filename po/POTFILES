@@ -16,12 +16,16 @@ src/entity/__init__.py
 src/entity/time_read.py
 src/pages/__init__.py
 src/pages/reader_page.py
+src/pages/reader_session.py
+src/pages/reader_settings.py
+src/pages/reader_toc.py
 src/pages/shelf_page.py
 src/servers/__init__.py
 src/servers/legado.py
 src/servers/txt.py
 src/utils/check_update.py
 src/utils/debug.py
+src/utils/reader.py
 src/utils/__init__.py
 src/utils/text.py
 src/widgets/dialog_input.py
@@ -35,4 +39,5 @@ src/window.py
 
 
 src/tts/__init__.py
-src/tts/server_android.py
+src/tts/backends/__init__.py
+src/tts/backends/android.py

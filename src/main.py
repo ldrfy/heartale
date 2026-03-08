@@ -8,9 +8,9 @@ from .entity import LibraryDB
 from .entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
 from .servers.legado import (get_legado_sync_book_n, get_legado_sync_config,
                              get_legado_sync_url, sync_legado_books)
-from .tts.cli import apply_tts_overrides as apply_tts_cli_overrides
-from .tts.cli import build_tts_override_kwargs
-from .tts.server_android import TtsSA
+from .tts import THS
+from .tts.backends import (apply_active_tts_overrides, build_active_tts_override_kwargs,
+                           create_active_tts_backend)
 
 
 def main(version, app_id):
@@ -189,18 +189,18 @@ def _fmt_name(book: Book) -> str:
     return str(book.fmt)
 
 
-def _apply_tts_overrides(tts: TtsSA, cli_args) -> None:
-    apply_tts_cli_overrides(tts, cli_args)
+def _apply_tts_overrides(tts: THS, cli_args) -> None:
+    apply_active_tts_overrides(tts, cli_args)
 
 
 def _has_tts_overrides(cli_args) -> bool:
-    return bool(build_tts_override_kwargs(cli_args))
+    return bool(build_active_tts_override_kwargs(cli_args))
 
 
 def _persist_tts_overrides_cli(cli_args) -> int:
     if not _has_tts_overrides(cli_args):
         return 0
-    tts = TtsSA()
+    tts = create_active_tts_backend()
     tts.reload_config()
     try:
         _apply_tts_overrides(tts, cli_args)
@@ -211,7 +211,7 @@ def _persist_tts_overrides_cli(cli_args) -> int:
 
 
 def _print_settings_cli():
-    tts = TtsSA()
+    tts = create_active_tts_backend()
     tts.reload_config()
     tts_cfg = tts.get_config()
     legado_cfg = get_legado_sync_config()

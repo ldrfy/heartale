@@ -682,5 +682,5 @@ class LibraryDB:
         val = r[0]
         try:
             return json.loads(val)
-        except Exception:
+        except (TypeError, json.JSONDecodeError):
             return val

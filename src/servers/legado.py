@@ -72,7 +72,8 @@ def set_legado_sync_url(url_base: str) -> str:
     """保存 Legado 同步 URL。"""
     url = (url_base or "").strip()
     if not url or not url.startswith("http"):
-        raise ValueError(_("Please enter a valid Legado URL starting with http."))
+        raise ValueError(
+            _("Please enter a valid Legado URL starting with http."))
 
     cfg = get_legado_sync_config()
     cfg["url_base"] = url
@@ -125,6 +126,14 @@ class LegadoServer(Server):
         super().__init__("legado")
 
     def initialize(self, book: Book):
+        """初始化 Legado 阅读服务，并始终使用远端阅读进度。
+
+        Args:
+            book (Book): 本地数据库中的书籍信息
+
+        Returns:
+            str: 初始化后的书名与章节标题
+        """
         self.book = book
 
         #  同步手机端阅读进度
@@ -142,8 +151,8 @@ class LegadoServer(Server):
         self.book.name = self.book_data["name"]
         self.book.author = self.book_data["author"]
         self.book.chap_all = self.book_data["totalChapterNum"]
-        self.book.chap_n = self.book_data[CHAP_INDEX]
-        self.book.chap_txt_pos = self.book_data[CHAP_POS]
+        self.book.chap_n = int(self.book_data[CHAP_INDEX])
+        self.book.chap_txt_pos = int(self.book_data[CHAP_POS])
 
         self.chap_names = self._get_chap_names()
 
@@ -181,7 +190,11 @@ class LegadoServer(Server):
 
         txt = self.bd.chap_txts[self.bd.chap_txt_n]
 
-        self._save_book_progress(self.book_data)
+        self._save_book_progress(
+            self.get_chap_n(),
+            self.get_chap_txt_pos(),
+            self.get_chap_name(),
+        )
         self.bd.chap_txt_n += 1
 
         return txt
@@ -193,7 +206,7 @@ class LegadoServer(Server):
         url = f"{self.url_base}/getBookContent"
         params = f"{bu(self.book_data)}&index={chap_n}"
 
-        resp = requests.get(f"{url}?{params}", timeout=10)
+        resp = _requests_get(f"{url}?{params}", timeout=10)
         return resp.json()["data"]
 
     def _get_chap_names(self):
@@ -206,33 +219,53 @@ class LegadoServer(Server):
             list: 章节目录，包含title等
         """
         url = f"{self.url_base}/getChapterList?{bu(self.book_data)}"
-        resp = requests.get(url, timeout=10)
+        resp = _requests_get(url, timeout=10)
         return [d["title"] for d in resp.json()["data"]]
 
     def save_read_progress(
         self,
         chap_n: int,
         chap_txt_pos: int,
-        way=TIME_READ_WAY_READ,
+        way: int | None = TIME_READ_WAY_READ,
         seconds_override: float | None = None,
-    ):
-        """_summary_
+    ) -> None:
+        """保存 Legado 阅读进度，并在阅读过程中同步远端位置。
 
         Args:
-            chap_n (int): _description_
-            chap_txt_pos (int): _description_
+            chap_n (int): 当前章节索引
+            chap_txt_pos (int): 当前章节内字符位置
+            way (int | None, optional): 阅读方式；为 None 时仅保存位置. Defaults to TIME_READ_WAY_READ.
+            seconds_override (float | None, optional): 指定本段耗时. Defaults to None.
         """
-        if not self.init:
-            # 刚开始读取进度,但是不能保存云端
-            self._save_book_progress(self.book_data)
+        if self.book_data:
+            self.book_data[CHAP_INDEX] = chap_n
+            self.book_data[CHAP_POS] = chap_txt_pos
+            self.book_data[CHAP_TITLE] = self.get_chap_name(chap_n)
+        if not self.init and self.book_data:
+            self._save_book_progress(
+                chap_n,
+                chap_txt_pos,
+                self.get_chap_name(chap_n),
+            )
         super().save_read_progress(
-            chap_n, chap_txt_pos, way, seconds_override=seconds_override)
+            chap_n,
+            chap_txt_pos,
+            way,
+            seconds_override=seconds_override,
+        )
 
-    def _save_book_progress(self, book_data: dict):
-        """异步保存阅读进度
+    def _save_book_progress(
+        self,
+        chap_n: int,
+        chap_txt_pos: int,
+        chap_title: str,
+    ) -> None:
+        """将指定阅读进度同步到 Legado 远端。
 
         Args:
-            book_data (dict): 书籍信息
+            chap_n (int): 当前章节索引
+            chap_txt_pos (int): 当前章节内字符位置
+            chap_title (str): 当前章节标题
 
         Raises:
             ValueError: 当进度保存出错时抛出异常
@@ -243,18 +276,22 @@ class LegadoServer(Server):
         # 构建请求数据
         data = {
             "name": self.book.name,
-            "author": book_data["author"],
-            CHAP_INDEX: self.get_chap_n(),
-            CHAP_POS: self.get_chap_txt_pos(),
+            "author": self.book.author,
+            CHAP_INDEX: chap_n,
+            CHAP_POS: chap_txt_pos,
             "durChapterTime": dct,
-            CHAP_TITLE: self.get_chap_name(),
+            CHAP_TITLE: chap_title,
         }
 
         json_data = json.dumps(data)
         headers = {'Content-Type': 'application/json'}
 
-        resp = requests.post(f"{self.url_base}/saveBookProgress",
-                             data=json_data, headers=headers, timeout=10)
+        resp = _requests_post(
+            f"{self.url_base}/saveBookProgress",
+            data=json_data,
+            headers=headers,
+            timeout=10,
+        )
         resp_json = resp.json()
 
         if not resp_json["isSuccess"]:
@@ -271,7 +308,7 @@ def get_book_shelf(url):
     Returns:
         dict: 书籍信息
     """
-    resp = requests.get(f"{url}/getBookshelf", timeout=10)
+    resp = _requests_get(f"{url}/getBookshelf", timeout=10)
     if resp.status_code != 200:
         raise ValueError(
             _(
@@ -280,6 +317,33 @@ def get_book_shelf(url):
             ).format(url)
         )
     return resp.json()["data"]
+
+
+def _requests_get(url: str, timeout: int = 10):
+    """发起 GET 请求。
+
+    Args:
+        url (str): 请求地址
+        timeout (int, optional): 超时时间. Defaults to 10.
+
+    Returns:
+        requests.Response: 响应对象
+    """
+    return requests.get(url, timeout=timeout)
+
+
+def _requests_post(url: str, **kwargs):
+    """发起 POST 请求。
+
+    Args:
+        url (str): 请求地址
+        **kwargs: 透传给 requests 的参数
+
+    Returns:
+        requests.Response: 响应对象
+    """
+    timeout = kwargs.pop("timeout", 10)
+    return requests.post(url, timeout=timeout, **kwargs)
 
 
 def get_txt_all(b):

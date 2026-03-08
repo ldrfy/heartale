@@ -1,4 +1,11 @@
-"""文字转语音并下载"""
+"""文字转语音并下载。"""
+
+import mimetypes
+from pathlib import Path
+
+import requests
+
+from .. import PATH_TEMP_TTS
 from ..entity import LibraryDB
 from .cache import TtsAudioCache
 
@@ -138,10 +145,20 @@ class THS:
         Returns:
             Path | None: 可用的音频文件路径
         """
-        path = self.download(text, file_name=file_name)
-        if path is None:
-            return None
-        return self.retain(path)
+        for _ in range(2):
+            path = self.download(text, file_name=file_name)
+            if path is None:
+                return None
+
+            retained_path = self.retain(path)
+            if retained_path is None:
+                return None
+
+            if Path(retained_path).exists():
+                return retained_path
+
+            self.release(retained_path)
+        return None
 
     def retain(self, path):
         """保留音频文件，避免仍在使用时被删除
@@ -173,3 +190,55 @@ class THS:
             Path | None: 下载后的音频文件路径
         """
         raise NotImplementedError
+
+
+def infer_audio_extension(response: requests.Response) -> str:
+    """根据响应头推断音频文件扩展名。
+
+    Args:
+        response (requests.Response): HTTP 响应对象
+
+    Returns:
+        str: 推断出的文件扩展名
+    """
+    content_type = response.headers.get("content-type", "").split(";")[0].strip()
+    if content_type:
+        ext = mimetypes.guess_extension(content_type)
+        if ext is not None:
+            return ext
+    if "wav" in content_type:
+        return ".wav"
+    if "mpeg" in content_type or "mp3" in content_type:
+        return ".mp3"
+    return ".bin"
+
+
+def download_stream_to_cache(url: str, params: dict, file_name: str):
+    """请求远程 TTS 服务并将音频流写入缓存文件。
+
+    Args:
+        url (str): 远程 TTS 请求地址
+        params (dict): 请求参数
+        file_name (str): 缓存文件名前缀
+
+    Returns:
+        Path: 下载后的音频文件路径
+    """
+    with requests.get(
+        url,
+        timeout=15,
+        stream=True,
+        params=params,
+    ) as response:
+        response.raise_for_status()
+        file_name = file_name + infer_audio_extension(response)
+        out_path = PATH_TEMP_TTS / file_name
+        tmp_path = out_path.with_suffix(f"{out_path.suffix}.part")
+
+        with open(tmp_path, "wb") as output_file:
+            for chunk in response.iter_content(chunk_size=8192):
+                if not chunk:
+                    continue
+                output_file.write(chunk)
+        tmp_path.replace(out_path)
+        return out_path

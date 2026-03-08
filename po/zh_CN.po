@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.lfy\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-08 21:18+0800\n"
+"POT-Creation-Date: 2026-03-09 00:19+0800\n"
 "PO-Revision-Date: 2026-03-03 23:10+0800\n"
 "Last-Translator:  <yuhldr@qq.com>\n"
 "Language-Team: Chinese (simplified) <i18n-zh@googlegroups.com>\n"
@@ -93,11 +93,11 @@ msgstr "每次同步书籍数量"
 msgid "Applied on next sync"
 msgstr "将在下次同步时生效"
 
-#: src/res/properties_view.ui:20
+#: src/res/properties_view.ui:20 src/widgets/properties_view.py:186
 msgid "Folder"
 msgstr "文件夹"
 
-#: src/res/properties_view.ui:30
+#: src/res/properties_view.ui:30 src/widgets/properties_view.py:188
 msgid "Open Containing Folder"
 msgstr "打开所在文件夹"
 
@@ -189,12 +189,12 @@ msgstr "正在解析书籍与章节…"
 msgid "Loading"
 msgstr "加载中"
 
-#: src/res/reader_page.ui:37 src/pages/shelf_page.py:234
+#: src/res/reader_page.ui:37 src/pages/shelf_page.py:245
 #: src/widgets/dialog_input.py:21
 msgid "Cancel"
 msgstr "取消"
 
-#: src/res/reader_page.ui:47 src/pages/reader_page.py:258
+#: src/res/reader_page.ui:47 src/pages/reader_session.py:241
 msgid ""
 "Unable to open this book or its table of contents. Please try again or go "
 "back."
@@ -264,6 +264,11 @@ msgstr "段落间距"
 msgid "Read aloud"
 msgstr "朗读"
 
+#: src/res/reader_page.ui:301 src/res/shelf_page.ui:222
+#: src/pages/reader_page.py:506 src/pages/reader_page.py:516
+msgid "Stop reading aloud"
+msgstr "停止朗读"
+
 #: src/res/shelf_page.ui:13
 msgid "Check for updates"
 msgstr "检查更新"
@@ -314,7 +319,7 @@ msgid "Welcome to Heartale"
 msgstr "欢迎使用兰阅"
 
 #: src/res/shelf_page.ui:168 src/pages/shelf_page.py:113
-#: src/pages/shelf_page.py:120
+#: src/pages/shelf_page.py:121
 msgid "Select a book to start reading"
 msgstr "选择一本书开始阅读"
 
@@ -334,13 +339,9 @@ msgstr "导入本地书籍"
 msgid "Sync Legado books"
 msgstr "同步 Legado 书籍"
 
-#: src/res/shelf_row.ui:42
-msgid "Delete this book"
-msgstr "删除此书"
-
-#: src/res/shelf_row.ui:50
-msgid "Pin this book"
-msgstr "固定此书"
+#: src/res/shelf_row.ui:43
+msgid "This book is pinned"
+msgstr "被置顶"
 
 #: src/res/shortcuts-dialog.ui:6
 msgid "Shortcuts"
@@ -360,17 +361,36 @@ msgstr "退出"
 msgid "Heartale"
 msgstr "兰阅"
 
-#: src/res/window.ui:30 src/pages/reader_page.py:777
-#: src/pages/reader_page.py:786
-msgid "Stop reading aloud"
-msgstr "停止朗读"
-
 #: src/entity/book.py:65
 #, python-brace-format
 msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
 msgstr "{chapter} · 进度 {percent:.2f}% ({position}/{total})"
 
-#: src/pages/reader_page.py:140
+#: src/pages/reader_page.py:187
+msgid "TTS is not available yet."
+msgstr "TTS 尚不可用。"
+
+#: src/pages/reader_page.py:191
+msgid "paplay is not installed."
+msgstr "未安装 paplay。"
+
+#: src/pages/reader_page.py:194
+msgid "Already reading aloud."
+msgstr "已经在朗读了。"
+
+#: src/pages/reader_page.py:200
+msgid "No text to read aloud."
+msgstr "没有可朗读的文本。"
+
+#: src/pages/reader_page.py:248
+msgid "Read aloud failed. Remote TTS service may be unavailable."
+msgstr "朗读失败。远程 TTS 服务可能不可用。"
+
+#: src/pages/reader_page.py:259
+msgid "Read aloud failed. Check TTS settings or server status."
+msgstr "朗读失败。请检查 TTS 设置或服务器状态。"
+
+#: src/pages/reader_session.py:196
 #, python-brace-format
 msgid ""
 "Unable to open this book or its table of contents.\n"
@@ -384,42 +404,18 @@ msgstr ""
 "\n"
 "请重试或返回：{error}"
 
-#: src/pages/reader_page.py:361
-#, python-brace-format
-msgid "Failed to switch chapter: {error}"
-msgstr "切换章节失败：{error}"
-
-#: src/pages/reader_page.py:435
-msgid "TTS is not available yet."
-msgstr "TTS 尚不可用。"
-
-#: src/pages/reader_page.py:439
-msgid "paplay is not installed."
-msgstr "未安装 paplay。"
-
-#: src/pages/reader_page.py:442
-msgid "Already reading aloud."
-msgstr "已经在朗读了。"
-
-#: src/pages/reader_page.py:448
-msgid "No text to read aloud."
-msgstr "没有可朗读的文本。"
-
-#: src/pages/reader_page.py:493 src/pages/reader_page.py:532
-msgid "Read aloud failed. Remote TTS service may be unavailable."
-msgstr "朗读失败。远程 TTS 服务可能不可用。"
-
-#: src/pages/reader_page.py:579
-msgid "Read aloud failed. Check TTS settings or server status."
-msgstr "朗读失败。请检查 TTS 设置或服务器状态。"
-
-#: src/pages/reader_page.py:852
+#: src/pages/reader_session.py:310
 msgid "You have reached the last chapter."
 msgstr "你已经在最后一章啦"
 
-#: src/pages/reader_page.py:864
+#: src/pages/reader_session.py:318
 msgid "You are already at the first chapter."
 msgstr "你已经在第一章啦"
+
+#: src/pages/reader_toc.py:100
+#, python-brace-format
+msgid "Failed to switch chapter: {error}"
+msgstr "切换章节失败：{error}"
 
 #: src/pages/shelf_page.py:91
 #, python-brace-format
@@ -427,16 +423,16 @@ msgid ""
 "Today: {today} · This week: {week} · This month: {month} · This year: {year}"
 msgstr "今天: {today} · 本周: {week} · 当月: {month} · 今年: {year}"
 
-#: src/pages/shelf_page.py:118
+#: src/pages/shelf_page.py:119
 #, python-brace-format
 msgid "Reading aloud: {summary}"
 msgstr "正在朗读中：{summary}"
 
-#: src/pages/shelf_page.py:229
+#: src/pages/shelf_page.py:240
 msgid "Delete book?"
 msgstr "删除此书？"
 
-#: src/pages/shelf_page.py:230
+#: src/pages/shelf_page.py:241
 #, python-brace-format
 msgid ""
 "Remove “{book}” from the library.\n"
@@ -445,44 +441,44 @@ msgstr ""
 "从数据库中删除 “{book}”.\n"
 "该行为无法撤销！"
 
-#: src/pages/shelf_page.py:235
+#: src/pages/shelf_page.py:246 src/widgets/shelf_row.py:31
 msgid "Delete"
 msgstr "删除"
 
-#: src/pages/shelf_page.py:251
+#: src/pages/shelf_page.py:262
 msgid "Select books to import"
 msgstr "选择要导入的书籍"
 
-#: src/pages/shelf_page.py:253
+#: src/pages/shelf_page.py:264
 msgid "Documents and e-books"
 msgstr "文档和电子书"
 
-#: src/pages/shelf_page.py:265
+#: src/pages/shelf_page.py:276
 msgid "Could not open the selected files"
 msgstr "无法打开选中的文件"
 
-#: src/pages/shelf_page.py:290
+#: src/pages/shelf_page.py:301
 msgid "Import partially failed"
 msgstr "部分导入失败"
 
-#: src/pages/shelf_page.py:291 src/pages/shelf_page.py:373
+#: src/pages/shelf_page.py:302 src/pages/shelf_page.py:389
 #: src/widgets/dialog_input.py:22
 msgid "OK"
 msgstr "确定"
 
-#: src/pages/shelf_page.py:308
+#: src/pages/shelf_page.py:319
 msgid "Books imported successfully"
 msgstr "书籍导入成功"
 
-#: src/pages/shelf_page.py:368
+#: src/pages/shelf_page.py:384
 msgid "Legado books synced successfully"
 msgstr "Legado书籍同步成功"
 
-#: src/pages/shelf_page.py:372
+#: src/pages/shelf_page.py:388
 msgid "Legado sync partially failed"
 msgstr "Legado 同步失败"
 
-#: src/pages/shelf_page.py:389
+#: src/pages/shelf_page.py:405
 msgid "Please set a valid Legado URL in Preferences first."
 msgstr "请先在首选项中设置有效的 Legado 地址。"
 
@@ -490,19 +486,19 @@ msgstr "请先在首选项中设置有效的 Legado 地址。"
 msgid "Each call should refresh the text and save reading information."
 msgstr "每次调用都应刷新文本并保存阅读信息。"
 
-#: src/servers/legado.py:75
+#: src/servers/legado.py:76
 msgid "Please enter a valid Legado URL starting with http."
 msgstr "请输入以 http 开头的有效 Legado 地址。"
 
-#: src/servers/legado.py:96 src/servers/legado.py:99
+#: src/servers/legado.py:97 src/servers/legado.py:100
 msgid "Please enter a valid sync book count."
 msgstr "请输入有效的同步书籍数量。"
 
-#: src/servers/legado.py:140
+#: src/servers/legado.py:149
 msgid "Failed to fetch Legado book information."
 msgstr "无法获取Legado图书信息。"
 
-#: src/servers/legado.py:261
+#: src/servers/legado.py:298
 #, python-brace-format
 msgid ""
 "Failed to save reading progress!\n"
@@ -511,13 +507,13 @@ msgstr ""
 "保存阅读进度失败！\n"
 "{error}"
 
-#: src/servers/legado.py:278
+#: src/servers/legado.py:315
 #, python-brace-format
 msgid ""
 "The website you entered is most likely incorrect. The current URL is: {}"
 msgstr "您输入的网站很可能不正确。当前URL为：{}"
 
-#: src/servers/legado.py:327
+#: src/servers/legado.py:391
 #, python-brace-format
 msgid ""
 "Failed to fetch Legado book\n"
@@ -528,12 +524,12 @@ msgstr ""
 "\n"
 "{error}"
 
-#: src/servers/legado.py:338
+#: src/servers/legado.py:402
 #, python-brace-format
 msgid "Synced Legado book: {name} Author: {author}\n"
 msgstr "已同步Legado图书：{name} 作者：{author}\n"
 
-#: src/servers/legado.py:352
+#: src/servers/legado.py:416
 #, python-brace-format
 msgid "Parsing error: {error}\n"
 msgstr "解析错误：{error}\n"
@@ -574,20 +570,20 @@ msgstr ""
 msgid "Enter text"
 msgstr "输入文本"
 
-#: src/widgets/properties_view.py:137
+#: src/widgets/properties_view.py:143
 msgid "Unknown size"
 msgstr "未知大小"
 
-#: src/widgets/properties_view.py:145
+#: src/widgets/properties_view.py:156
 #, python-brace-format
 msgid "Plain text (encoding {encoding})"
 msgstr "文本（编码格式 {encoding}）"
 
-#: src/widgets/properties_view.py:147
+#: src/widgets/properties_view.py:158
 msgid "Unknown format"
 msgstr "未知格式"
 
-#: src/widgets/properties_view.py:150
+#: src/widgets/properties_view.py:170
 #, python-brace-format
 msgid ""
 "Read: {read}\n"
@@ -596,17 +592,25 @@ msgstr ""
 "阅读：{read}\n"
 "朗读：{listen}"
 
-#: src/widgets/shelf_row.py:41
+#: src/widgets/properties_view.py:181
+msgid "Link"
+msgstr "链接"
+
+#: src/widgets/properties_view.py:183
+msgid "Open Link"
+msgstr "打开链接"
+
+#: src/widgets/shelf_row.py:63
 msgid "(Untitled)"
 msgstr "（无标题）"
 
-#: src/widgets/shelf_row.py:57
-msgid "Top this book"
-msgstr "置顶此书"
-
-#: src/widgets/shelf_row.py:61
+#: src/widgets/shelf_row.py:144
 msgid "Cancel topping this book"
 msgstr "取消置顶此书"
+
+#: src/widgets/shelf_row.py:147
+msgid "Top this book"
+msgstr "置顶此书"
 
 #: src/main.py:21
 msgid "heartale CLI options"
@@ -759,6 +763,12 @@ msgstr "  line_space: {value}"
 #: src/main.py:244
 msgid "  (not set)"
 msgstr "  （未设置）"
+
+#~ msgid "Delete this book"
+#~ msgstr "删除此书"
+
+#~ msgid "Pin this book"
+#~ msgstr "固定此书"
 
 #~ msgid "Read the first book in the bookshelf (same as --read-book 1)."
 #~ msgstr "朗读书架中的第一本书（等同于 --read-book 1）。"

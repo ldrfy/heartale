@@ -33,6 +33,9 @@ install_data(heartale_sources, install_dir: moduledir)
 heartale_sources_pages = [
     'pages/__init__.py',
     'pages/reader_page.py',
+    'pages/reader_session.py',
+    'pages/reader_settings.py',
+    'pages/reader_toc.py',
     'pages/shelf_page.py',
 ]
 
@@ -68,16 +71,21 @@ install_data(heartale_sources_servers, install_dir: moduledir / 'servers')
 
 tts_sources_servers = [
     'tts/__init__.py',
-    'tts/server_android.py',
-    'tts/read_flow.py',
+    'tts/read_runner.py',
     'tts/cache.py',
-    'tts/cli.py',
 ]
 install_data(tts_sources_servers, install_dir: moduledir / 'tts')
+
+tts_sources_backends = [
+    'tts/backends/__init__.py',
+    'tts/backends/android.py',
+]
+install_data(tts_sources_backends, install_dir: moduledir / 'tts' / 'backends')
 
 
 heartale_sources_utils = [
     'utils/__init__.py',
+    'utils/reader.py',
     'utils/debug.py',
     'utils/debug_gtk.py',
     'utils/gui.py',
