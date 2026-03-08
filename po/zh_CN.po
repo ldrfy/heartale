@@ -710,10 +710,26 @@ msgstr "Android TTS 音调，范围 0-100。"
 
 #: src/main.py:95
 msgid ""
-"Print current saved settings (TTS/Legado/Reader) and exit unless reading is "
+"Print current saved settings (TTS/Legado/TXT/Reader) and exit unless reading is "
 "requested."
 msgstr ""
-"输出当前保存的设置（TTS/Legado/阅读器）；除非请求朗读，否则执行后退出。"
+"输出当前保存的设置（TTS/Legado/TXT/阅读器）；除非请求朗读，否则执行后退出。"
+
+#: src/main.py:102
+msgid "Import one or more TXT files into the local bookshelf."
+msgstr "将一个或多个 TXT 文件导入本地书架。"
+
+#: src/main.py:108
+msgid "Primary TXT volume pattern used for chapter parsing."
+msgstr "用于章节解析的主卷标题规则。"
+
+#: src/main.py:114
+msgid "Primary TXT chapter pattern used for chapter parsing."
+msgstr "用于章节解析的主章节标题规则。"
+
+#: src/main.py:120
+msgid "Use a built-in TXT parse preset by language code (e.g. zh_CN, en_US)."
+msgstr "按语言代码使用内置 TXT 解析预设（例如 zh_CN、en_US）。"
 
 #: src/main.py:146
 msgid "Legado URL is empty. Set one in preferences or use --legado-url"
@@ -746,6 +762,16 @@ msgstr "{idx}. [{fmt}] {name} - {author}（章节 {chap_n}/{chap_all}）"
 #, python-brace-format
 msgid "Invalid TTS config: {error}"
 msgstr "TTS 配置无效：{error}"
+
+#: src/main.py:249
+#, python-brace-format
+msgid "Invalid TXT parse config: {error}"
+msgstr "TXT 解析配置无效：{error}"
+
+#: src/main.py:302
+#, python-brace-format
+msgid "Invalid TXT parse language: {value}. Available presets: {presets}"
+msgstr "TXT 解析语言无效：{value}。可用预设：{presets}"
 
 #: src/main.py:225
 msgid "Current settings:"
@@ -780,11 +806,25 @@ msgid "Legado:"
 msgstr "Legado："
 
 #: src/main.py:234
+msgid "TXT:"
+msgstr "TXT："
+
+#: src/main.py:235
+#, python-brace-format
+msgid "  volume_pattern: {value}"
+msgstr "  volume_pattern: {value}"
+
+#: src/main.py:237
+#, python-brace-format
+msgid "  chapter_pattern: {value}"
+msgstr "  chapter_pattern: {value}"
+
+#: src/main.py:239
 #, python-brace-format
 msgid "  book_n: {value}"
 msgstr "  book_n: {value}"
 
-#: src/main.py:235
+#: src/main.py:240
 msgid "Reader:"
 msgstr "阅读器："
 

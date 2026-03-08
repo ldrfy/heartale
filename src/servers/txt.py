@@ -76,7 +76,8 @@ class TxtServer(Server):
             if chap_n + 1 == len(self.chap_p2s):
                 chap_txt = f.read()[self.chap_p2s[chap_n]:]
             else:
-                chap_txt = f.read()[self.chap_p2s[chap_n]: self.chap_p2s[chap_n + 1]]
+                chap_txt = f.read()[self.chap_p2s[chap_n]
+                                  : self.chap_p2s[chap_n + 1]]
 
         return self._strip_leading_chap_name(chap_txt, chap_n)
 
@@ -179,6 +180,10 @@ TXT_PARSE_RULES = [
         "chapter_pattern": r'[Cc]h(?:apter)?\.?\s*([A-Za-z0-9IVXLC]+)\s*(.*)',
     },
 ]
+TXT_PARSE_PRESETS = {
+    "zh_CN": dict(TXT_PARSE_RULES[0]),
+    "en_US": dict(TXT_PARSE_RULES[1]),
+}
 TXT_PARSE_DEFAULT_CONFIG = dict(TXT_PARSE_RULES[0])
 TXT_PARSE_DEFAULT_CONFIG_EN = dict(TXT_PARSE_RULES[1])
 
@@ -280,7 +285,8 @@ def _validate_regex_config(value: str, default: str, field_name: str) -> str:
     """
     pattern = str(value or default).strip()
     if not pattern:
-        raise ValueError(_("{field} can not be empty").format(field=field_name))
+        raise ValueError(
+            _("{field} can not be empty").format(field=field_name))
     try:
         re.compile(pattern)
     except re.error as exc:

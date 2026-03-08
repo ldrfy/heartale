@@ -2,14 +2,18 @@
 import argparse
 import sys
 from gettext import gettext as _
+from pathlib import Path
 
 from .cli_reader import run_read_book_cli
 from .entity import LibraryDB
 from .entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
 from .servers.legado import (get_legado_sync_book_n, get_legado_sync_config,
                              get_legado_sync_url, sync_legado_books)
+from .servers.txt import (TXT_PARSE_PRESETS, get_txt_parse_config, path2book,
+                          set_txt_parse_config)
 from .tts import THS
-from .tts.backends import (apply_active_tts_overrides, build_active_tts_override_kwargs,
+from .tts.backends import (apply_active_tts_overrides,
+                           build_active_tts_override_kwargs,
                            create_active_tts_backend)
 
 
@@ -92,9 +96,34 @@ def main(version, app_id):
         "--show-settings",
         action="store_true",
         help=_(
-            "Print current saved settings (TTS/Legado/Reader) and exit "
+            "Print current saved settings (TTS/Legado/TXT/Reader) and exit "
             "unless reading is requested."
         ),
+    )
+    parser.add_argument(
+        "--txt-import",
+        nargs="+",
+        dest="txt_import",
+        default=[],
+        help=_("Import one or more TXT files into the local bookshelf."),
+    )
+    parser.add_argument(
+        "--txt-volume-pattern",
+        type=str,
+        default="",
+        help=_("Primary TXT volume pattern used for chapter parsing."),
+    )
+    parser.add_argument(
+        "--txt-chapter-pattern",
+        type=str,
+        default="",
+        help=_("Primary TXT chapter pattern used for chapter parsing."),
+    )
+    parser.add_argument(
+        "--txt-parse-language",
+        type=str,
+        default="",
+        help=_("Use a built-in TXT parse preset by language code (e.g. zh_CN, en_US)."),
     )
 
     if not argv:
@@ -119,8 +148,17 @@ def _run_cli(cli_args) -> int:
     if code != 0:
         return code
 
+    code = _persist_txt_parse_overrides_cli(cli_args)
+    if code != 0:
+        return code
+
     if cli_args.legado_sync:
         code = _run_sync_legado_cli(cli_args)
+        if code != 0:
+            return code
+
+    if cli_args.txt_import:
+        code = _run_import_txt_cli(cli_args.txt_import)
         if code != 0:
             return code
 
@@ -210,11 +248,118 @@ def _persist_tts_overrides_cli(cli_args) -> int:
     return 0
 
 
+def _has_txt_parse_overrides(cli_args) -> bool:
+    """判断是否传入了 TXT 解析规则覆盖项。
+
+    Args:
+        cli_args: 命令行参数对象
+
+    Returns:
+        bool: 是否传入了 TXT 解析规则覆盖项
+    """
+    return bool(
+        cli_args.txt_parse_language.strip()
+        or cli_args.txt_volume_pattern.strip()
+        or cli_args.txt_chapter_pattern.strip()
+    )
+
+
+def _build_txt_parse_override_kwargs(cli_args) -> dict:
+    """构造 TXT 解析规则覆盖参数。
+
+    Args:
+        cli_args: 命令行参数对象
+
+    Returns:
+        dict: TXT 解析规则覆盖参数
+    """
+    kwargs = {}
+    preset = cli_args.txt_parse_language.strip()
+    if preset:
+        kwargs.update(TXT_PARSE_PRESETS[preset])
+
+    if cli_args.txt_volume_pattern.strip():
+        kwargs["volume_pattern"] = cli_args.txt_volume_pattern.strip()
+    if cli_args.txt_chapter_pattern.strip():
+        kwargs["chapter_pattern"] = cli_args.txt_chapter_pattern.strip()
+    return kwargs
+
+
+def _persist_txt_parse_overrides_cli(cli_args) -> int:
+    """保存命令行传入的 TXT 解析规则覆盖项。
+
+    Args:
+        cli_args: 命令行参数对象
+
+    Returns:
+        int: 命令行退出码
+    """
+    preset = cli_args.txt_parse_language.strip()
+    if preset and preset not in TXT_PARSE_PRESETS:
+        print(
+            _("Invalid TXT parse language: {value}. Available presets: {presets}").format(
+                value=preset,
+                presets=", ".join(TXT_PARSE_PRESETS.keys()),
+            )
+        )
+        return 1
+
+    if not _has_txt_parse_overrides(cli_args):
+        return 0
+    try:
+        set_txt_parse_config(**_build_txt_parse_override_kwargs(cli_args))
+    except Exception as exc:  # pylint: disable=broad-except
+        print(_("Invalid TXT parse config: {error}").format(error=exc))
+        return 1
+    return 0
+
+
+def _run_import_txt_cli(paths: list[str]) -> int:
+    """导入命令行指定的 TXT 文件。
+
+    Args:
+        paths (list[str]): 待导入的文件路径列表
+
+    Returns:
+        int: 命令行退出码
+    """
+    books = []
+    errors = []
+    for raw_path in paths:
+        try:
+            books.append(path2book(raw_path))
+        except (FileNotFoundError, OSError, ValueError, IndexError) as exc:
+            errors.append(
+                _("{name}: {error}").format(
+                    name=Path(raw_path).name,
+                    error=exc,
+                )
+            )
+
+    if books:
+        db = LibraryDB()
+        try:
+            for book in books:
+                db.save_book(book)
+        finally:
+            db.close()
+        print(_("Books imported successfully"))
+
+    if errors:
+        print(_("Import partially failed"))
+        for error in errors:
+            print(error)
+        return 1
+
+    return 0
+
+
 def _print_settings_cli():
     tts = create_active_tts_backend()
     tts.reload_config()
     tts_cfg = tts.get_config()
     legado_cfg = get_legado_sync_config()
+    txt_cfg = get_txt_parse_config()
 
     db = LibraryDB()
     try:
@@ -232,6 +377,11 @@ def _print_settings_cli():
     print(_("  url_base: {value}").format(
         value=legado_cfg.get("url_base", "")))
     print(_("  book_n: {value}").format(value=legado_cfg.get("book_n", "")))
+    print(_("TXT:"))
+    print(_("  volume_pattern: {value}").format(
+        value=txt_cfg.get("volume_pattern", "")))
+    print(_("  chapter_pattern: {value}").format(
+        value=txt_cfg.get("chapter_pattern", "")))
     print(_("Reader:"))
     if isinstance(reader_cfg, dict) and reader_cfg:
         print(_("  font_size: {value}").format(
