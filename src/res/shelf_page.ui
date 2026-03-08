@@ -216,6 +216,19 @@
                 </child>
               </object>
             </child>
+            <child type="end">
+            <object class="GtkButton" id="btn_tts_stop">
+                <property name="icon-name">media-playback-stop-symbolic</property>
+                <property name="tooltip-text" translatable="yes">Stop reading aloud</property>
+                <property name="visible">false</property>
+                <property name="valign">center</property>
+                <signal name="clicked" handler="_on_tts_stop_clicked"/>
+                <style>
+                <class name="destructive-action"/>
+                <class name="circular"/>
+                </style>
+            </object>
+            </child>
           </object>
         </child>
       </object>

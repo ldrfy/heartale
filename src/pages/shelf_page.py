@@ -26,6 +26,7 @@ class ShelfPage(Adw.NavigationPage):
     __gtype_name__ = "ShelfPage"
 
     gl_shelf_read_time: Gtk.Label = Gtk.Template.Child()
+    btn_tts_stop: Gtk.Button = Gtk.Template.Child()
     window_title: Adw.WindowTitle = Gtk.Template.Child()
 
     search: Gtk.SearchEntry = Gtk.Template.Child()
@@ -118,6 +119,16 @@ class ShelfPage(Adw.NavigationPage):
             self.window_title.set_subtitle(_("Reading aloud: {summary}").format(summary=summary))
             return
         self.window_title.set_subtitle(_("Select a book to start reading"))
+
+    def set_tts_stop_button_state(self, is_playing: bool, status_text: str):
+        """同步书架页顶部停止朗读按钮的状态。
+
+        Args:
+            is_playing (bool): 当前是否正在朗读
+            status_text (str): 当前朗读状态文本
+        """
+        self.btn_tts_stop.set_visible(bool(is_playing))
+        self.btn_tts_stop.set_tooltip_text(status_text)
 
     def build_bookshel(self, books, is_search=False):
         """Populate the list view with ``books``."""
@@ -328,6 +339,11 @@ class ShelfPage(Adw.NavigationPage):
         selection: Gtk.SingleSelection = listview.get_model()
         bobj: BookObject = selection.get_item(position)
         self._reader_page.set_data(bobj.to_dataclass())
+
+    @Gtk.Template.Callback()
+    def _on_tts_stop_clicked(self, *_args):
+        """响应书架页顶部停止朗读按钮点击事件。"""
+        self._reader_page.stop_read_aloud()
 
     @Gtk.Template.Callback()
     def _on_search_changed(self, entry: Gtk.SearchEntry):

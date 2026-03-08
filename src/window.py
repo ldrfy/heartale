@@ -13,7 +13,6 @@ class HeartaleWindow(Adw.ApplicationWindow):
 
     nav: Adw.NavigationView = Gtk.Template.Child()
     toasts: Adw.ToastOverlay = Gtk.Template.Child()
-    btn_global_tts_stop: Gtk.Button = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
@@ -54,12 +53,6 @@ class HeartaleWindow(Adw.ApplicationWindow):
         self.toasts.add_toast(toast)
 
     def _on_tts_state_changed(self, is_playing: bool, status_text: str):
-        """同步全局朗读停止按钮的显示状态和提示文本。"""
-        self.btn_global_tts_stop.set_visible(bool(is_playing))
-        self.btn_global_tts_stop.set_tooltip_text(status_text)
+        """同步书架页顶部停止朗读按钮的显示状态和提示文本。"""
+        self._shelf_page.set_tts_stop_button_state(is_playing, status_text)
         self._shelf_page.refresh_header_subtitle()
-
-    @Gtk.Template.Callback()
-    def on_global_tts_stop_clicked(self, *_):
-        """响应全局停止朗读按钮点击事件。"""
-        self._reader_page.stop_read_aloud()

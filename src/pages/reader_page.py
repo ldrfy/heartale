@@ -59,6 +59,7 @@ class ReaderPage(Adw.NavigationPage):
     spinner_sync: Gtk.Spinner = Gtk.Template.Child()
     gs_tts_loading: Gtk.Spinner = Gtk.Template.Child()
     gb_tts_start: Gtk.Button = Gtk.Template.Child()
+    btn_tts_stop: Gtk.Button = Gtk.Template.Child()
 
     aos_reader: Adw.OverlaySplitView = Gtk.Template.Child()
     page_error: Adw.StatusPage = Gtk.Template.Child()
@@ -462,6 +463,7 @@ class ReaderPage(Adw.NavigationPage):
             self._tts_prefetch_slot = AudioPrefetchSlot(self.tts)
 
         self.gb_tts_start.set_visible(False)
+        self.btn_tts_stop.set_visible(True)
         self.gs_tts_loading.set_visible(True)
         self.gs_tts_loading.start()
         self._emit_tts_state(True)
@@ -606,13 +608,11 @@ class ReaderPage(Adw.NavigationPage):
 
     def _set_tts_loading(self, loading: bool):
         if loading:
-            self.gb_tts_start.set_visible(False)
             self.gs_tts_loading.set_visible(True)
             self.gs_tts_loading.start()
         else:
             self.gs_tts_loading.stop()
             self.gs_tts_loading.set_visible(False)
-            self.gb_tts_start.set_visible(True)
         return False
 
     def _stop_tts_playback(self):
@@ -759,6 +759,11 @@ class ReaderPage(Adw.NavigationPage):
         self._stop_tts_playback()
         self._set_tts_loading(False)
 
+    @Gtk.Template.Callback()
+    def _on_stop_read_aloud(self, *_args):
+        """响应阅读页内停止朗读按钮点击事件。"""
+        self.stop_read_aloud()
+
     def is_read_aloud_active(self) -> bool:
         """返回当前是否仍在朗读中。
 
@@ -827,6 +832,8 @@ class ReaderPage(Adw.NavigationPage):
         self._on_tts_state_changed = callback
 
     def _emit_tts_state(self, is_playing: bool):
+        self.gb_tts_start.set_visible(not is_playing)
+        self.btn_tts_stop.set_visible(is_playing)
         if self._on_tts_state_changed:
             self._on_tts_state_changed(is_playing, self.get_read_aloud_status_text())
         return False
