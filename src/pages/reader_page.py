@@ -709,6 +709,14 @@ class ReaderPage(Adw.NavigationPage):
         self._stop_tts_playback()
         self._set_tts_loading(False)
 
+    def is_read_aloud_active(self) -> bool:
+        """返回当前是否仍在朗读中。
+
+        Returns:
+            bool: 当前是否仍在朗读中
+        """
+        return bool(self._tts_thread and self._tts_thread.is_alive())
+
     def set_tts_state_changed_callback(self, callback):
         """设置 TTS 播放状态变更回调。
 

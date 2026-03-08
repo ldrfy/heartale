@@ -35,7 +35,8 @@ class HeartaleWindow(Adw.ApplicationWindow):
 
         if isinstance(page, ShelfPage):
             self._shelf_page.reload_bookshel()
-            self._reader_page.clear_data()
+            if not self._reader_page.is_read_aloud_active():
+                self._reader_page.clear_data()
 
     def toast_msg(self, toast_msg):
         """Show a toast in the main window."""
@@ -51,4 +52,5 @@ class HeartaleWindow(Adw.ApplicationWindow):
 
     @Gtk.Template.Callback()
     def on_global_tts_stop_clicked(self, *_):
+        """响应全局停止朗读按钮点击事件。"""
         self._reader_page.stop_read_aloud()
