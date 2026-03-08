@@ -33,6 +33,15 @@ APP_ID = '@APP_ID@'
 sys.path.insert(1, pkgdatadir)
 signal.signal(signal.SIGINT, signal.SIG_DFL)
 
+try:
+    from heartale.utils.i18n import APP_LANGUAGE_AUTO, get_app_language
+
+    configured_language = get_app_language()
+    if configured_language != APP_LANGUAGE_AUTO:
+        os.environ["LANGUAGE"] = configured_language
+except Exception:
+    pass
+
 
 try:
     locale.bindtextdomain(APP_ID, localedir)

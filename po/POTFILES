@@ -25,6 +25,7 @@ src/servers/legado.py
 src/servers/txt.py
 src/utils/check_update.py
 src/utils/debug.py
+src/utils/i18n.py
 src/utils/reader.py
 src/utils/__init__.py
 src/utils/text.py

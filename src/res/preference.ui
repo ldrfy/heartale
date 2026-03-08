@@ -6,6 +6,23 @@
   <template class="PreferencesDialog" parent="AdwPreferencesDialog">
     <property name="title" translatable="yes">Preferences</property>
     <child>
+      <object class="AdwPreferencesPage" id="page_general">
+        <property name="title" translatable="yes">General</property>
+        <property name="icon-name">preferences-system-symbolic</property>
+        <child>
+          <object class="AdwPreferencesGroup">
+            <property name="title" translatable="yes">Language</property>
+            <property name="description" translatable="yes">Restart Heartale after changing this setting</property>
+            <child>
+              <object class="AdwComboRow" id="app_language">
+                <property name="title" translatable="yes">App language</property>
+              </object>
+            </child>
+          </object>
+        </child>
+      </object>
+    </child>
+    <child>
       <object class="AdwPreferencesPage" id="page_tts">
         <property name="title" translatable="yes">TTS</property>
         <property name="icon-name">audio-speakers-symbolic</property>

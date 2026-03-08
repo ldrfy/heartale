@@ -9,6 +9,9 @@ from .servers.legado import (get_legado_sync_book_n, get_legado_sync_url,
 from .servers.txt import (get_txt_parse_config, reset_txt_parse_config,
                           set_txt_parse_config)
 from .tts.backends import create_active_tts_backend
+from .utils.i18n import (APP_LANGUAGE_AUTO, APP_LANGUAGE_EN_US,
+                         APP_LANGUAGE_ZH_CN, get_app_language,
+                         set_app_language)
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/preference.ui")
@@ -23,12 +26,25 @@ class PreferencesDialog(Adw.PreferencesDialog):
     tts_pitch: Adw.SpinRow = Gtk.Template.Child()
     legado_sync_url: Adw.EntryRow = Gtk.Template.Child()
     legado_sync_book_n: Adw.SpinRow = Gtk.Template.Child()
+    app_language: Adw.ComboRow = Gtk.Template.Child()
     txt_volume_pattern: Adw.EntryRow = Gtk.Template.Child()
     txt_chapter_pattern: Adw.EntryRow = Gtk.Template.Child()
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.tts = create_active_tts_backend()
+        self._language_values = [
+            APP_LANGUAGE_AUTO,
+            APP_LANGUAGE_ZH_CN,
+            APP_LANGUAGE_EN_US,
+        ]
+        self.app_language.set_model(
+            Gtk.StringList.new([
+                _("Auto"),
+                _("Chinese (Simplified)"),
+                _("English"),
+            ])
+        )
         self.reload_settings()
         self.tts_rate.get_adjustment().connect(
             "value-changed", self._on_tts_numeric_changed
@@ -39,12 +55,17 @@ class PreferencesDialog(Adw.PreferencesDialog):
         self.legado_sync_book_n.get_adjustment().connect(
             "value-changed", self._on_legado_sync_book_n_changed
         )
+        self.app_language.connect(
+            "notify::selected",
+            self._on_app_language_selected,
+        )
 
     def reload_settings(self) -> None:
         """重新加载偏好设置内容。"""
         self._load_tts_config()
         self._load_legado_config()
         self._load_sync_config()
+        self._load_app_language()
         self._load_txt_parse_config()
 
     def reset_tts_settings(self) -> None:
@@ -80,6 +101,15 @@ class PreferencesDialog(Adw.PreferencesDialog):
     def _load_sync_config(self):
         self.legado_sync_book_n.set_value(float(get_legado_sync_book_n()))
 
+    def _load_app_language(self):
+        """加载应用语言设置。"""
+        language = get_app_language()
+        try:
+            index = self._language_values.index(language)
+        except ValueError:
+            index = 0
+        self.app_language.set_selected(index)
+
     def _load_txt_parse_config(self):
         """加载 txt 章节解析配置。"""
         cfg = get_txt_parse_config()
@@ -95,6 +125,17 @@ class PreferencesDialog(Adw.PreferencesDialog):
 
     def _toast(self, msg: str):
         self.add_toast(Adw.Toast.new(msg))
+
+    def _on_app_language_selected(self, _row, _pspec):
+        """保存应用语言设置。"""
+        index = int(self.app_language.get_selected())
+        if index < 0 or index >= len(self._language_values):
+            return
+        language = self._language_values[index]
+        if language == get_app_language():
+            return
+        set_app_language(language)
+        self._toast(_("Language setting saved. Restart Heartale to apply."))
 
     @Gtk.Template.Callback()
     def _on_apply_tts(self, _row):

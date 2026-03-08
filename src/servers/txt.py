@@ -1,6 +1,5 @@
 """阅读本地txt文件"""
 import hashlib
-import locale
 import os
 import re
 import shutil
@@ -11,6 +10,7 @@ from .. import PATH_CONFIG_BOOKS
 from ..entity import LibraryDB
 from ..entity.book import Book
 from ..utils.debug import get_logger
+from ..utils.i18n import is_english_language
 from . import Server
 
 
@@ -206,7 +206,7 @@ def get_txt_parse_default_config() -> dict:
     Returns:
         dict: 默认 txt 解析配置
     """
-    if is_english_locale():
+    if is_english_language():
         return dict(TXT_PARSE_DEFAULT_CONFIG_EN)
     return dict(TXT_PARSE_DEFAULT_CONFIG)
 
@@ -291,18 +291,6 @@ def _validate_regex_config(value: str, default: str, field_name: str) -> str:
             )
         ) from exc
     return pattern
-
-
-def is_english_locale() -> bool:
-    """判断当前界面语言是否为英文。
-
-    Returns:
-        bool: 当前界面语言是否为英文
-    """
-    lang, _encoding = locale.getlocale()
-    if not lang:
-        lang = os.environ.get("LANG", "")
-    return str(lang).lower().startswith("en")
 
 
 def parse_chap_names(

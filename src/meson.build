@@ -85,6 +85,7 @@ install_data(tts_sources_backends, install_dir: moduledir / 'tts' / 'backends')
 
 heartale_sources_utils = [
     'utils/__init__.py',
+    'utils/i18n.py',
     'utils/reader.py',
     'utils/debug.py',
     'utils/debug_gtk.py',

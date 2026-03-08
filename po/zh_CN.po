@@ -30,18 +30,34 @@ msgid "Preferences"
 msgstr "首选项"
 
 #: src/res/preference.ui:10
+msgid "General"
+msgstr "通用"
+
+#: src/res/preference.ui:14
+msgid "Language"
+msgstr "语言"
+
+#: src/res/preference.ui:15
+msgid "Restart Heartale after changing this setting"
+msgstr "修改此设置后请重启兰阅"
+
+#: src/res/preference.ui:18
+msgid "App language"
+msgstr "应用语言"
+
+#: src/res/preference.ui:24
 msgid "TTS"
 msgstr "TTS"
 
-#: src/res/preference.ui:14
+#: src/res/preference.ui:28
 msgid "Android TTS"
 msgstr "Android TTS"
 
-#: src/res/preference.ui:15
+#: src/res/preference.ui:29
 msgid "Stored in ~/.config/heartale/heartale.db"
 msgstr "存储于 ~/.config/heartale/heartale.db"
 
-#: src/res/preference.ui:18
+#: src/res/preference.ui:32
 msgid "API URL"
 msgstr "API 地址"
 
@@ -790,6 +806,22 @@ msgstr "  line_space: {value}"
 #: src/main.py:244
 msgid "  (not set)"
 msgstr "  （未设置）"
+
+#: src/preferences.py:35
+msgid "Auto"
+msgstr "自动"
+
+#: src/preferences.py:36
+msgid "Chinese (Simplified)"
+msgstr "简体中文"
+
+#: src/preferences.py:37
+msgid "English"
+msgstr "English"
+
+#: src/preferences.py:110
+msgid "Language setting saved. Restart Heartale to apply."
+msgstr "语言设置已保存，重启兰阅后生效。"
 
 #~ msgid "Delete this book"
 #~ msgstr "删除此书"
