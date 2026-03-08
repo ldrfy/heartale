@@ -59,16 +59,31 @@ class TxtServer(Server):
         return txt
 
     def get_chap_txt(self, chap_n=-1):
+        """获取指定章节正文，并去掉开头重复的目录标题。
+
+        Args:
+            chap_n (int, optional): 章节索引. Defaults to -1.
+
+        Returns:
+            str: 章节正文
+        """
         if chap_n < 0:
             return super().get_chap_txt(chap_n)
 
         with open(self.book.path, "r", encoding=self.book.encoding, errors="ignore") as f:
             if chap_n + 1 == len(self.chap_p2s):
-                return f.read()[self.chap_p2s[chap_n]:]
+                chap_txt = f.read()[self.chap_p2s[chap_n]:]
+            else:
+                chap_txt = f.read()[self.chap_p2s[chap_n]: self.chap_p2s[chap_n + 1]]
 
-            return f.read()[self.chap_p2s[chap_n]: self.chap_p2s[chap_n + 1]]
+        return self._strip_leading_chap_name(chap_txt, chap_n)
 
     def _get_chap_names(self):
+        """获取 txt 书籍的章节目录。
+
+        Returns:
+            tuple[list[str], list[int]]: 章节标题和对应偏移位置
+        """
         if not os.path.isfile(self.book.path):
             raise FileNotFoundError(
                 _("File not found: {path}").format(path=self.book.get_path()))
@@ -76,6 +91,77 @@ class TxtServer(Server):
         with open(self.book.path, "r", encoding=self.book.encoding, errors="ignore") as f:
             text = f.read()
         return parse_chap_names(text)
+
+    def _strip_leading_chap_name(self, chap_txt: str, chap_n: int) -> str:
+        """去掉章节正文开头与目录重复的标题行。
+
+        Args:
+            chap_txt (str): 原始章节正文
+            chap_n (int): 章节索引
+
+        Returns:
+            str: 去掉开头标题后的章节正文
+        """
+        lines = chap_txt.splitlines(keepends=True)
+        if not lines:
+            return chap_txt
+
+        heading_candidates = self._get_heading_candidates(chap_n)
+        if not heading_candidates:
+            return chap_txt
+
+        idx = 0
+        removed = False
+        max_scan_lines = min(len(lines), 4)
+        while idx < max_scan_lines:
+            line = lines[idx]
+            if not line.strip():
+                idx += 1
+                continue
+            if self._normalize_heading(line) not in heading_candidates:
+                break
+            removed = True
+            idx += 1
+
+        if not removed:
+            return chap_txt
+
+        stripped = "".join(lines[idx:]).lstrip("\ufeff")
+        return stripped or chap_txt
+
+    def _get_heading_candidates(self, chap_n: int) -> set[str]:
+        """获取章节开头可能出现的标题文本集合。
+
+        Args:
+            chap_n (int): 章节索引
+
+        Returns:
+            set[str]: 可用于匹配开头标题的文本集合
+        """
+        chap_name = self.chap_names[chap_n].strip()
+        candidates = {self._normalize_heading(chap_name)}
+
+        volume_match = re.search(VOLUME_PATTERN2, chap_name)
+        if volume_match:
+            candidates.add(self._normalize_heading(volume_match.group()))
+
+        chapter_match = re.search(CHAPTER_PATTERN2, chap_name)
+        if chapter_match:
+            candidates.add(self._normalize_heading(chapter_match.group()))
+
+        return {candidate for candidate in candidates if candidate}
+
+    @staticmethod
+    def _normalize_heading(text: str) -> str:
+        """标准化标题文本，便于比较是否与目录重复。
+
+        Args:
+            text (str): 原始标题文本
+
+        Returns:
+            str: 归一化后的标题文本
+        """
+        return text.strip().lstrip("\ufeff")
 
 
 VOLUME_PATTERN = r'^第([一二三四五六七八九十\d]+)卷\s*(.*)'  # 匹配卷号
