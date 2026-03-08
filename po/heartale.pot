@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.heartale\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-08 20:15+0800\n"
+"POT-Creation-Date: 2026-03-08 21:18+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -189,12 +189,12 @@ msgstr ""
 msgid "Loading"
 msgstr ""
 
-#: src/res/reader_page.ui:37 src/pages/shelf_page.py:220
+#: src/res/reader_page.ui:37 src/pages/shelf_page.py:234
 #: src/widgets/dialog_input.py:21
 msgid "Cancel"
 msgstr ""
 
-#: src/res/reader_page.ui:47 src/pages/reader_page.py:213
+#: src/res/reader_page.ui:47 src/pages/reader_page.py:258
 msgid ""
 "Unable to open this book or its table of contents. Please try again or go "
 "back."
@@ -313,7 +313,8 @@ msgstr ""
 msgid "Welcome to Heartale"
 msgstr ""
 
-#: src/res/shelf_page.ui:168
+#: src/res/shelf_page.ui:168 src/pages/shelf_page.py:113
+#: src/pages/shelf_page.py:120
 msgid "Select a book to start reading"
 msgstr ""
 
@@ -359,7 +360,8 @@ msgstr ""
 msgid "Heartale"
 msgstr ""
 
-#: src/res/window.ui:30
+#: src/res/window.ui:30 src/pages/reader_page.py:777
+#: src/pages/reader_page.py:786
 msgid "Stop reading aloud"
 msgstr ""
 
@@ -368,7 +370,7 @@ msgstr ""
 msgid "{chapter} · Progress {percent:.2f}% ({position}/{total})"
 msgstr ""
 
-#: src/pages/reader_page.py:136
+#: src/pages/reader_page.py:140
 #, python-brace-format
 msgid ""
 "Unable to open this book or its table of contents.\n"
@@ -378,98 +380,103 @@ msgid ""
 "{error}"
 msgstr ""
 
-#: src/pages/reader_page.py:316
+#: src/pages/reader_page.py:361
 #, python-brace-format
 msgid "Failed to switch chapter: {error}"
 msgstr ""
 
-#: src/pages/reader_page.py:388
+#: src/pages/reader_page.py:435
 msgid "TTS is not available yet."
 msgstr ""
 
-#: src/pages/reader_page.py:392
+#: src/pages/reader_page.py:439
 msgid "paplay is not installed."
 msgstr ""
 
-#: src/pages/reader_page.py:395
+#: src/pages/reader_page.py:442
 msgid "Already reading aloud."
 msgstr ""
 
-#: src/pages/reader_page.py:401
+#: src/pages/reader_page.py:448
 msgid "No text to read aloud."
 msgstr ""
 
-#: src/pages/reader_page.py:446 src/pages/reader_page.py:485
+#: src/pages/reader_page.py:493 src/pages/reader_page.py:532
 msgid "Read aloud failed. Remote TTS service may be unavailable."
 msgstr ""
 
-#: src/pages/reader_page.py:529
+#: src/pages/reader_page.py:579
 msgid "Read aloud failed. Check TTS settings or server status."
 msgstr ""
 
-#: src/pages/reader_page.py:743
+#: src/pages/reader_page.py:852
 msgid "You have reached the last chapter."
 msgstr ""
 
-#: src/pages/reader_page.py:755
+#: src/pages/reader_page.py:864
 msgid "You are already at the first chapter."
 msgstr ""
 
-#: src/pages/shelf_page.py:89
+#: src/pages/shelf_page.py:91
 #, python-brace-format
 msgid ""
 "Today: {today} · This week: {week} · This month: {month} · This year: {year}"
 msgstr ""
 
-#: src/pages/shelf_page.py:215
+#: src/pages/shelf_page.py:118
+#, python-brace-format
+msgid "Reading aloud: {summary}"
+msgstr ""
+
+#: src/pages/shelf_page.py:229
 msgid "Delete book?"
 msgstr ""
 
-#: src/pages/shelf_page.py:216
+#: src/pages/shelf_page.py:230
 #, python-brace-format
 msgid ""
 "Remove “{book}” from the library.\n"
 "This action cannot be undone."
 msgstr ""
 
-#: src/pages/shelf_page.py:221
+#: src/pages/shelf_page.py:235
 msgid "Delete"
 msgstr ""
 
-#: src/pages/shelf_page.py:237
+#: src/pages/shelf_page.py:251
 msgid "Select books to import"
 msgstr ""
 
-#: src/pages/shelf_page.py:239
+#: src/pages/shelf_page.py:253
 msgid "Documents and e-books"
 msgstr ""
 
-#: src/pages/shelf_page.py:251
+#: src/pages/shelf_page.py:265
 msgid "Could not open the selected files"
 msgstr ""
 
-#: src/pages/shelf_page.py:276
+#: src/pages/shelf_page.py:290
 msgid "Import partially failed"
 msgstr ""
 
-#: src/pages/shelf_page.py:277 src/pages/shelf_page.py:359
+#: src/pages/shelf_page.py:291 src/pages/shelf_page.py:373
 #: src/widgets/dialog_input.py:22
 msgid "OK"
 msgstr ""
 
-#: src/pages/shelf_page.py:294
+#: src/pages/shelf_page.py:308
 msgid "Books imported successfully"
 msgstr ""
 
-#: src/pages/shelf_page.py:354
+#: src/pages/shelf_page.py:368
 msgid "Legado books synced successfully"
 msgstr ""
 
-#: src/pages/shelf_page.py:358
+#: src/pages/shelf_page.py:372
 msgid "Legado sync partially failed"
 msgstr ""
 
-#: src/pages/shelf_page.py:375
+#: src/pages/shelf_page.py:389
 msgid "Please set a valid Legado URL in Preferences first."
 msgstr ""
 

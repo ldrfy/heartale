@@ -26,6 +26,7 @@ class ShelfPage(Adw.NavigationPage):
     __gtype_name__ = "ShelfPage"
 
     gl_shelf_read_time: Gtk.Label = Gtk.Template.Child()
+    window_title: Adw.WindowTitle = Gtk.Template.Child()
 
     search: Gtk.SearchEntry = Gtk.Template.Child()
     btn_show_search: Gtk.ToggleButton = Gtk.Template.Child()
@@ -81,6 +82,7 @@ class ShelfPage(Adw.NavigationPage):
 
         self.spinner_sync.start()
         self.spinner_sync.set_visible(True)
+        self.refresh_header_subtitle()
 
         def worker():
             db = LibraryDB()
@@ -104,6 +106,18 @@ class ShelfPage(Adw.NavigationPage):
             self.spinner_sync.stop()
 
         threading.Thread(target=worker, daemon=True).start()
+
+    def refresh_header_subtitle(self):
+        """按当前阅读状态刷新书架页头部副标题。"""
+        if not self._reader_page.is_read_aloud_active():
+            self.window_title.set_subtitle(_("Select a book to start reading"))
+            return
+
+        summary = self._reader_page.get_current_read_summary_text().strip()
+        if summary:
+            self.window_title.set_subtitle(_("Reading aloud: {summary}").format(summary=summary))
+            return
+        self.window_title.set_subtitle(_("Select a book to start reading"))
 
     def build_bookshel(self, books, is_search=False):
         """Populate the list view with ``books``."""
@@ -340,7 +354,7 @@ class ShelfPage(Adw.NavigationPage):
         self._apply_search()  # 触发一次“显示全部”
 
     @Gtk.Template.Callback()
-    def _on_import_book_legado(self, *args):
+    def _on_import_book_legado(self, *_args):
 
         def update_ui(sync_ok, s_error):
             """Update the UI after a sync operation."""

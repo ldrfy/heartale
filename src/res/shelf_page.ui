@@ -164,7 +164,7 @@
         <child type="top">
           <object class="AdwHeaderBar">
             <property name="title-widget">
-              <object class="AdwWindowTitle">
+              <object class="AdwWindowTitle" id="window_title">
                 <property name="subtitle" translatable="yes">Select a book to start reading</property>
                 <property name="title" translatable="yes">Bookshelf</property>
               </object>

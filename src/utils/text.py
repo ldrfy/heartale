@@ -28,7 +28,7 @@ def split_text(text_all, dcp=0):
         if len(text) < 100 and i < len(text_list) - 1:
             continue
 
-        if last <= dcp <= last + len(text):
+        if last <= dcp < last + len(text):
             n_last = len(result)
 
         # text = text.strip() +"\n"

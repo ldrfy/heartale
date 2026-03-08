@@ -113,6 +113,10 @@ class ReaderPage(Adw.NavigationPage):
             if self._tts_book_md5 != book.md5:
                 self._stop_tts_playback()
 
+        if self._server and self._server.book and self._server.book.md5 == book.md5:
+            self._restore_current_book_view()
+            return
+
         self.t = time.time()
         self._search_debounce_id = 0
 
@@ -164,6 +168,47 @@ class ReaderPage(Adw.NavigationPage):
                               priority=GLib.PRIORITY_DEFAULT)
 
         threading.Thread(target=worker, args=(book,), daemon=True).start()
+
+    def _restore_current_book_view(self):
+        """复用当前已加载书籍的内存状态刷新界面。"""
+        if not self._server or not self._server.book:
+            return
+
+        self.btn_prev_chap.set_sensitive(True)
+        self.btn_next_chap.set_sensitive(True)
+        self._load_reader_settings()
+        self._on_search_toc_stop()
+
+        self.title.set_title(self._server.book.name or "")
+        self.title.set_subtitle(self._server.book.get_jd_str())
+        self.stack.set_visible_child(self.aos_reader)
+        self._apply_search()
+
+        if self._server.bd:
+            self.ptc.set_paragraphs(self._server.bd.chap_txts)
+            self.ptc.scroll_to_paragraph(self._server.bd.chap_txt_n)
+            self.ptc.highlight_paragraph(self._server.bd.chap_txt_n)
+            self._update_chap_txt_progress_label(
+                self._server.bd.chap_txt_n,
+                len(self._server.bd.chap_txts),
+            )
+
+        self._locate_toc(self._server.get_chap_n())
+
+    def refresh_current_read_position(self):
+        """按当前内存中的阅读进度刷新正文高亮和滚动位置。"""
+        if not self._server or not self._server.bd:
+            return
+
+        idx = self._server.bd.chap_txt_n
+        total = len(self._server.bd.chap_txts)
+        if total <= 0:
+            return
+
+        idx = max(0, min(idx, total - 1))
+        self.ptc.highlight_paragraph(idx, True)
+        self._update_chap_txt_progress_label(idx, total)
+        self._locate_toc(self._server.get_chap_n())
 
     def _get_server(self, fmt: str):
 
@@ -372,6 +417,8 @@ class ReaderPage(Adw.NavigationPage):
                 return
 
             server.set_chap_txt_n(safe_idx)
+            GLib.idle_add(self._emit_tts_state, self.is_read_aloud_active(),
+                          priority=GLib.PRIORITY_DEFAULT)
             if save_progress:
                 server.save_read_progress(
                     server.get_chap_n(),
@@ -496,6 +543,9 @@ class ReaderPage(Adw.NavigationPage):
                         GLib.idle_add(self._set_tts_loading, False,
                                       priority=GLib.PRIORITY_DEFAULT)
 
+                    self._server.set_chap_txt_n(idx)
+                    GLib.idle_add(self._emit_tts_state, True,
+                                  priority=GLib.PRIORITY_DEFAULT)
                     if self._can_update_reader_ui_for_tts():
                         GLib.idle_add(self.ptc.highlight_paragraph, idx, True,
                                       priority=GLib.PRIORITY_DEFAULT)
@@ -717,17 +767,68 @@ class ReaderPage(Adw.NavigationPage):
         """
         return bool(self._tts_thread and self._tts_thread.is_alive())
 
+    def get_read_aloud_status_text(self) -> str:
+        """返回当前朗读状态文本。
+
+        Returns:
+            str: 停止朗读按钮显示的状态文本
+        """
+        if not self._server or not self._server.book:
+            return _("Stop reading aloud")
+
+        book_name = (self._server.book.name or "").strip()
+        chap_name = (self._server.get_chap_name(self._server.get_chap_n()) or "").strip()
+        total = len(self._server.bd.chap_txts) if self._server.bd else 0
+        current = 0
+        if total > 0 and self._server.bd:
+            current = max(0, min(self._server.bd.chap_txt_n, total - 1)) + 1
+
+        parts = [_("Stop reading aloud")]
+        if book_name:
+            parts.append(book_name)
+        if chap_name:
+            parts.append(chap_name)
+        if total > 0:
+            parts.append(f"{current}/{total}")
+        return " - ".join(parts)
+
+    def get_current_read_summary_text(self) -> str:
+        """返回当前阅读位置摘要文本。
+
+        Returns:
+            str: 当前阅读摘要
+        """
+        if not self._server or not self._server.book:
+            return ""
+
+        book_name = (self._server.book.name or "").strip()
+        chap_name = (self._server.get_chap_name(self._server.get_chap_n()) or "").strip()
+        total = len(self._server.bd.chap_txts) if self._server.bd else 0
+        current = 0
+        if total > 0 and self._server.bd:
+            current = max(0, min(self._server.bd.chap_txt_n, total - 1)) + 1
+
+        parts = []
+        if book_name:
+            parts.append(book_name)
+        if chap_name:
+            parts.append(chap_name)
+        summary = " - ".join(parts)
+        if total > 0:
+            return f"{summary} ({current}/{total})" if summary else f"{current}/{total}"
+        return summary
+
     def set_tts_state_changed_callback(self, callback):
         """设置 TTS 播放状态变更回调。
 
         Args:
-            callback (_type_): 状态变更回调函数
+            callback (Callable[[bool, str], None]): 状态变更回调函数
         """
         self._on_tts_state_changed = callback
 
     def _emit_tts_state(self, is_playing: bool):
         if self._on_tts_state_changed:
-            self._on_tts_state_changed(is_playing)
+            self._on_tts_state_changed(is_playing, self.get_read_aloud_status_text())
         return False
 
     def _toast_msg_safe(self, msg: str):

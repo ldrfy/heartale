@@ -34,9 +34,15 @@ class HeartaleWindow(Adw.ApplicationWindow):
             return
 
         if isinstance(page, ShelfPage):
+            self._shelf_page.refresh_header_subtitle()
             self._shelf_page.reload_bookshel()
             if not self._reader_page.is_read_aloud_active():
                 self._reader_page.clear_data()
+            return
+
+        if isinstance(page, ReaderPage):
+            self._reader_page.refresh_current_read_position()
+            self._shelf_page.refresh_header_subtitle()
 
     def toast_msg(self, toast_msg):
         """Show a toast in the main window."""
@@ -47,8 +53,11 @@ class HeartaleWindow(Adw.ApplicationWindow):
         toast.set_title(GLib.markup_escape_text(str(toast_msg)))
         self.toasts.add_toast(toast)
 
-    def _on_tts_state_changed(self, is_playing: bool):
+    def _on_tts_state_changed(self, is_playing: bool, status_text: str):
+        """同步全局朗读停止按钮的显示状态和提示文本。"""
         self.btn_global_tts_stop.set_visible(bool(is_playing))
+        self.btn_global_tts_stop.set_tooltip_text(status_text)
+        self._shelf_page.refresh_header_subtitle()
 
     @Gtk.Template.Callback()
     def on_global_tts_stop_clicked(self, *_):

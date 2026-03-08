@@ -319,10 +319,15 @@ class ParagraphTagController:
         兼容 set_text/insert 后立即滚动可能无效的问题。
         用 idle 回调与 scroll_to_iter 组合保证可靠滚动。
         """
+        offset = max(0, min(it.get_offset(), self.buf.get_char_count()))
 
         def do_scroll():
+            if self.buf.get_char_count() <= 0:
+                return False
+            safe_offset = max(0, min(offset, self.buf.get_char_count()))
+            safe_iter = self.buf.get_iter_at_offset(safe_offset)
             self.view.scroll_to_iter(
-                it,
+                safe_iter,
                 0.1 if center else 0.0,
                 True,
                 0.0,
