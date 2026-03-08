@@ -176,12 +176,6 @@
                 <signal name="toggled" handler="_on_search_toggle"/>
               </object>
             </child>
-                <child type="end">
-                  <object class="GtkToggleButton" id="properties_button">
-                    <property name="icon-name">info-outline-symbolic</property>
-                    <property name="tooltip-text" translatable="yes">Image Properties</property>
-                  </object>
-                </child>
             <child type="end">
               <object class="GtkMenuButton">
                 <property name="icon-name">open-menu-symbolic</property>
@@ -189,6 +183,12 @@
                 <property name="primary">True</property>
                 <property name="tooltip-text" translatable="yes">Main Menu</property>
               </object>
+            </child>
+            <child type="end">
+                <object class="GtkToggleButton" id="properties_button">
+                <property name="icon-name">info-outline-symbolic</property>
+                <property name="tooltip-text" translatable="yes">Image Properties</property>
+                </object>
             </child>
             <child type="end">
               <object class="GtkButton">

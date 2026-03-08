@@ -1,5 +1,6 @@
-"""Utilities for loading text and navigating chapters."""
+"""加载章节正文并维护阅读进度的公共工具。"""
 
+import threading
 import time
 from datetime import datetime
 
@@ -11,7 +12,7 @@ from ..entity.time_read import TIME_READ_WAY_READ, TimeRead
 from ..utils.text import split_text
 
 
-class BookData():
+class BookData:
     """某章节的分割
     """
 
@@ -46,7 +47,7 @@ class BookData():
         """本章节的位置，需要保存
 
         Returns:
-            _type_: _description_
+            int: 当前段落在章节中的字符位置
         """
         return self.chap_txt_p2s[self.chap_txt_n]
 
@@ -54,7 +55,7 @@ class BookData():
         """这一章节是不是要结束了
 
         Returns:
-            _type_: _description_
+            bool: 当前章节是否已经读完
         """
         if self.chap_txt_n >= len(self.chap_txts):
             return True
@@ -66,7 +67,7 @@ class Server:
     """
 
     def __init__(self, key: str):
-        """_summary_
+        """初始化阅读服务基类
 
         Args:
             key (str): 用于配置中区分使用本地什么服务
@@ -79,6 +80,8 @@ class Server:
 
         self.chap_names = []
         self.read_time = time.time()
+        self._chap_txt_cache = {}
+        self._chap_txt_cache_lock = threading.Lock()
 
     def initialize(self, book: Book):
         """子类需要自定义异步初始化一些操作
@@ -92,7 +95,7 @@ class Server:
         # self.chap_names = self._get_chap_names()
 
         self.bd.update_chap_txts(
-            self.get_chap_txt(self.book.chap_n),
+            self.load_chap_txt(self.book.chap_n),
             self.book.chap_txt_pos
         )
 
@@ -107,15 +110,96 @@ class Server:
         """子类需要自定义获取章节文本
 
         Args:
-            chap_n (int): _description_
+            chap_n (int, optional): 章节索引. Defaults to -1.
 
         Returns:
-            _type_: _description_
+            str: 章节正文
         """
         if chap_n < 0:
             return self.bd.chap_txt
         # 子类 实现异步获取章节文本
         return ""
+
+    def load_chap_txt(self, chap_n=-1):
+        """加载章节正文，优先复用内存缓存
+
+        Args:
+            chap_n (int, optional): 章节索引. Defaults to -1.
+
+        Returns:
+            str: 章节正文
+        """
+        if chap_n < 0:
+            return self.get_chap_txt(chap_n)
+
+        with self._chap_txt_cache_lock:
+            cached = self._chap_txt_cache.get(chap_n)
+        if cached is not None:
+            return cached
+
+        chap_txt = self.get_chap_txt(chap_n)
+        self._store_chap_txt_cache(chap_n, chap_txt)
+        return chap_txt
+
+    def prefetch_chap_txt(self, chap_n: int):
+        """预取指定章节正文到缓存
+
+        Args:
+            chap_n (int): 章节索引
+
+        Returns:
+            str | None: 预取到的章节正文
+        """
+        if chap_n < 0 or chap_n >= len(self.chap_names):
+            return None
+        return self.load_chap_txt(chap_n)
+
+    def prefetch_next_chap_txt(self, chap_n=-1):
+        """预取下一章节正文到缓存
+
+        Args:
+            chap_n (int, optional): 当前章节索引. Defaults to -1.
+
+        Returns:
+            str | None: 预取到的章节正文
+        """
+        if chap_n < 0:
+            chap_n = self.book.chap_n
+        return self.prefetch_chap_txt(chap_n + 1)
+
+    def evict_chap_txt_cache(self, keep=None):
+        """移除不再需要的章节缓存
+
+        Args:
+            keep (set[int] | None, optional): 需要保留的章节索引集合. Defaults to None.
+        """
+        keep_set = {i for i in (keep or set()) if isinstance(i, int) and i >= 0}
+        with self._chap_txt_cache_lock:
+            self._prune_chap_txt_cache_locked(keep_set)
+
+    def _store_chap_txt_cache(self, chap_n: int, chap_txt: str):
+        """写入章节缓存，并按窗口策略裁剪缓存
+
+        Args:
+            chap_n (int): 章节索引
+            chap_txt (str): 章节正文
+        """
+        keep = {chap_n}
+        if chap_n + 1 < len(self.chap_names):
+            keep.add(chap_n + 1)
+        with self._chap_txt_cache_lock:
+            self._chap_txt_cache[chap_n] = chap_txt
+            self._prune_chap_txt_cache_locked(keep)
+
+    def _prune_chap_txt_cache_locked(self, keep):
+        """在已加锁状态下裁剪章节缓存
+
+        Args:
+            keep (set[int]): 需要保留的章节索引集合
+        """
+        for chap_n in list(self._chap_txt_cache.keys()):
+            if chap_n not in keep:
+                self._chap_txt_cache.pop(chap_n, None)
 
     # --------  基础方法   -------- #
 
@@ -123,10 +207,10 @@ class Server:
         """获取章节目录
 
         Args:
-            book_data (dict): _description_
+            chap_n (int, optional): 章节索引. Defaults to -1.
 
         Returns:
-            list: 章节目录
+            str: 章节标题
         """
         if chap_n < 0:
             chap_n = self.book.chap_n
@@ -156,8 +240,14 @@ class Server:
         Args:
             chap_txt_n (int): 章节文本位置
         """
-        self.bd.chap_txt_n = chap_txt_n
-        self.book.chap_txt_pos = self.bd.chap_txt_p2s[chap_txt_n]
+        if not self.bd.chap_txt_p2s:
+            self.bd.chap_txt_n = 0
+            self.book.chap_txt_pos = 0
+            return
+
+        safe_idx = max(0, min(int(chap_txt_n), len(self.bd.chap_txt_p2s) - 1))
+        self.bd.chap_txt_n = safe_idx
+        self.book.chap_txt_pos = self.bd.chap_txt_p2s[safe_idx]
 
     def save_read_progress(
         self,

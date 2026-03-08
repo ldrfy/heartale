@@ -148,7 +148,7 @@ class LegadoServer(Server):
         self.chap_names = self._get_chap_names()
 
         self.bd.update_chap_txts(
-            self.get_chap_txt(self.book.chap_n),
+            self.load_chap_txt(self.book.chap_n),
             self.book.chap_txt_pos
         )
 
@@ -175,7 +175,7 @@ class LegadoServer(Server):
             self.book_data[CHAP_INDEX] = self.book.chap_n
             self.book_data[CHAP_TITLE] = s
 
-            self.bd.update_chap_txts(self.get_chap_txt(self.book.chap_n))
+            self.bd.update_chap_txts(self.load_chap_txt(self.book.chap_n))
 
             return s
 
@@ -274,7 +274,11 @@ def get_book_shelf(url):
     resp = requests.get(f"{url}/getBookshelf", timeout=10)
     if resp.status_code != 200:
         raise ValueError(
-            _("The website you entered is most likely incorrect. The current URL is: {}").format(url))
+            _(
+                "The website you entered is most likely incorrect. "
+                "The current URL is: {}"
+            ).format(url)
+        )
     return resp.json()["data"]
 
 

@@ -1,4 +1,5 @@
-"""Reader page."""
+"""阅读页面。"""
+# pylint: disable=too-many-lines
 
 import copy
 import shutil
@@ -17,6 +18,11 @@ from ..servers import Server
 from ..servers.legado import LegadoServer
 from ..servers.txt import TxtServer
 from ..tts import THS
+from ..tts.cache import AudioPrefetchSlot
+from ..tts.read_flow import (build_intro_texts,
+                             ensure_next_chapter_prefetched_for_text,
+                             get_next_intro_text, get_next_tts_text,
+                             get_start_read_text)
 from ..tts.server_android import TtsSA
 from ..utils.debug import get_logger
 from ..widgets.pg_tag_view import ParagraphTagController
@@ -30,8 +36,10 @@ READER_DEFAULT_CONFIG = {
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/reader_page.ui")
+# Gtk.Template 子组件和运行时状态较多，这里保留集中管理。
+# pylint: disable=too-many-instance-attributes
 class ReaderPage(Adw.NavigationPage):
-    """Navigation page that displays the reader view."""
+    """展示阅读视图的导航页面。"""
     __gtype_name__ = "ReaderPage"
 
     btn_prev_chap: Gtk.Button = Gtk.Template.Child()
@@ -86,12 +94,13 @@ class ReaderPage(Adw.NavigationPage):
         self._tts_proc_lock = threading.Lock()
         self._tts_book_md5 = None
         self._on_tts_state_changed = None
+        self._tts_prefetch_slot: AudioPrefetchSlot | None = None
 
         self._reader_config = dict(READER_DEFAULT_CONFIG)
         self._suspend_reader_config_save = False
 
     def clear_data(self):
-        """Reset cached server data and show the loading page."""
+        """清空当前阅读数据并显示加载页。"""
         self._server = None
         self._toc_sel = None
         self.chap_ns = []
@@ -99,7 +108,7 @@ class ReaderPage(Adw.NavigationPage):
         self.stack.set_visible_child(self.page_loading)
 
     def set_data(self, book: Book):
-        """Load ``book`` data in a worker thread and update the UI."""
+        """在后台加载书籍数据并更新界面。"""
         if self._tts_thread and self._tts_thread.is_alive():
             if self._tts_book_md5 != book.md5:
                 self._stop_tts_playback()
@@ -118,7 +127,7 @@ class ReaderPage(Adw.NavigationPage):
         self.clear_data()
 
         def update_ui(_b: Book, err: Exception):
-            """Handle worker errors on the main thread."""
+            """在主线程处理后台加载错误。"""
             if _b.md5 != self._server.book.md5:
                 get_logger().info("Book switched, ignoring error display")
                 return False
@@ -166,7 +175,7 @@ class ReaderPage(Adw.NavigationPage):
         raise ValueError(f"Unsupported book format {fmt}")
 
     def _locate_toc(self, chap_n: int):
-        """Select the chapter ``chap_n`` in the table of contents."""
+        """在目录中定位并选中指定章节。"""
         if not self._toc_sel:
             return
         self._toc_sel.set_selected(chap_n)
@@ -174,7 +183,7 @@ class ReaderPage(Adw.NavigationPage):
                            Gtk.ScrollInfo())
 
     def _on_data_ready(self, _b: Book):
-        """Bind the table of contents and chapter text on the main thread."""
+        """在主线程绑定目录和章节正文。"""
 
         if _b.md5 != self._server.book.md5:
             get_logger().info("Book switched, ignoring error display")
@@ -187,15 +196,18 @@ class ReaderPage(Adw.NavigationPage):
         self.set_chap_text()
 
         def sel_chap_name():
-            """Select the current chapter in the table of contents."""
+            """在目录中选中当前章节。"""
+            if not self._server:
+                return False
             self._locate_toc(self._server.get_chap_n())
+            return False
 
         GLib.timeout_add(500, sel_chap_name)
 
         return False
 
     def show_error(self, des=None):
-        """Show the error page with ``des`` as the description."""
+        """显示错误页。"""
         if des is None:
             des = _(
                 "Unable to open this book or its table of contents. Please try again or go back.")
@@ -203,10 +215,10 @@ class ReaderPage(Adw.NavigationPage):
         self.page_error.set_description(des)
 
     def set_chap_text(self, _chap_n=-1):
-        """Update the reader with chapter ``_chap_n``.
+        """加载并显示指定章节内容。
 
         Args:
-            chap_n (int): Chapter index
+            _chap_n (int, optional): 章节索引. Defaults to -1.
         """
 
         self.btn_prev_chap.set_sensitive(False)
@@ -238,8 +250,9 @@ class ReaderPage(Adw.NavigationPage):
             chap_name = self._server.get_chap_name(chap_n)
 
             self._server.bd.update_chap_txts(
-                self._server.get_chap_txt(chap_n),
+                self._server.load_chap_txt(chap_n),
                 self._server.book.chap_txt_pos)
+            self._server.prefetch_next_chap_txt(chap_n)
 
             GLib.idle_add(_ui_update, chap_name,
                           priority=GLib.PRIORITY_DEFAULT)
@@ -247,13 +260,13 @@ class ReaderPage(Adw.NavigationPage):
         threading.Thread(target=worker, args=(_chap_n,), daemon=True).start()
 
     def get_current_text(self, selection_only: bool = True) -> str:
-        """Return the current text selection or the entire chapter.
+        """获取当前选中文本或整章正文。
 
         Args:
-            selection_only (bool, optional): Whether to prefer the selection. Defaults to True.
+            selection_only (bool, optional): 是否优先返回选中文本. Defaults to True.
 
         Returns:
-            str: Extracted text
+            str: 提取出的文本
         """
         buf = self.gtv_text.get_buffer()
         if selection_only and buf.get_has_selection():
@@ -264,7 +277,7 @@ class ReaderPage(Adw.NavigationPage):
         return buf.get_text(start, end, False)
 
     def _build_factory(self):
-        """Initialise the list factory once."""
+        """初始化目录列表项工厂。"""
         factory = Gtk.SignalListItemFactory()
 
         def setup(_f, li):
@@ -292,7 +305,7 @@ class ReaderPage(Adw.NavigationPage):
         self.toc.connect("activate", on_activate)
 
     def _on_toc_chapter_activated(self, i: int):
-        """Handle a chapter activation from the table of contents."""
+        """处理目录中章节被激活后的切换逻辑。"""
         try:
             self._stop_tts_playback()
             self.set_chap_text(self.chap_ns[i])
@@ -303,13 +316,10 @@ class ReaderPage(Adw.NavigationPage):
                 _("Failed to switch chapter: {error}").format(error=e))
 
     def _on_click_paragraph(self, idx: int, *_args):
-        """Handle a paragraph click inside the reader.
+        """处理正文段落点击事件。
 
         Args:
-            idx (int): Paragraph index
-            tag_name (str): Paragraph tag name
-            start_off (int): Paragraph start offset
-            end_off (int): Paragraph end offset
+            idx (int): 段落索引
         """
         self._set_read_jd(idx, False)
 
@@ -317,7 +327,7 @@ class ReaderPage(Adw.NavigationPage):
         if self._tts_thread and self._tts_thread.is_alive():
             self._restart_read_aloud_from(idx)
 
-    def _set_read_jd(
+    def _set_read_jd(  # pylint: disable=too-many-arguments,too-many-positional-arguments
         self,
         idx,
         add=True,
@@ -325,10 +335,10 @@ class ReaderPage(Adw.NavigationPage):
         way: int = TIME_READ_WAY_READ,
         seconds_override: float | None = None,
     ):
-        """Update reading progress with the current paragraph index.
+        """按当前段落索引更新阅读进度
 
         Args:
-            idx (_type_): Paragraph index
+            idx (int): 段落索引
         """
         if not self._server or not self._server.bd:
             return
@@ -341,18 +351,31 @@ class ReaderPage(Adw.NavigationPage):
             # Ignore auto-scroll callbacks during TTS to avoid duplicate timing records.
             return
 
+        server = self._server
+
         def worker():
+            if not server or not server.bd:
+                return
+
+            chap_txts = server.bd.chap_txts
+            if not chap_txts:
+                return
+
+            safe_idx = max(0, min(int(idx), len(chap_txts) - 1))
             GLib.idle_add(
                 self._update_chap_txt_progress_label,
-                idx,
-                len(self._server.bd.chap_txts),
+                safe_idx,
+                len(chap_txts),
                 priority=GLib.PRIORITY_DEFAULT,
             )
-            self._server.set_chap_txt_n(idx)
+            if server is not self._server:
+                return
+
+            server.set_chap_txt_n(safe_idx)
             if save_progress:
-                self._server.save_read_progress(
-                    self._server.get_chap_n(),
-                    self._server.get_chap_txt_pos(),
+                server.save_read_progress(
+                    server.get_chap_n(),
+                    server.get_chap_txt_pos(),
                     way=way,
                     seconds_override=seconds_override,
                 )
@@ -380,9 +403,16 @@ class ReaderPage(Adw.NavigationPage):
 
         self._start_read_aloud_from(start_idx)
 
-    def _start_read_aloud_from(self, start_idx: int):
+    def _start_read_aloud_from(self, start_idx: int):  # pylint: disable=too-many-statements
+        """从指定段落开始朗读当前章节
+
+        Args:
+            start_idx (int): 起始段落索引
+        """
         chap_txts = self._server.bd.chap_txts
         start_idx = max(0, min(start_idx, len(chap_txts) - 1))
+        if self._tts_prefetch_slot is None:
+            self._tts_prefetch_slot = AudioPrefetchSlot(self.tts)
 
         self.gb_tts_start.set_visible(False)
         self.gs_tts_loading.set_visible(True)
@@ -392,23 +422,23 @@ class ReaderPage(Adw.NavigationPage):
 
         self._tts_stop_event.clear()
 
-        def worker():
+        def worker():  # pylint: disable=too-many-branches,too-many-statements
             auto_next_chapter = False
             playback_failed = False
             try:
                 first_downloaded = False
-                intro_texts = [
-                    (self._server.book.name or "").strip(),
-                    (self._server.get_chap_name(self._server.get_chap_n()) or "").strip(),
-                ]
+                intro_texts = build_intro_texts(self._server)
+                start_text = get_start_read_text(self._server, chap_txts, start_idx)
+                if start_text and self._tts_prefetch_slot is not None:
+                    self._tts_prefetch_slot.prefetch(start_text)
 
-                for intro_text in intro_texts:
+                for intro_idx, intro_text in enumerate(intro_texts):
                     if self._tts_stop_event.is_set():
                         break
                     if not intro_text:
                         continue
 
-                    audio_path = self.tts.download(intro_text)
+                    audio_path = self._take_tts_audio(intro_text)
                     if not audio_path:
                         playback_failed = True
                         GLib.idle_add(
@@ -423,7 +453,15 @@ class ReaderPage(Adw.NavigationPage):
                         GLib.idle_add(self._set_tts_loading, False,
                                       priority=GLib.PRIORITY_DEFAULT)
 
-                    played_ok = self._play_audio(audio_path)
+                    next_text = get_next_intro_text(
+                        intro_texts, intro_idx, start_idx, chap_txts
+                    )
+                    self._schedule_tts_prefetch(next_text)
+
+                    try:
+                        played_ok = self._play_audio(audio_path)
+                    finally:
+                        self._release_tts_audio(audio_path)
                     if not played_ok:
                         playback_failed = not self._tts_stop_event.is_set()
                         break
@@ -439,7 +477,7 @@ class ReaderPage(Adw.NavigationPage):
                     if not text:
                         continue
 
-                    audio_path = self.tts.download(text)
+                    audio_path = self._take_tts_audio(text)
                     if not audio_path:
                         playback_failed = True
                         GLib.idle_add(
@@ -449,13 +487,9 @@ class ReaderPage(Adw.NavigationPage):
                         )
                         break
 
-                    next_idx = self._find_next_tts_idx(idx + 1, chap_txts)
-                    if next_idx is not None:
-                        threading.Thread(
-                            target=self._prefetch_tts_audio,
-                            args=(chap_txts[next_idx],),
-                            daemon=True,
-                        ).start()
+                    self._schedule_tts_prefetch(
+                        get_next_tts_text(self._server, idx, chap_txts)
+                    )
 
                     if not first_downloaded:
                         first_downloaded = True
@@ -469,7 +503,10 @@ class ReaderPage(Adw.NavigationPage):
                         self._set_read_jd(idx, False, save_progress=False)
 
                     play_start = time.time()
-                    played_ok = self._play_audio(audio_path)
+                    try:
+                        played_ok = self._play_audio(audio_path)
+                    finally:
+                        self._release_tts_audio(audio_path)
                     play_seconds = max(0.0, time.time() - play_start)
                     if play_seconds > 0:
                         self._set_read_jd(
@@ -492,6 +529,8 @@ class ReaderPage(Adw.NavigationPage):
                               _("Read aloud failed. Check TTS settings or server status."),
                               priority=GLib.PRIORITY_DEFAULT)
             finally:
+                if not auto_next_chapter:
+                    self._clear_prefetched_tts_audio()
                 if auto_next_chapter:
                     GLib.idle_add(self._auto_next_chapter_for_tts,
                                   priority=GLib.PRIORITY_DEFAULT)
@@ -527,50 +566,116 @@ class ReaderPage(Adw.NavigationPage):
         return False
 
     def _stop_tts_playback(self):
+        """停止当前 TTS 播放并清理预取状态"""
         self._tts_stop_event.set()
         with self._tts_proc_lock:
             if self._tts_proc and self._tts_proc.poll() is None:
                 self._tts_proc.terminate()
         self._tts_proc = None
         self._tts_book_md5 = None
+        self._clear_prefetched_tts_audio()
         GLib.idle_add(self._emit_tts_state, False,
                       priority=GLib.PRIORITY_DEFAULT)
 
     def _play_audio(self, audio_path):
-        with self._tts_proc_lock:
-            self._tts_proc = subprocess.Popen(["paplay", str(audio_path)])
+        """播放单个音频文件直到结束或被中断
 
-        while True:
-            if self._tts_stop_event.is_set():
-                with self._tts_proc_lock:
-                    if self._tts_proc and self._tts_proc.poll() is None:
-                        self._tts_proc.terminate()
-                return False
+        Args:
+            audio_path (Path | str): 音频文件路径
 
+        Returns:
+            bool: 是否播放成功结束
+        """
+        with subprocess.Popen(["paplay", str(audio_path)]) as proc:
             with self._tts_proc_lock:
-                if not self._tts_proc:
-                    return False
-                code = self._tts_proc.poll()
+                self._tts_proc = proc
 
-            if code is not None:
-                return code == 0
-            time.sleep(0.1)
+            while True:
+                if self._tts_stop_event.is_set():
+                    with self._tts_proc_lock:
+                        if self._tts_proc and self._tts_proc.poll() is None:
+                            self._tts_proc.terminate()
+                        self._tts_proc = None
+                    return False
+
+                with self._tts_proc_lock:
+                    if not self._tts_proc:
+                        return False
+                    code = self._tts_proc.poll()
+
+                if code is not None:
+                    with self._tts_proc_lock:
+                        self._tts_proc = None
+                    return code == 0
+                time.sleep(0.1)
 
     def _prefetch_tts_audio(self, text: str):
+        """后台预取下一条 TTS 音频
+
+        Args:
+            text (str): 待预取文本
+        """
         try:
             text = (text or "").strip()
             if text:
-                self.tts.download(text)
+                ensure_next_chapter_prefetched_for_text(self._server, text)
+                if self._tts_prefetch_slot is not None:
+                    self._tts_prefetch_slot.prefetch(text)
         except Exception as e:  # pylint: disable=broad-except
             get_logger().warning("Prefetch TTS failed: %s", e)
 
-    def _find_next_tts_idx(self, start: int, chap_txts):
-        for i in range(start, len(chap_txts)):
-            if (chap_txts[i] or "").strip():
-                return i
-        return None
+    def _take_tts_audio(self, text: str):
+        """获取已预取音频，不存在时同步下载
+
+        Args:
+            text (str): 待转语音文本
+
+        Returns:
+            Path | None: 可直接播放的音频文件路径
+        """
+        text = (text or "").strip()
+        if not text or not self.tts:
+            return None
+        if self._tts_prefetch_slot is None:
+            self._tts_prefetch_slot = AudioPrefetchSlot(self.tts)
+        return self._tts_prefetch_slot.take(text)
+
+    def _release_tts_audio(self, audio_path):
+        """释放当前音频文件引用
+
+        Args:
+            audio_path (Path | str | None): 音频文件路径
+        """
+        if audio_path and self.tts:
+            self.tts.release(audio_path)
+
+    def _clear_prefetched_tts_audio(self):
+        """清空并释放预取槽中的音频"""
+        if self._tts_prefetch_slot is not None:
+            self._tts_prefetch_slot.clear()
+            self._tts_prefetch_slot = None
+
+    def _schedule_tts_prefetch(self, text: str | None):
+        """启动后台线程预取下一条音频
+
+        Args:
+            text (str | None): 待预取文本
+        """
+        text = (text or "").strip()
+        if not text or self._tts_stop_event.is_set():
+            return
+        threading.Thread(
+            target=self._prefetch_tts_audio,
+            args=(text,),
+            daemon=True,
+        ).start()
 
     def _auto_next_chapter_for_tts(self):
+        """当前章节朗读结束后自动切到下一章并继续播放
+
+        Returns:
+            bool: 是否继续保留超时回调
+        """
         if not self._server:
             return False
         if self._server.book.chap_n + 1 >= len(self._server.chap_names):
@@ -579,7 +684,7 @@ class ReaderPage(Adw.NavigationPage):
         self._server.book.chap_n += 1
         self._server.book.chap_txt_pos = 0
         self._server.bd.chap_txt_n = 0
-        self._on_toc_chapter_activated(self._server.book.chap_n)
+        self.set_chap_text(self._server.book.chap_n)
         self._locate_toc(self._server.get_chap_n())
 
         def wait_and_restart():
@@ -600,10 +705,16 @@ class ReaderPage(Adw.NavigationPage):
             return False
 
     def stop_read_aloud(self):
+        """停止朗读并重置朗读按钮状态。"""
         self._stop_tts_playback()
         self._set_tts_loading(False)
 
     def set_tts_state_changed_callback(self, callback):
+        """设置 TTS 播放状态变更回调。
+
+        Args:
+            callback (_type_): 状态变更回调函数
+        """
         self._on_tts_state_changed = callback
 
     def _emit_tts_state(self, is_playing: bool):
@@ -651,11 +762,11 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_fontsize_changed(self, b, persist: bool = True) -> None:
-        """Adjust font size.
+        """调整字体大小
 
         Args:
-            spin (Adw.SpinRow): Spin row
-            value (_type_): New value
+            b (Adw.SpinRow | int | float): 控件对象或目标值
+            persist (bool, optional): 是否持久化保存. Defaults to True.
         """
         if isinstance(b, Adw.SpinRow):
             v = b.get_value()
@@ -668,11 +779,11 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_paragraph_space_changed(self, b, persist: bool = True) -> None:
-        """Adjust paragraph spacing.
+        """调整段间距
 
         Args:
-            spin (Adw.SpinRow): Spin row
-            value (_type_): New value
+            b (Adw.SpinRow | int | float): 控件对象或目标值
+            persist (bool, optional): 是否持久化保存. Defaults to True.
         """
         if isinstance(b, Adw.SpinRow):
             v = b.get_value()
@@ -685,11 +796,11 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_line_space_changed(self, b, persist: bool = True) -> None:
-        """Adjust line spacing.
+        """调整行间距
 
         Args:
-            spin (Adw.SpinRow): Spin row
-            value (_type_): New value
+            b (Adw.SpinRow | int | float): 控件对象或目标值
+            persist (bool, optional): 是否持久化保存. Defaults to True.
         """
         if isinstance(b, Adw.SpinRow):
             v = b.get_value()
@@ -702,12 +813,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_click_title(self, *_args) -> None:
-        """Scroll the table of contents to the current chapter.
-
-        Args:
-            spin (Adw.SpinRow): Spin row
-            value (_type_): New value
-        """
+        """将目录滚动到当前章节。"""
         self._locate_toc(self._server.get_chap_n())
 
     @Gtk.Template.Callback()
@@ -764,7 +870,7 @@ class ReaderPage(Adw.NavigationPage):
 
     @Gtk.Template.Callback()
     def _on_set_default(self, *_args) -> None:
-        """Restore default reader settings."""
+        """恢复默认阅读设置。"""
         self._apply_reader_settings(READER_DEFAULT_CONFIG, persist=True)
 
     def _clamp_setting(self, value, adjustment: Gtk.Adjustment) -> int:
@@ -807,7 +913,8 @@ class ReaderPage(Adw.NavigationPage):
             self.ga_p.set_value(cfg["paragraph_space"])
             self._on_fontsize_changed(cfg["font_size"], persist=False)
             self._on_line_space_changed(cfg["line_space"], persist=False)
-            self._on_paragraph_space_changed(cfg["paragraph_space"], persist=False)
+            self._on_paragraph_space_changed(
+                cfg["paragraph_space"], persist=False)
         finally:
             self._suspend_reader_config_save = False
         self._reader_config = dict(cfg)

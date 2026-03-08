@@ -31,7 +31,7 @@ class TxtServer(Server):
 
         self.chap_names, self.chap_p2s = self._get_chap_names()
         self.bd.update_chap_txts(
-            self.get_chap_txt(self.book.chap_n),
+            self.load_chap_txt(self.book.chap_n),
             self.book.chap_txt_pos
         )
 
@@ -47,7 +47,7 @@ class TxtServer(Server):
         if self.bd.is_chap_end():
             self.book.chap_n += 1
 
-            self.bd.update_chap_txts(self.get_chap_txt(self.book.chap_n))
+            self.bd.update_chap_txts(self.load_chap_txt(self.book.chap_n))
             return self.get_chap_name()
 
         txt = self.bd.chap_txts[self.bd.chap_txt_n]

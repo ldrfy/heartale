@@ -19,48 +19,71 @@ class TtsSA(THS):
     """阅读app相关的webapi"""
 
     def __init__(self):
+        """初始化 Android TTS 服务"""
         super().__init__("server_android", DEFAULT_CONFIG)
 
     def update_config(self, **kwargs):
-        """按字段更新配置并持久化到 heartale.db。"""
-        cfg = self.get_config()
+        """按 Android TTS 的字段规则更新配置
 
-        if "url_base" in kwargs and kwargs["url_base"] is not None:
-            cfg["url_base"] = str(kwargs["url_base"]).strip()
-        if "engine" in kwargs and kwargs["engine"] is not None:
-            cfg["engine"] = str(kwargs["engine"]).strip()
-        if "rate" in kwargs and kwargs["rate"] is not None:
-            cfg["rate"] = int(kwargs["rate"])
-        if "pitch" in kwargs and kwargs["pitch"] is not None:
-            cfg["pitch"] = int(kwargs["pitch"])
+        Args:
+            **kwargs: 待更新的配置项
 
-        self._validate_config(cfg)
-        self.set_config(cfg)
-        return cfg
+        Returns:
+            dict: 更新后的配置
+        """
+        return self.update_config_fields(
+            {
+                "url_base": lambda value: str(value).strip(),
+                "engine": lambda value: str(value).strip(),
+                "rate": int,
+                "pitch": int,
+            },
+            **kwargs,
+        )
 
     def _validate_config(self, cfg: dict):
-        if not cfg.get("url_base"):
-            raise ValueError("url_base can not be empty")
-        if not cfg.get("engine"):
-            raise ValueError("engine can not be empty")
-        if not 0 <= int(cfg["rate"]) <= 100:
-            raise ValueError("rate must be between 0 and 100")
-        if not 0 <= int(cfg["pitch"]) <= 100:
-            raise ValueError("pitch must be between 0 and 100")
+        """校验 Android TTS 配置
+
+        Args:
+            cfg (dict): 待校验的配置
+
+        Returns:
+            dict: 校验后的配置
+        """
+        self.validate_required_fields(cfg, ["url_base", "engine"])
+        self.validate_int_range(cfg, "rate", 0, 100)
+        self.validate_int_range(cfg, "pitch", 0, 100)
+        return cfg
 
     def download(self, text, file_name=None):
+        """文字转语音，并下载
+
+        Args:
+            text (str): 待转语音文本
+            file_name (str, optional): 指定缓存文件名. Defaults to None.
+
+        Returns:
+            Path | None: 下载后的音频文件路径
+        """
         text = (text or "").strip()
         if not text:
             return None
 
         cache_key = file_name or self._build_cache_key(text)
-        cached = self._find_cached_file(cache_key)
-        if cached is not None:
-            return cached
-
-        return download_stream(text, cache_key, self.c)
+        return self.download_with_cache(
+            cache_key,
+            lambda: download_stream(text, cache_key, self.c),
+        )
 
     def _build_cache_key(self, text: str) -> str:
+        """根据文本和配置生成缓存键
+
+        Args:
+            text (str): 待转语音文本
+
+        Returns:
+            str: 音频缓存键
+        """
         payload = "|".join([
             text,
             str(self.c["engine"]),
@@ -69,21 +92,15 @@ class TtsSA(THS):
         ])
         return hashlib.sha1(payload.encode("utf-8")).hexdigest()
 
-    def _find_cached_file(self, cache_key: str):
-        matches = sorted(PATH_TEMP_TTS.glob(f"{cache_key}.*"))
-        if matches:
-            return matches[0]
-        return None
-
 
 def get_ext(r: requests.Response):
-    """_summary_
+    """根据响应头推断音频文件扩展名
 
     Args:
-        r (_type_): _description_
+        r (requests.Response): HTTP 响应对象
 
     Returns:
-        str: _description_
+        str: 推断出的文件扩展名
     """
     ct = r.headers.get("content-type", "").split(";")[0].strip()
     if ct:
@@ -101,15 +118,15 @@ def get_ext(r: requests.Response):
 
 
 def download_stream(text: str, file_name: str, c: dict):
-    """_summary_
+    """请求远程 TTS 服务并将音频流写入缓存文件
 
     Args:
-        text (str): _description_
-        file_name (str): _description_
-        c (dict, optional): _description_. Defaults to 15.
+        text (str): 待转语音文本
+        file_name (str): 缓存文件名前缀
+        c (dict): TTS 配置
 
     Returns:
-        _type_: _description_
+        Path: 下载后的音频文件路径
     """
 
     params = {
@@ -129,11 +146,13 @@ def download_stream(text: str, file_name: str, c: dict):
         chunk_size = 8192
 
         out_path = PATH_TEMP_TTS / file_name
+        tmp_path = out_path.with_suffix(f"{out_path.suffix}.part")
 
-        with open(out_path, "wb") as f:
+        with open(tmp_path, "wb") as f:
             for chunk in response.iter_content(chunk_size=chunk_size):
                 if not chunk:
                     continue
                 f.write(chunk)
                 written += len(chunk)
+        tmp_path.replace(out_path)
         return out_path

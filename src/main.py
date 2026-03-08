@@ -1,18 +1,15 @@
 """main"""
 import argparse
-import shutil
-import subprocess
 import sys
-import time
 from gettext import gettext as _
 
+from .cli_reader import run_read_book_cli
 from .entity import LibraryDB
 from .entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
-from .entity.time_read import TIME_READ_WAY_LISTEN
-from .servers.legado import (LegadoServer, get_legado_sync_book_n,
-                             get_legado_sync_config,
+from .servers.legado import (get_legado_sync_book_n, get_legado_sync_config,
                              get_legado_sync_url, sync_legado_books)
-from .servers.txt import TxtServer
+from .tts.cli import apply_tts_overrides as apply_tts_cli_overrides
+from .tts.cli import build_tts_override_kwargs
 from .tts.server_android import TtsSA
 
 
@@ -30,6 +27,15 @@ def main(version, app_id):
     )
 
     parser.add_argument(
+        "--list-books",
+        action="store_true",
+        help=_("Print bookshelf list in CLI mode."),
+    )
+
+    parser.add_argument("--read-book", type=int, default=0,
+                        help=_("Read the Nth book from bookshelf (1-based index)."))
+
+    parser.add_argument(
         "--preview-chars",
         type=int,
         default=12,
@@ -37,15 +43,7 @@ def main(version, app_id):
     )
 
     parser.add_argument(
-        "--list-books",
-        action="store_true",
-        help=_("Print bookshelf list in CLI mode."),
-    )
-    parser.add_argument("--read-book", type=int, default=0,
-                        help=_("Read the Nth book from bookshelf (1-based index)."))
-
-    parser.add_argument(
-        "--sync-legado",
+        "--legado-sync",
         action="store_true",
         help=_("Sync books from Legado into local bookshelf."),
     )
@@ -63,38 +61,51 @@ def main(version, app_id):
     )
 
     parser.add_argument(
-        "--tts-url",
+        "--tts-android-url",
         type=str,
+        dest="tts_android_url",
         default="",
-        help=_("TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."),
+        help=_("Android TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."),
     )
     parser.add_argument(
-        "--tts-engine",
+        "--tts-android-engine",
         type=str,
+        dest="tts_android_engine",
         default="",
-        help=_("TTS engine name (e.g. com.xiaomi.mibrain.speech)."),
+        help=_("Android TTS engine name (e.g. com.xiaomi.mibrain.speech)."),
     )
     parser.add_argument(
-        "--tts-rate",
+        "--tts-android-rate",
         type=int,
+        dest="tts_android_rate",
         default=None,
-        help=_("TTS speaking rate, range 0-100."),
+        help=_("Android TTS speaking rate, range 0-100."),
     )
     parser.add_argument(
-        "--tts-pitch",
+        "--tts-android-pitch",
         type=int,
+        dest="tts_android_pitch",
         default=None,
-        help=_("TTS pitch, range 0-100."),
+        help=_("Android TTS pitch, range 0-100."),
     )
     parser.add_argument(
         "--show-settings",
         action="store_true",
-        help=_("Print current saved settings (TTS/Legado/Reader) and exit unless reading is requested."),
+        help=_(
+            "Print current saved settings (TTS/Legado/Reader) and exit "
+            "unless reading is requested."
+        ),
     )
+
+    if not argv:
+        parser.print_help()
+        return 0
 
     cli_args, remaining_argv = parser.parse_known_args(argv)
 
     if cli_args.gui:
+        # GTK UI is imported lazily so CLI-only usage does not require GUI startup.
+        # pylint: disable=import-outside-toplevel
         from .gui_app import run_gui_app
         return run_gui_app(version, app_id, remaining_argv)
 
@@ -108,7 +119,7 @@ def _run_cli(cli_args) -> int:
     if code != 0:
         return code
 
-    if cli_args.sync_legado:
+    if cli_args.legado_sync:
         code = _run_sync_legado_cli(cli_args)
         if code != 0:
             return code
@@ -124,7 +135,7 @@ def _run_cli(cli_args) -> int:
         read_index = cli_args.read_book
 
     if read_index > 0:
-        return _run_read_book_cli(read_index, preview_chars, cli_args)
+        return run_read_book_cli(read_index, preview_chars, cli_args, _print_bookshelf_cli)
 
     return 0
 
@@ -135,7 +146,8 @@ def _run_sync_legado_cli(cli_args) -> int:
         print(_("Legado URL is empty. Set one in preferences or use --legado-url"))
         return 2
 
-    book_n = int(cli_args.legado_book_n) if cli_args.legado_book_n > 0 else get_legado_sync_book_n()
+    book_n = int(
+        cli_args.legado_book_n) if cli_args.legado_book_n > 0 else get_legado_sync_book_n()
     sync_ok, s_error = sync_legado_books(book_n=book_n, url_base=url)
     print(_("Legado sync URL: {url}").format(url=url))
     print(_("Legado sync count: {count}").format(count=book_n))
@@ -177,39 +189,12 @@ def _fmt_name(book: Book) -> str:
     return str(book.fmt)
 
 
-def _get_book_by_index(idx: int) -> Book | None:
-    db = LibraryDB()
-    try:
-        books = list(db.iter_books())
-        if idx < 1 or idx > len(books):
-            return None
-        selected = books[idx - 1]
-        return db.get_book_by_md5(selected.md5) or selected
-    finally:
-        db.close()
-
-
 def _apply_tts_overrides(tts: TtsSA, cli_args) -> None:
-    kwargs = {}
-    if cli_args.tts_url:
-        kwargs["url_base"] = cli_args.tts_url
-    if cli_args.tts_engine:
-        kwargs["engine"] = cli_args.tts_engine
-    if cli_args.tts_rate is not None:
-        kwargs["rate"] = cli_args.tts_rate
-    if cli_args.tts_pitch is not None:
-        kwargs["pitch"] = cli_args.tts_pitch
-    if kwargs:
-        tts.update_config(**kwargs)
+    apply_tts_cli_overrides(tts, cli_args)
 
 
 def _has_tts_overrides(cli_args) -> bool:
-    return any([
-        bool(cli_args.tts_url),
-        bool(cli_args.tts_engine),
-        cli_args.tts_rate is not None,
-        cli_args.tts_pitch is not None,
-    ])
+    return bool(build_tts_override_kwargs(cli_args))
 
 
 def _persist_tts_overrides_cli(cli_args) -> int:
@@ -238,121 +223,22 @@ def _print_settings_cli():
         db.close()
 
     print(_("Current settings:"))
-    print(_("TTS:"))
+    print(_("TTS-Android:"))
     print(_("  url_base: {value}").format(value=tts_cfg.get("url_base", "")))
     print(_("  engine: {value}").format(value=tts_cfg.get("engine", "")))
     print(_("  rate: {value}").format(value=tts_cfg.get("rate", "")))
     print(_("  pitch: {value}").format(value=tts_cfg.get("pitch", "")))
     print(_("Legado:"))
-    print(_("  url_base: {value}").format(value=legado_cfg.get("url_base", "")))
+    print(_("  url_base: {value}").format(
+        value=legado_cfg.get("url_base", "")))
     print(_("  book_n: {value}").format(value=legado_cfg.get("book_n", "")))
     print(_("Reader:"))
     if isinstance(reader_cfg, dict) and reader_cfg:
-        print(_("  font_size: {value}").format(value=reader_cfg.get("font_size", "")))
+        print(_("  font_size: {value}").format(
+            value=reader_cfg.get("font_size", "")))
         print(_("  paragraph_space: {value}").format(
             value=reader_cfg.get("paragraph_space", "")))
-        print(_("  line_space: {value}").format(value=reader_cfg.get("line_space", "")))
+        print(_("  line_space: {value}").format(
+            value=reader_cfg.get("line_space", "")))
     else:
         print(_("  (not set)"))
-
-
-def _run_read_book_cli(book_idx: int, preview_chars: int, cli_args) -> int:
-    if not shutil.which("paplay"):
-        print(_("paplay is not installed."))
-        return 1
-
-    book = _get_book_by_index(book_idx)
-    if book is None:
-        print(_("Book index out of range: {index}").format(index=book_idx))
-        _print_bookshelf_cli()
-        return 1
-
-    if book.fmt == BOOK_FMT_LEGADO:
-        server = LegadoServer()
-    elif book.fmt == BOOK_FMT_TXT:
-        server = TxtServer()
-    else:
-        print(_("Unsupported book format: {fmt}").format(fmt=book.fmt))
-        return 1
-
-    try:
-        server.initialize(book)
-    except Exception as exc:  # pylint: disable=broad-except
-        print(_("Failed to initialize book: {error}").format(error=exc))
-        return 1
-
-    tts = TtsSA()
-    tts.reload_config()
-    try:
-        _apply_tts_overrides(tts, cli_args)
-        tts.reload_config()
-    except Exception as exc:  # pylint: disable=broad-except
-        print(_("Invalid TTS config: {error}").format(error=exc))
-        return 1
-
-    print(_("Book[{index}]: {name}").format(index=book_idx, name=server.book.name))
-    print(_("Chapter: {chapter}").format(chapter=server.get_chap_name(server.get_chap_n())))
-
-    while True:
-        chap_txts = server.bd.chap_txts
-        start_idx = max(0, min(server.bd.chap_txt_n, len(chap_txts) - 1)) if chap_txts else 0
-
-        intro_texts = [
-            (server.book.name or "").strip(),
-            (server.get_chap_name(server.get_chap_n()) or "").strip(),
-        ]
-        for intro_text in intro_texts:
-            if not intro_text:
-                continue
-            audio_path = tts.download(intro_text)
-            if not audio_path:
-                print(_("Read aloud failed. Remote TTS service may be unavailable."))
-                return 2
-            code = subprocess.run(["paplay", str(audio_path)], check=False).returncode
-            if code != 0:
-                print(_("Audio playback failed"))
-                return 2
-
-        for idx in range(start_idx, len(chap_txts)):
-            text = (chap_txts[idx] or "").strip()
-            if not text:
-                continue
-
-            compact_text = " ".join(text.split())
-            preview = compact_text[:preview_chars]
-            if len(compact_text) > preview_chars:
-                preview += "..."
-            print(_("[{current}/{total}] {preview}").format(
-                current=idx + 1, total=len(chap_txts), preview=preview))
-
-            audio_path = tts.download(text)
-            if not audio_path:
-                print(_("Read aloud failed. Remote TTS service may be unavailable."))
-                return 2
-
-            play_start = time.time()
-            code = subprocess.run(["paplay", str(audio_path)], check=False).returncode
-            play_seconds = max(0.0, time.time() - play_start)
-
-            server.set_chap_txt_n(idx)
-            server.save_read_progress(
-                server.get_chap_n(),
-                server.get_chap_txt_pos(),
-                way=TIME_READ_WAY_LISTEN,
-                seconds_override=play_seconds,
-            )
-
-            if code != 0:
-                print(_("Audio playback failed"))
-                return 2
-
-        next_chap_n = server.book.chap_n + 1
-        if next_chap_n >= len(server.chap_names):
-            print(_("Finished all chapters"))
-            return 0
-
-        server.book.chap_n = next_chap_n
-        server.book.chap_txt_pos = 0
-        server.bd.chap_txt_n = 0
-        server.bd.update_chap_txts(server.get_chap_txt(next_chap_n), 0)
-        print(_("Chapter: {chapter}").format(chapter=server.get_chap_name(next_chap_n)))

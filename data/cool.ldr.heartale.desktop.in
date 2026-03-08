@@ -1,6 +1,6 @@
 [Desktop Entry]
 Name=heartale
-Exec=heartale
+Exec=heartale --gui
 Icon=cool.ldr.heartale
 Terminal=false
 Type=Application

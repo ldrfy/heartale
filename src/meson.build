@@ -22,6 +22,7 @@ configure_file(
 heartale_sources = [
     '__init__.py',
     'gui_app.py',
+    'cli_reader.py',
     'main.py',
     'preferences.py',
     'window.py',
@@ -68,6 +69,9 @@ install_data(heartale_sources_servers, install_dir: moduledir / 'servers')
 tts_sources_servers = [
     'tts/__init__.py',
     'tts/server_android.py',
+    'tts/read_flow.py',
+    'tts/cache.py',
+    'tts/cli.py',
 ]
 install_data(tts_sources_servers, install_dir: moduledir / 'tts')
 
