@@ -1,6 +1,7 @@
 """TTS 后端实现集合。"""
 
 import argparse
+from gettext import gettext as _
 
 from ...entity import LibraryDB
 from .android import AndroidTtsBackend
@@ -51,8 +52,8 @@ def set_active_tts_backend_name(backend_name: str) -> str:
     """
     backend_name = str(backend_name).strip()
     if backend_name not in _BACKEND_FACTORIES:
-        raise ValueError(f"Unsupported TTS backend: {backend_name}")
-
+        raise ValueError(_("Unsupported TTS backend: {backend_name}")
+                         .format(backend_name=backend_name))
     db = LibraryDB()
     try:
         db.set_config(TTS_BACKEND_CONFIG_KEY, backend_name)
@@ -72,7 +73,8 @@ def create_tts_backend(backend_name: str | None = None):
     """
     resolved_name = backend_name or TTS_BACKEND_ANDROID
     if resolved_name not in _BACKEND_FACTORIES:
-        raise ValueError(f"Unsupported TTS backend: {resolved_name}")
+        raise ValueError(_("Unsupported TTS backend: {resolved_name}")
+                         .format(resolved_name=resolved_name))
     return _BACKEND_FACTORIES[resolved_name]()
 
 

@@ -517,17 +517,22 @@ def path2book(src: str, cfg_dir: Path = PATH_CONFIG_BOOKS) -> Book:
     if not src_path.is_file():
         raise FileNotFoundError(f"File not found: {src}")
     if src_path.suffix.lower() not in [".txt"]:
-        raise ValueError(f"Unsupported file type: {src_path.suffix}")
+        raise ValueError(_("Unsupported file type: {suffix}")
+                         .format(suffix=src_path.suffix))
     enc = detect_encoding(src_path)
 
     with open(src, "r", encoding=enc, errors="ignore") as file:
         f_txt = file.read()
-    txt_all = len(f_txt)
+
     chap_names, _chap_ps = parse_chap_names(f_txt, **get_txt_parse_rules()[0])
     chap_all = len(chap_names)
 
     dest = cfg_dir / src_path.name
     shutil.copy(src_path, dest)
-    md5 = cal_md5(dest)
+
+    if chap_all == 0:
+        raise ValueError(
+            _("No chapters detected. Please check the parsing rules in Preferences."))
+
     return Book(str(dest), dest.stem, "", 0, chap_names[0],
-                chap_all, 0, 0, txt_all, enc, md5)
+                chap_all, 0, 0, len(f_txt), enc, cal_md5(dest))

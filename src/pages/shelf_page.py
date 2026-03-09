@@ -109,26 +109,24 @@ class ShelfPage(Adw.NavigationPage):
 
     def refresh_header_subtitle(self):
         """按当前阅读状态刷新书架页头部副标题。"""
+        summary = _("Select a book to start reading")
         if not self._reader_page.is_read_aloud_active():
-            self.window_title.set_subtitle(_("Select a book to start reading"))
+            self.window_title.set_subtitle(summary)
             return
 
-        summary = self._reader_page.get_current_read_summary_text().strip()
-        if summary:
-            self.window_title.set_subtitle(
-                _("Reading aloud: {summary}").format(summary=summary))
-            return
-        self.window_title.set_subtitle(_("Select a book to start reading"))
+        summary_ = self._reader_page.get_current_read_summary_text().strip()
+        if summary_:
+            summary = _("Reading aloud: {summary}").format(summary=summary_)
 
-    def set_tts_stop_button_state(self, is_playing: bool, status_text: str):
+        self.window_title.set_subtitle(summary)
+
+    def set_tts_stop_button_state(self, is_playing: bool):
         """同步书架页顶部停止朗读按钮的状态。
 
         Args:
             is_playing (bool): 当前是否正在朗读
-            status_text (str): 当前朗读状态文本
         """
         self.btn_tts_stop.set_visible(bool(is_playing))
-        self.btn_tts_stop.set_tooltip_text(status_text)
 
     def build_bookshel(self, books, is_search=False):
         """Populate the list view with ``books``."""

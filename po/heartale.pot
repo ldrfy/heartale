@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: cool.ldr.heartale\n"
 "Report-Msgid-Bugs-To: yuhldr@gmail.com\n"
-"POT-Creation-Date: 2026-03-09 00:39+0800\n"
+"POT-Creation-Date: 2026-03-09 20:55+0800\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -30,88 +30,104 @@ msgid "Preferences"
 msgstr ""
 
 #: src/res/preference.ui:10
-msgid "TTS"
+msgid "General"
 msgstr ""
 
 #: src/res/preference.ui:14
-msgid "Android TTS"
+msgid "Language"
 msgstr ""
 
 #: src/res/preference.ui:15
-msgid "Stored in ~/.config/heartale/heartale.db"
+msgid "Restart Heartale after changing this setting"
 msgstr ""
 
 #: src/res/preference.ui:18
-msgid "API URL"
+msgid "App language"
 msgstr ""
 
-#: src/res/preference.ui:25
-msgid "Engine"
+#: src/res/preference.ui:27
+msgid "TTS"
+msgstr ""
+
+#: src/res/preference.ui:31
+msgid "Android TTS"
 msgstr ""
 
 #: src/res/preference.ui:32
+msgid "Stored in ~/.config/heartale/heartale.db"
+msgstr ""
+
+#: src/res/preference.ui:35
+msgid "API URL"
+msgstr ""
+
+#: src/res/preference.ui:42
+msgid "Engine"
+msgstr ""
+
+#: src/res/preference.ui:49
 msgid "Rate"
 msgstr ""
 
-#: src/res/preference.ui:33 src/res/preference.ui:47
+#: src/res/preference.ui:50 src/res/preference.ui:64
 msgid "0-100"
 msgstr ""
 
-#: src/res/preference.ui:46
+#: src/res/preference.ui:63
 msgid "Pitch"
 msgstr ""
 
-#: src/res/preference.ui:60 src/res/preference.ui:133
+#: src/res/preference.ui:77 src/res/preference.ui:150
 msgid "Restore defaults"
 msgstr ""
 
-#: src/res/preference.ui:63 src/res/preference.ui:136
+#: src/res/preference.ui:80 src/res/preference.ui:153
 msgid "Reset"
 msgstr ""
 
-#: src/res/preference.ui:77
+#: src/res/preference.ui:94
 msgid "Legado"
 msgstr ""
 
-#: src/res/preference.ui:81
+#: src/res/preference.ui:98
 msgid "Legado Sync"
 msgstr ""
 
-#: src/res/preference.ui:82
+#: src/res/preference.ui:99
 msgid "Used by the shelf sync button"
 msgstr ""
 
-#: src/res/preference.ui:85
+#: src/res/preference.ui:102
 msgid "Legado URL"
 msgstr ""
 
-#: src/res/preference.ui:92
+#: src/res/preference.ui:109
 msgid "Books per sync"
 msgstr ""
 
-#: src/res/preference.ui:93
+#: src/res/preference.ui:110
 msgid "Applied on next sync"
 msgstr ""
 
-#: src/res/preference.ui:111
+#: src/res/preference.ui:128
 msgid "TXT"
 msgstr ""
 
-#: src/res/preference.ui:115
+#: src/res/preference.ui:132
 msgid "TXT Parse"
 msgstr ""
 
-#: src/res/preference.ui:116
+#: src/res/preference.ui:133
 msgid ""
-"Custom primary patterns; failed matches will retry with ^ and then fall back "
-"to built-in rules"
+"Custom patterns; failed matches will retry with ^ and then fall back to "
+"built-in rules"
 msgstr ""
 
-#: src/res/preference.ui:119
+#: src/res/preference.ui:136
 msgid "Volume pattern"
 msgstr ""
 
-#: src/res/preference.ui:126
+#: src/res/preference.ui:143
 msgid "Chapter pattern"
 msgstr ""
 
@@ -211,7 +227,7 @@ msgstr ""
 msgid "Loading"
 msgstr ""
 
-#: src/res/reader_page.ui:37 src/pages/shelf_page.py:245
+#: src/res/reader_page.ui:37 src/pages/shelf_page.py:243
 #: src/widgets/dialog_input.py:21
 msgid "Cancel"
 msgstr ""
@@ -340,8 +356,7 @@ msgstr ""
 msgid "Welcome to Heartale"
 msgstr ""
 
-#: src/res/shelf_page.ui:168 src/pages/shelf_page.py:113
-#: src/pages/shelf_page.py:121
+#: src/res/shelf_page.ui:168 src/pages/shelf_page.py:112
 msgid "Select a book to start reading"
 msgstr ""
 
@@ -446,55 +461,55 @@ msgstr ""
 msgid "Reading aloud: {summary}"
 msgstr ""
 
-#: src/pages/shelf_page.py:240
+#: src/pages/shelf_page.py:238
 msgid "Delete book?"
 msgstr ""
 
-#: src/pages/shelf_page.py:241
+#: src/pages/shelf_page.py:239
 #, python-brace-format
 msgid ""
 "Remove “{book}” from the library.\n"
 "This action cannot be undone."
 msgstr ""
 
-#: src/pages/shelf_page.py:246 src/widgets/shelf_row.py:31
+#: src/pages/shelf_page.py:244 src/widgets/shelf_row.py:31
 msgid "Delete"
 msgstr ""
 
-#: src/pages/shelf_page.py:262
+#: src/pages/shelf_page.py:260
 msgid "Select books to import"
 msgstr ""
 
-#: src/pages/shelf_page.py:264
+#: src/pages/shelf_page.py:262
 msgid "Documents and e-books"
 msgstr ""
 
-#: src/pages/shelf_page.py:276
+#: src/pages/shelf_page.py:274
 msgid "Could not open the selected files"
 msgstr ""
 
-#: src/pages/shelf_page.py:301
+#: src/pages/shelf_page.py:299 src/main.py:349
 msgid "Import partially failed"
 msgstr ""
 
-#: src/pages/shelf_page.py:302 src/pages/shelf_page.py:389
+#: src/pages/shelf_page.py:300 src/pages/shelf_page.py:387
 #: src/widgets/dialog_input.py:22
 msgid "OK"
 msgstr ""
 
-#: src/pages/shelf_page.py:319
+#: src/pages/shelf_page.py:317 src/main.py:346
 msgid "Books imported successfully"
 msgstr ""
 
-#: src/pages/shelf_page.py:384
+#: src/pages/shelf_page.py:382
 msgid "Legado books synced successfully"
 msgstr ""
 
-#: src/pages/shelf_page.py:388
+#: src/pages/shelf_page.py:386
 msgid "Legado sync partially failed"
 msgstr ""
 
-#: src/pages/shelf_page.py:405
+#: src/pages/shelf_page.py:403
 msgid "Please set a valid Legado URL in Preferences first."
 msgstr ""
 
@@ -545,19 +560,28 @@ msgstr ""
 msgid "Parsing error: {error}\n"
 msgstr ""
 
-#: src/servers/txt.py:91
+#: src/servers/txt.py:92
 #, python-brace-format
 msgid "File not found: {path}"
 msgstr ""
 
-#: src/servers/txt.py:283
+#: src/servers/txt.py:289
 #, python-brace-format
 msgid "{field} can not be empty"
 msgstr ""
 
-#: src/servers/txt.py:288
+#: src/servers/txt.py:294
 #, python-brace-format
 msgid "Invalid regular expression for {field}: {error}"
+msgstr ""
+
+#: src/servers/txt.py:520
+#, python-brace-format
+msgid "Unsupported file type: {suffix}"
+msgstr ""
+
+#: src/servers/txt.py:535
+msgid "No chapters detected. Please check the parsing rules in Preferences."
 msgstr ""
 
 #: src/utils/check_update.py:32 src/utils/check_update.py:118
@@ -577,6 +601,11 @@ msgid ""
 "{url}\n"
 "\n"
 "{update_msg}"
+msgstr ""
+
+#: src/utils/reader.py:28
+#, python-brace-format
+msgid "Unsupported book format: {fmt}"
 msgstr ""
 
 #: src/widgets/dialog_input.py:10
@@ -623,148 +652,203 @@ msgstr ""
 msgid "Top this book"
 msgstr ""
 
-#: src/main.py:21
+#: src/main.py:25
 msgid "heartale CLI options"
 msgstr ""
 
-#: src/main.py:26
+#: src/main.py:30
 msgid "Start GTK UI mode."
 msgstr ""
 
-#: src/main.py:32
+#: src/main.py:36
 msgid "Print bookshelf list in CLI mode."
 msgstr ""
 
-#: src/main.py:36
+#: src/main.py:40
 msgid "Read the Nth book from bookshelf (1-based index)."
 msgstr ""
 
-#: src/main.py:42
+#: src/main.py:46
 msgid "Preview character count shown for each paragraph while reading."
 msgstr ""
 
-#: src/main.py:48
+#: src/main.py:52
 msgid "Sync books from Legado into local bookshelf."
 msgstr ""
 
-#: src/main.py:54
+#: src/main.py:58
 msgid "Legado server URL used for sync (e.g. http://192.168.1.34:1221)."
 msgstr ""
 
-#: src/main.py:60
+#: src/main.py:64
 msgid "How many books to sync from Legado; 0 means use saved setting."
 msgstr ""
 
-#: src/main.py:68
+#: src/main.py:72
 msgid "Android TTS API URL (e.g. http://192.168.1.34:1221/api/tts)."
 msgstr ""
 
-#: src/main.py:75
+#: src/main.py:79
 msgid "Android TTS engine name (e.g. com.xiaomi.mibrain.speech)."
 msgstr ""
 
-#: src/main.py:82
+#: src/main.py:86
 msgid "Android TTS speaking rate, range 0-100."
 msgstr ""
 
-#: src/main.py:89
+#: src/main.py:93
 msgid "Android TTS pitch, range 0-100."
 msgstr ""
 
-#: src/main.py:95
+#: src/main.py:99
 msgid ""
-"Print current saved settings (TTS/Legado/Reader) and exit unless reading is "
-"requested."
+"Print current saved settings (TTS/Legado/TXT/Reader) and exit unless reading "
+"is requested."
 msgstr ""
 
-#: src/main.py:146
+#: src/main.py:108
+msgid "Import one or more TXT files into the local bookshelf."
+msgstr ""
+
+#: src/main.py:114
+msgid "Primary TXT volume pattern used for chapter parsing."
+msgstr ""
+
+#: src/main.py:120
+msgid "Primary TXT chapter pattern used for chapter parsing."
+msgstr ""
+
+#: src/main.py:126
+msgid "Use a built-in TXT parse preset by language code (e.g. zh_CN, en_US)."
+msgstr ""
+
+#: src/main.py:184
 msgid "Legado URL is empty. Set one in preferences or use --legado-url"
 msgstr ""
 
-#: src/main.py:152
+#: src/main.py:190
 #, python-brace-format
 msgid "Legado sync URL: {url}"
 msgstr ""
 
-#: src/main.py:153
+#: src/main.py:191
 #, python-brace-format
 msgid "Legado sync count: {count}"
 msgstr ""
 
-#: src/main.py:167
+#: src/main.py:205
 msgid "No books found in library"
 msgstr ""
 
-#: src/main.py:170
+#: src/main.py:208
 msgid "Bookshelf:"
 msgstr ""
 
-#: src/main.py:173
+#: src/main.py:211
 #, python-brace-format
 msgid "{idx}. [{fmt}] {name} - {author} (chapter {chap_n}/{chap_all})"
 msgstr ""
 
-#: src/main.py:208
+#: src/main.py:246
 #, python-brace-format
 msgid "Invalid TTS config: {error}"
 msgstr ""
 
-#: src/main.py:225
+#: src/main.py:300
+#, python-brace-format
+msgid "Invalid TXT parse language: {value}. Available presets: {presets}"
+msgstr ""
+
+#: src/main.py:312
+#, python-brace-format
+msgid "Invalid TXT parse config: {error}"
+msgstr ""
+
+#: src/main.py:333
+#, python-brace-format
+msgid "{name}: {error}"
+msgstr ""
+
+#: src/main.py:370
 msgid "Current settings:"
 msgstr ""
 
-#: src/main.py:226
+#: src/main.py:371
 msgid "TTS-Android:"
 msgstr ""
 
-#: src/main.py:227 src/main.py:232
+#: src/main.py:372 src/main.py:377
 #, python-brace-format
 msgid "  url_base: {value}"
 msgstr ""
 
-#: src/main.py:228
+#: src/main.py:373
 #, python-brace-format
 msgid "  engine: {value}"
 msgstr ""
 
-#: src/main.py:229
+#: src/main.py:374
 #, python-brace-format
 msgid "  rate: {value}"
 msgstr ""
 
-#: src/main.py:230
+#: src/main.py:375
 #, python-brace-format
 msgid "  pitch: {value}"
 msgstr ""
 
-#: src/main.py:231
+#: src/main.py:376
 msgid "Legado:"
 msgstr ""
 
-#: src/main.py:234
+#: src/main.py:379
 #, python-brace-format
 msgid "  book_n: {value}"
 msgstr ""
 
-#: src/main.py:235
+#: src/main.py:380
+msgid "TXT:"
+msgstr ""
+
+#: src/main.py:381
+#, python-brace-format
+msgid "  volume_pattern: {value}"
+msgstr ""
+
+#: src/main.py:383
+#, python-brace-format
+msgid "  chapter_pattern: {value}"
+msgstr ""
+
+#: src/main.py:385
 msgid "Reader:"
 msgstr ""
 
-#: src/main.py:237
+#: src/main.py:387
 #, python-brace-format
 msgid "  font_size: {value}"
 msgstr ""
 
-#: src/main.py:239
+#: src/main.py:389
 #, python-brace-format
 msgid "  paragraph_space: {value}"
 msgstr ""
 
-#: src/main.py:241
+#: src/main.py:391
 #, python-brace-format
 msgid "  line_space: {value}"
 msgstr ""
 
-#: src/main.py:244
+#: src/main.py:394
 msgid "  (not set)"
+msgstr ""
+
+#: src/tts/backends/__init__.py:55
+#, python-brace-format
+msgid "Unsupported TTS backend: {backend_name}"
+msgstr ""
+
+#: src/tts/backends/__init__.py:76
+#, python-brace-format
+msgid "Unsupported TTS backend: {resolved_name}"
 msgstr ""

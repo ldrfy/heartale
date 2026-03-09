@@ -1,6 +1,7 @@
 """GUI 与 CLI 共用的阅读服务辅助函数。"""
 
 import threading
+from gettext import gettext as _
 
 from requests import RequestException
 
@@ -24,7 +25,8 @@ def create_reader_server(book: Book) -> LegadoServer | TxtServer:
     elif book.fmt == BOOK_FMT_TXT:
         server = TxtServer()
     else:
-        raise ValueError(f"Unsupported book format: {book.fmt}")
+        raise ValueError(_("Unsupported book format: {fmt}")
+                         .format(fmt=book.fmt))
 
     server.initialize(book)
     return server

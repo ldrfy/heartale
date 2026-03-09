@@ -52,7 +52,7 @@ class HeartaleWindow(Adw.ApplicationWindow):
         toast.set_title(GLib.markup_escape_text(str(toast_msg)))
         self.toasts.add_toast(toast)
 
-    def _on_tts_state_changed(self, is_playing: bool, status_text: str):
+    def _on_tts_state_changed(self, is_playing: bool, _status_text: str):
         """同步书架页顶部停止朗读按钮的显示状态和提示文本。"""
-        self._shelf_page.set_tts_stop_button_state(is_playing, status_text)
+        self._shelf_page.set_tts_stop_button_state(is_playing)
         self._shelf_page.refresh_header_subtitle()

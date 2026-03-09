@@ -130,7 +130,7 @@
         <child>
           <object class="AdwPreferencesGroup">
             <property name="title" translatable="yes">TXT Parse</property>
-            <property name="description" translatable="yes">Custom primary patterns; failed matches will retry with ^ and then fall back to built-in rules</property>
+            <property name="description" translatable="yes">Custom patterns; failed matches will retry with ^ and then fall back to built-in rules</property>
             <child>
               <object class="AdwEntryRow" id="txt_volume_pattern">
                 <property name="title" translatable="yes">Volume pattern</property>
