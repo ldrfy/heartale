@@ -131,6 +131,54 @@ msgstr "卷标题规则"
 msgid "Chapter pattern"
 msgstr "章节标题规则"
 
+#: src/res/properties_view.ui:92 src/res/book_txt_parse_dialog.ui:4
+msgid "TXT parse rules"
+msgstr "TXT 解析规则"
+
+#: src/res/properties_view.ui:101
+msgid "Edit TXT parse rules"
+msgstr "编辑 TXT 解析规则"
+
+#: src/widgets/properties_view.py:155 src/widgets/properties_view.py:164
+msgid "Using global TXT parse rules"
+msgstr "使用全局 TXT 解析规则"
+
+#: src/widgets/properties_view.py:167
+msgid "Custom ({detail}) · Fallback: global"
+msgstr "自定义（{detail}）· 回退：全局"
+
+#: src/widgets/properties_view.py:162
+msgid "volume"
+msgstr "卷"
+
+#: src/widgets/properties_view.py:164
+msgid "chapter"
+msgstr "章"
+
+#: src/res/book_txt_parse_dialog.ui:9
+msgid "Custom rules for this book"
+msgstr "本书自定义规则"
+
+#: src/res/book_txt_parse_dialog.ui:10
+msgid "If the custom rules do not match, Heartale will try the global rules."
+msgstr "若自定义规则匹配失败，将回退到全局规则。"
+
+#: src/res/book_txt_parse_dialog.ui:28 src/res/book_txt_parse_dialog.ui:32
+msgid "Save"
+msgstr "保存"
+
+#: src/res/book_txt_parse_dialog.ui:48
+msgid "Clear custom rules"
+msgstr "清除自定义规则"
+
+#: src/res/book_txt_parse_dialog.ui:52
+msgid "Clear"
+msgstr "清除"
+
+#: src/widgets/book_txt_parse_dialog.py:85
+msgid "Failed to save TXT parse rules"
+msgstr "保存 TXT 解析规则失败"
+
 #: src/res/properties_view.ui:20 src/widgets/properties_view.py:186
 msgid "Folder"
 msgstr "文件夹"
@@ -161,7 +209,7 @@ msgstr "本周"
 
 #: src/res/properties_view.ui:93
 msgid "Last Week"
-msgstr "本周"
+msgstr "上周"
 
 #: src/res/properties_view.ui:104
 msgid "This Month"

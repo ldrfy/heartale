@@ -53,6 +53,77 @@
             </child>
 
             <child>
+              <object class="AdwPreferencesGroup">
+                <property name="title" translatable="yes" >Details</property>
+
+                <child>
+                  <object class="AdwActionRow" id="aar_book_txt_all">
+                    <property name="title" translatable="yes">txt number</property>
+                    <property name="subtitle-selectable">True</property>
+                    <property name="use-markup">False</property>
+                    <style>
+                      <class name="property" />
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="aar_book_words">
+                    <property name="title" translatable="yes">Word Count</property>
+                    <property name="subtitle-selectable">True</property>
+                    <property name="use-markup">False</property>
+                    <style>
+                      <class name="property" />
+                    </style>
+                  </object>
+                </child>
+
+                <child>
+                  <object class="AdwActionRow" id="aar_book_fmt">
+                    <property name="title" translatable="yes">Format</property>
+                    <property name="subtitle-selectable">True</property>
+                    <property name="use-markup">False</property>
+                    <style>
+                      <class name="property" />
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="aar_txt_parse">
+                    <property name="title" translatable="yes">TXT parse rules</property>
+                    <property name="subtitle-selectable">True</property>
+                    <property name="subtitle-lines">2</property>
+                    <property name="use-markup">False</property>
+                    <property name="activatable-widget">txt_parse_button</property>
+                    <child type="suffix">
+                      <object class="GtkButton" id="txt_parse_button">
+                        <property name="valign">center</property>
+                        <property name="icon-name">document-edit-symbolic</property>
+                        <property name="tooltip-text" translatable="yes">Edit TXT parse rules</property>
+                        <signal name="clicked" handler="_on_edit_txt_parse"/>
+                        <style>
+                          <class name="flat" />
+                        </style>
+                      </object>
+                    </child>
+                    <style>
+                      <class name="property" />
+                    </style>
+                  </object>
+                </child>
+                <child>
+                  <object class="AdwActionRow" id="aar_file_size">
+                    <property name="title" translatable="yes">File Size</property>
+                    <property name="subtitle-selectable">True</property>
+                    <property name="use-markup">False</property>
+                    <style>
+                      <class name="property" />
+                    </style>
+                  </object>
+                </child>
+              </object>
+            </child>
+
+            <child>
               <object class="AdwPreferencesGroup" id="details">
                 <property name="title" translatable="yes" >Reading Time</property>
                 <child>
@@ -148,54 +219,6 @@
                     <property name="title" translatable="yes">All</property>
                     <property name="subtitle-selectable">True</property>
                     <property name="subtitle-lines">2</property>
-                    <property name="use-markup">False</property>
-                    <style>
-                      <class name="property" />
-                    </style>
-                  </object>
-                </child>
-              </object>
-            </child>
-
-            <child>
-              <object class="AdwPreferencesGroup">
-                <property name="title" translatable="yes" >Details</property>
-
-                <child>
-                  <object class="AdwActionRow" id="aar_book_txt_all">
-                    <property name="title" translatable="yes">txt number</property>
-                    <property name="subtitle-selectable">True</property>
-                    <property name="use-markup">False</property>
-                    <style>
-                      <class name="property" />
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="aar_book_words">
-                    <property name="title" translatable="yes">Word Count</property>
-                    <property name="subtitle-selectable">True</property>
-                    <property name="use-markup">False</property>
-                    <style>
-                      <class name="property" />
-                    </style>
-                  </object>
-                </child>
-
-                <child>
-                  <object class="AdwActionRow" id="aar_book_fmt">
-                    <property name="title" translatable="yes">Format</property>
-                    <property name="subtitle-selectable">True</property>
-                    <property name="use-markup">False</property>
-                    <style>
-                      <class name="property" />
-                    </style>
-                  </object>
-                </child>
-                <child>
-                  <object class="AdwActionRow" id="aar_file_size">
-                    <property name="title" translatable="yes">File Size</property>
-                    <property name="subtitle-selectable">True</property>
                     <property name="use-markup">False</property>
                     <style>
                       <class name="property" />

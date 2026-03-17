@@ -56,6 +56,7 @@ heartale_sources_widgets = [
     'widgets/shelf_row.py',
     'widgets/pg_tag_view.py',
     'widgets/dialog_input.py',
+    'widgets/book_txt_parse_dialog.py',
     'widgets/properties_view.py',
 ]
 install_data(heartale_sources_widgets, install_dir: moduledir / 'widgets')

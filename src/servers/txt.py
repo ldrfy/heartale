@@ -93,8 +93,8 @@ class TxtServer(Server):
 
         with open(self.book.path, "r", encoding=self.book.encoding, errors="ignore") as f:
             text = f.read()
-        primary_rule = get_txt_parse_rules()[0]
-        return parse_chap_names(text, **primary_rule)
+        rules = get_txt_parse_rules_for_book(self.book)
+        return parse_chap_names_with_rules(text, rules)
 
     def _strip_leading_chap_name(self, chap_txt: str, chap_n: int) -> str:
         """去掉章节正文开头与目录重复的标题行。
@@ -188,6 +188,40 @@ TXT_PARSE_DEFAULT_CONFIG = dict(TXT_PARSE_RULES[0])
 TXT_PARSE_DEFAULT_CONFIG_EN = dict(TXT_PARSE_RULES[1])
 
 
+def validate_book_txt_parse_overrides(
+    volume_pattern: str | None,
+    chapter_pattern: str | None,
+) -> tuple[str, str]:
+    """校验并规范化单本书的 txt 解析规则覆盖字段。
+
+    Args:
+        volume_pattern (str | None): 卷标题正则（空表示不覆盖）
+        chapter_pattern (str | None): 章节标题正则（空表示不覆盖）
+
+    Returns:
+        tuple[str, str]: 校验后的 (volume_pattern, chapter_pattern)，未覆盖项返回空字符串
+    """
+    global_cfg = get_txt_parse_config()
+
+    volume_pattern = (volume_pattern or "").strip()
+    chapter_pattern = (chapter_pattern or "").strip()
+
+    if volume_pattern:
+        volume_pattern = _validate_regex_config(
+            volume_pattern,
+            global_cfg["volume_pattern"],
+            "volume_pattern",
+        )
+    if chapter_pattern:
+        chapter_pattern = _validate_regex_config(
+            chapter_pattern,
+            global_cfg["chapter_pattern"],
+            "chapter_pattern",
+        )
+
+    return volume_pattern, chapter_pattern
+
+
 def get_txt_parse_config() -> dict:
     """读取 txt 章节解析配置。
 
@@ -237,6 +271,44 @@ def get_txt_parse_rules() -> list[dict[str, str]]:
         ),
     }
     return [primary_rule, *TXT_PARSE_RULES]
+
+
+def get_txt_parse_rules_for_book(book: Book) -> list[dict[str, str]]:
+    """获取单本书的 txt 章节解析规则列表（支持回退到全局配置）。
+
+    规则优先级：
+    1) 书籍自定义规则（若设置）
+    2) 全局规则
+    3) 内置兜底规则（中英）
+
+    Args:
+        book (Book): 书籍对象
+
+    Returns:
+        list[dict[str, str]]: 章节解析规则列表
+    """
+    global_rules = get_txt_parse_rules()
+    has_overrides = bool(
+        str(getattr(book, "txt_volume_pattern", "")).strip()
+        or str(getattr(book, "txt_chapter_pattern", "")).strip()
+    )
+    if not has_overrides:
+        return global_rules
+
+    global_primary = global_rules[0]
+    book_primary = {
+        "volume_pattern": _validate_regex_config(
+            getattr(book, "txt_volume_pattern", ""),
+            global_primary["volume_pattern"],
+            "volume_pattern",
+        ),
+        "chapter_pattern": _validate_regex_config(
+            getattr(book, "txt_chapter_pattern", ""),
+            global_primary["chapter_pattern"],
+            "chapter_pattern",
+        ),
+    }
+    return [book_primary, *global_rules]
 
 
 def set_txt_parse_config(**kwargs) -> dict:
@@ -314,14 +386,28 @@ def parse_chap_names(
     Returns:
         tuple[list[str], list[int]]: 章节标题和对应偏移位置
     """
-    primary_rule = _build_parse_rule(
-        volume_pattern,
-        chapter_pattern,
+    primary_rule = _build_parse_rule(volume_pattern, chapter_pattern)
+    return parse_chap_names_with_rules(
+        file_content,
+        [primary_rule, *get_txt_parse_rules()[1:]],
     )
-    rules = _expand_parse_rules_for_match(
-        [primary_rule, *get_txt_parse_rules()[1:]]
-    )
-    for rule in rules:
+
+
+def parse_chap_names_with_rules(
+    file_content: str,
+    rules: list[dict[str, str]],
+) -> tuple[list[str], list[int]]:
+    """使用给定规则列表解析 txt 书籍章节目录。
+
+    Args:
+        file_content (str): txt 全文内容
+        rules (list[dict[str, str]]): 章节解析规则列表（按优先级顺序）
+
+    Returns:
+        tuple[list[str], list[int]]: 章节标题和对应偏移位置
+    """
+    expanded_rules = _expand_parse_rules_for_match(rules)
+    for rule in expanded_rules:
         chap_names, chap_ps = _parse_chap_names_once(
             file_content,
             rule["volume_pattern"],

@@ -47,8 +47,35 @@ class LibraryDB:
             self.db_path, detect_types=sqlite3.PARSE_DECLTYPES)
         self.conn.row_factory = sqlite3.Row
         self._init_tables()
+        self._ensure_book_txt_parse_columns()
 
         # self._ensure_columns_and_renames()  # <- 调用迁移函数
+
+    def _ensure_book_txt_parse_columns(self) -> None:
+        """确保 books 表存在 txt 解析规则覆盖字段。
+
+        新增列：
+        - txt_volume_pattern
+        - txt_chapter_pattern
+        """
+        cur = self.conn.cursor()
+        cur.execute("PRAGMA table_info(books)")
+        cols = {r["name"] for r in cur.fetchall()}
+
+        stmts = []
+        if "txt_volume_pattern" not in cols:
+            stmts.append(
+                "ALTER TABLE books ADD COLUMN txt_volume_pattern TEXT NOT NULL DEFAULT ''"
+            )
+        if "txt_chapter_pattern" not in cols:
+            stmts.append(
+                "ALTER TABLE books ADD COLUMN txt_chapter_pattern TEXT NOT NULL DEFAULT ''"
+            )
+
+        for stmt in stmts:
+            cur.execute(stmt)
+        if stmts:
+            self.conn.commit()
 
     def _ensure_columns_and_renames(self):
         """
@@ -157,6 +184,8 @@ class LibraryDB:
             txt_all INTEGER NOT NULL DEFAULT 0,
             sort REAL NOT NULL DEFAULT 0,
             encoding TEXT,
+            txt_volume_pattern TEXT NOT NULL DEFAULT '',
+            txt_chapter_pattern TEXT NOT NULL DEFAULT '',
             update_date INTEGER NOT NULL,
             create_date INTEGER NOT NULL
         )
@@ -240,11 +269,13 @@ class LibraryDB:
         cur.execute("""
         INSERT INTO books(
             md5, path, name, author, fmt, chap_n, chap_name, chap_all, chap_txt_pos,
-            txt_all, txt_pos, encoding, sort, update_date, create_date
+            txt_all, txt_pos, encoding, txt_volume_pattern, txt_chapter_pattern,
+            sort, update_date, create_date
         )
         VALUES(
             :md5, :path, :name, :author, :fmt, :chap_n, :chap_name, :chap_all, :chap_txt_pos,
-            :txt_all, :txt_pos, :encoding, :sort, :update_date, :create_date
+            :txt_all, :txt_pos, :encoding, :txt_volume_pattern, :txt_chapter_pattern,
+            :sort, :update_date, :create_date
         )
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
@@ -255,6 +286,8 @@ class LibraryDB:
             chap_all=excluded.chap_all,
             txt_all=excluded.txt_all,
             encoding=excluded.encoding,
+            txt_volume_pattern=excluded.txt_volume_pattern,
+            txt_chapter_pattern=excluded.txt_chapter_pattern,
             sort=excluded.sort,
             fmt=excluded.fmt,
             update_date=excluded.update_date,
@@ -272,6 +305,8 @@ class LibraryDB:
             "txt_all": b.txt_all,
             "txt_pos": b.txt_pos,
             "encoding": b.encoding,
+            "txt_volume_pattern": b.txt_volume_pattern,
+            "txt_chapter_pattern": b.txt_chapter_pattern,
             "sort": b.sort,
             "update_date": b.update_date,
             "create_date": b.create_date,
@@ -285,11 +320,13 @@ class LibraryDB:
         cur.execute("""
         INSERT INTO books(
             md5, path, name, author, fmt, chap_n, chap_name, chap_all, chap_txt_pos,
-            txt_all, txt_pos, encoding, sort, update_date, create_date
+            txt_all, txt_pos, encoding, txt_volume_pattern, txt_chapter_pattern,
+            sort, update_date, create_date
         )
         VALUES(
             :md5, :path, :name, :author, :fmt, :chap_n, :chap_name, :chap_all, :chap_txt_pos,
-            :txt_all, :txt_pos, :encoding, :sort, :update_date, CURRENT_TIMESTAMP
+            :txt_all, :txt_pos, :encoding, :txt_volume_pattern, :txt_chapter_pattern,
+            :sort, :update_date, CURRENT_TIMESTAMP
         )
         ON CONFLICT(md5) DO UPDATE SET
             path=excluded.path,
@@ -303,6 +340,8 @@ class LibraryDB:
             txt_all=excluded.txt_all,
             txt_pos=excluded.txt_pos,
             encoding=excluded.encoding,
+            txt_volume_pattern=excluded.txt_volume_pattern,
+            txt_chapter_pattern=excluded.txt_chapter_pattern,
             sort=excluded.sort,
             update_date=excluded.update_date
         """, {
@@ -318,6 +357,8 @@ class LibraryDB:
             "txt_all": b.txt_all,
             "txt_pos": b.txt_pos,
             "encoding": b.encoding,
+            "txt_volume_pattern": b.txt_volume_pattern,
+            "txt_chapter_pattern": b.txt_chapter_pattern,
             "sort": b.sort,
             "update_date": b.update_date,
         })
@@ -384,7 +425,10 @@ class LibraryDB:
             id=r["id"], path=r["path"], name=r["name"], author=r["author"],
             chap_n=r["chap_n"], chap_name=r["chap_name"], chap_all=r["chap_all"],
             chap_txt_pos=r["chap_txt_pos"], txt_pos=r["txt_pos"], txt_all=r["txt_all"],
-            encoding=r["encoding"], md5=r["md5"], sort=r["sort"], fmt=r["fmt"],
+            encoding=r["encoding"], md5=r["md5"],
+            txt_volume_pattern=r["txt_volume_pattern"],
+            txt_chapter_pattern=r["txt_chapter_pattern"],
+            sort=r["sort"], fmt=r["fmt"],
             create_date=r["create_date"], update_date=r["update_date"]
         )
 
@@ -663,6 +707,15 @@ class LibraryDB:
             "REPLACE INTO configs (key, value, update_time) VALUES (?, ?, ?)",
             (key, value_str, int(time.time()))
         )
+
+    def delete_config(self, key: str) -> None:
+        """删除指定配置项。
+
+        Args:
+            key (str): 配置 key
+        """
+        cur = self.conn.cursor()
+        cur.execute("DELETE FROM configs WHERE key=?", (key,))
 
     def get_config(self, key: str, default=None):
         """读取配置

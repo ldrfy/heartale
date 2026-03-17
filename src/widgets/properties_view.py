@@ -9,6 +9,7 @@ from ..entity.book import BOOK_FMT_LEGADO, BOOK_FMT_TXT, Book
 from ..entity.time_read import TIME_READ_WAY_LISTEN, TIME_READ_WAY_READ
 from ..utils import get_file_size, get_time
 from ..utils.gui import open_folder, open_url
+from .book_txt_parse_dialog import BookTxtParseDialog
 
 
 @Gtk.Template(resource_path="/cool/ldr/heartale/properties_view.ui")
@@ -21,6 +22,8 @@ class HPropertiesView(Adw.Bin):
     aar_book_words: Adw.ActionRow = Gtk.Template.Child()
     aar_book_fmt: Adw.ActionRow = Gtk.Template.Child()
     aar_file_size: Adw.ActionRow = Gtk.Template.Child()
+    aar_txt_parse: Adw.ActionRow = Gtk.Template.Child()
+    txt_parse_button: Gtk.Button = Gtk.Template.Child()
     file_created: Adw.ActionRow = Gtk.Template.Child()
     file_modified: Adw.ActionRow = Gtk.Template.Child()
     aar_folder: Adw.ActionRow = Gtk.Template.Child()
@@ -101,6 +104,8 @@ class HPropertiesView(Adw.Bin):
                 "created_at": get_time(book.create_date),
                 "updated_at": get_time(book.update_date),
                 "is_legado": book.fmt == BOOK_FMT_LEGADO,
+                "is_txt": book.fmt == BOOK_FMT_TXT,
+                "txt_parse_subtitle": self._build_txt_parse_subtitle(book),
             }
 
             db.close()
@@ -131,7 +136,35 @@ class HPropertiesView(Adw.Bin):
             self.file_created.set_subtitle(ps["created_at"])
             self.file_modified.set_subtitle(ps["updated_at"])
 
+            self.aar_txt_parse.set_visible(ps["is_txt"])
+            if ps["is_txt"]:
+                self.aar_txt_parse.set_subtitle(ps["txt_parse_subtitle"])
+
         threading.Thread(target=worker, daemon=True).start()
+
+    def _build_txt_parse_subtitle(self, book: Book) -> str:
+        """生成当前书籍 txt 解析规则的说明文本。
+
+        Args:
+            book (Book): 书籍对象
+
+        Returns:
+            str: 用于侧栏显示的副标题文本
+        """
+        if not (book.txt_volume_pattern.strip() or book.txt_chapter_pattern.strip()):
+            return _("Using global TXT parse rules")
+
+        parts = []
+        if book.txt_volume_pattern.strip():
+            parts.append(_("volume"))
+        if book.txt_chapter_pattern.strip():
+            parts.append(_("chapter"))
+
+        if not parts:
+            return _("Using global TXT parse rules")
+
+        detail = ", ".join(parts)
+        return _("Custom ({detail}) · Fallback: global").format(detail=detail)
 
     def _get_file_size(self):
         """返回当前书籍文件大小文本。
@@ -200,3 +233,23 @@ class HPropertiesView(Adw.Bin):
     def _on_open_file(self, *_):
         """响应按钮点击并打开当前书籍资源。"""
         self.open_current_resource()
+
+    @Gtk.Template.Callback()
+    def _on_edit_txt_parse(self, *_args):
+        """打开当前书籍的 txt 解析规则设置对话框。"""
+        if not self.book or self.book.fmt != BOOK_FMT_TXT:
+            return
+
+        def on_done():
+            if not self.book:
+                return
+            self.aar_txt_parse.set_subtitle(
+                self._build_txt_parse_subtitle(self.book)
+            )
+
+        dialog = BookTxtParseDialog(self.book, on_done=on_done)
+        root = self.get_root()
+        if root is not None:
+            dialog.present(root)
+        else:
+            dialog.present()

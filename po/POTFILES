@@ -5,6 +5,7 @@ data/cool.ldr.heartale.gschema.xml
 
 src/res/preference.ui
 src/res/properties_view.ui
+src/res/book_txt_parse_dialog.ui
 src/res/reader_page.ui
 src/res/shelf_page.ui
 src/res/shelf_row.ui
@@ -33,6 +34,7 @@ src/widgets/dialog_input.py
 src/widgets/__init__.py
 src/widgets/pg_tag_view.py
 src/widgets/properties_view.py
+src/widgets/book_txt_parse_dialog.py
 src/widgets/shelf_row.py
 src/__init__.py
 src/main.py

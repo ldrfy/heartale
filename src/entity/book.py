@@ -2,9 +2,8 @@
 import os
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import Optional
-
 from gettext import gettext as _
+from typing import Optional
 
 try:
     from gi.repository import GLib, GObject  # type: ignore
@@ -43,6 +42,8 @@ class Book:
     txt_all: int
     encoding: str
     md5: str
+    txt_volume_pattern: str = ""
+    txt_chapter_pattern: str = ""
     # 类型，比如 0 txt, 1 legado, 2 epub, 3 mobi, 4 pdf, 5 djvu
     sort: float = 0.0
     fmt: int = BOOK_FMT_TXT
@@ -89,6 +90,8 @@ if HAS_GI:
         txt_all = GObject.Property(type=int)
         encoding = GObject.Property(type=str)
         md5 = GObject.Property(type=str)
+        txt_volume_pattern = GObject.Property(type=str)
+        txt_chapter_pattern = GObject.Property(type=str)
         sort = GObject.Property(type=float)
         fmt = GObject.Property(type=int)
         create_date = GObject.Property(type=int)
@@ -111,6 +114,8 @@ if HAS_GI:
                 txt_all=b.txt_all,
                 encoding=b.encoding,
                 md5=b.md5,
+                txt_volume_pattern=b.txt_volume_pattern,
+                txt_chapter_pattern=b.txt_chapter_pattern,
                 sort=b.sort,
                 fmt=b.fmt,
                 create_date=b.create_date,
@@ -130,6 +135,8 @@ if HAS_GI:
                 txt_all=self.txt_all,
                 encoding=self.encoding,
                 md5=self.md5,
+                txt_volume_pattern=self.txt_volume_pattern,
+                txt_chapter_pattern=self.txt_chapter_pattern,
                 sort=self.sort,
                 fmt=self.fmt,
                 create_date=self.create_date,
